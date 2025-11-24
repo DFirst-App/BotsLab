@@ -499,11 +499,16 @@
       }
 
       .action-buttons {
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
       }
 
+      .action-btn.trading-btn {
+        grid-column: 1 / -1;
+      }
+
       .action-btn {
-        padding: 10px 14px;
+        padding: 10px 12px;
         min-height: 42px;
         height: 42px;
       }
@@ -581,8 +586,17 @@
         margin-bottom: 10px;
       }
 
+      .action-buttons {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .action-btn.trading-btn {
+        grid-column: 1 / -1;
+      }
+
       .action-btn {
-        padding: 8px 12px;
+        padding: 8px 10px;
         min-height: 40px;
         height: 40px;
       }
@@ -755,12 +769,16 @@
       }
 
       .action-buttons {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .action-btn.trading-btn {
+        grid-column: 1 / -1;
       }
 
       .action-btn {
-        padding: 12px 18px;
+        padding: 12px 14px;
         min-height: 48px;
         flex-direction: row;
         justify-content: center;
