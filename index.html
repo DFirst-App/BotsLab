@@ -49,19 +49,20 @@
     .page {
       position: relative;
       z-index: 1;
-      width: min(420px, 92vw);
+      width: 100%;
+      max-width: 1400px;
       margin: 0 auto;
       min-height: 100vh;
-      padding: 40px 0;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
+      gap: 24px;
     }
 
     .card {
       width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
       background: var(--panel);
       border-radius: 24px;
       padding: 26px;
@@ -71,6 +72,22 @@
       flex-direction: column;
       align-items: center;
       gap: 18px;
+    }
+
+    .account-info {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      width: auto;
+      min-width: 380px;
+      max-width: 480px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12) 0%, rgba(31, 37, 49, 0.95) 100%);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 210, 255, 0.2);
+      border: 1px solid rgba(0, 210, 255, 0.15);
+      display: none;
+      backdrop-filter: blur(10px);
     }
 
     .card h2 {
@@ -187,24 +204,37 @@
       letter-spacing: 0.06em;
     }
 
-    .account-info {
-      width: 100%;
-      background: var(--panel-strong);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      padding: 20px;
-      display: none;
-    }
-
     .account-info.connected {
       display: block;
+    }
+
+    .account-info h3 {
+      margin: 0 0 24px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .account-section {
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .account-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
     }
 
     .account-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
+      padding: 12px 0;
     }
 
     .account-row:last-child {
@@ -212,37 +242,70 @@
     }
 
     .account-label {
-      color: var(--muted);
-      font-size: 14px;
+      color: rgba(152, 162, 189, 0.8);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .account-value {
       color: var(--text);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
+      letter-spacing: -0.01em;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .balance-value {
       color: var(--success);
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
+      letter-spacing: -0.02em;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .mt5-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mt5-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .mt5-header h4 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .disconnect-btn {
       width: 100%;
-      margin-top: 16px;
-      background: var(--danger);
-      color: #ffffff;
-      border: none;
+      background: rgba(255, 95, 109, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(255, 95, 109, 0.3);
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .disconnect-btn:hover {
-      opacity: 0.9;
+      background: rgba(255, 95, 109, 0.25);
+      border-color: rgba(255, 95, 109, 0.5);
+      transform: translateY(-1px);
     }
 
     .loading {
@@ -293,32 +356,34 @@
 
       <!-- Account Info Card (shown when connected) -->
       <div class="account-info" id="accountCard">
-        <h3 style="margin: 0 0 16px; font-size: 20px; font-weight: 600; color: var(--text);">Deriv Trading Account</h3>
+        <h3>Deriv Trading Account</h3>
         
-        <div class="account-row">
-          <span class="account-label">Full Name</span>
-          <span class="account-value" id="fullName">-</span>
-        </div>
-        
-        <div class="account-row">
-          <span class="account-label">Account ID</span>
-          <span class="account-value" id="accountId">-</span>
-        </div>
-        
-        <div class="account-row">
-          <span class="account-label">Available Balance</span>
-          <span class="balance-value" id="balance">-</span>
-        </div>
-        
-        <div class="account-row">
-          <span class="account-label">Currency</span>
-          <span class="account-value" id="currency">-</span>
+        <div class="account-section">
+          <div class="account-row">
+            <span class="account-label">Full Name</span>
+            <span class="account-value" id="fullName">-</span>
+          </div>
+          
+          <div class="account-row">
+            <span class="account-label">Account ID</span>
+            <span class="account-value" id="accountId">-</span>
+          </div>
+          
+          <div class="account-row">
+            <span class="account-label">Available Balance</span>
+            <span class="balance-value" id="balance">-</span>
+          </div>
+          
+          <div class="account-row">
+            <span class="account-label">Currency</span>
+            <span class="account-value" id="currency">-</span>
+          </div>
         </div>
 
         <!-- MT5 Account Section -->
-        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h4 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">MT5 Account</h4>
+        <div class="mt5-section">
+          <div class="mt5-header">
+            <h4>MT5 Account</h4>
             <button id="createMt5Btn" class="btn btn-secondary" style="display: none; width: auto; padding: 8px 16px; height: auto; font-size: 13px;" onclick="createMT5Account()">
               Create MT5 Account
             </button>
@@ -340,7 +405,7 @@
           </div>
         </div>
         
-        <button class="disconnect-btn" onclick="handleDisconnect()">Disconnect</button>
+        <button class="disconnect-btn" onclick="handleDisconnect()" style="margin-top: 24px;">Disconnect</button>
       </div>
 
       <span class="api-link">Use API Key Instead</span>
