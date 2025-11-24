@@ -466,7 +466,7 @@
 
     .action-buttons {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 16px;
       width: 100%;
     }
@@ -476,10 +476,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 20px 24px;
-      border-radius: 16px;
-      font-size: 15px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -489,16 +488,13 @@
       color: var(--text);
       text-decoration: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      min-height: auto;
+      height: auto;
     }
 
     .action-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .action-btn .btn-icon {
-      font-size: 28px;
-      line-height: 1;
     }
 
     .action-btn .btn-label {
@@ -551,24 +547,35 @@
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 2;
+        max-width: 480px;
+        margin-left: 300px;
       }
 
       .action-buttons {
         grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
+        gap: 14px;
       }
 
       .action-btn {
-        padding: 24px 28px;
-        min-height: 140px;
-      }
-
-      .action-btn .btn-icon {
-        font-size: 32px;
+        padding: 12px 16px;
+        min-height: auto;
+        height: 48px;
       }
 
       .action-btn .btn-label {
-        font-size: 15px;
+        font-size: 13px;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .action-buttons-container {
+        margin-left: 340px;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .action-buttons-container {
+        margin-left: 360px;
       }
     }
 
@@ -586,15 +593,10 @@
       }
 
       .action-btn {
-        padding: 16px 18px;
-        min-height: 70px;
+        padding: 12px 18px;
+        min-height: 48px;
         flex-direction: row;
-        justify-content: flex-start;
-      }
-
-      .action-btn .btn-icon {
-        font-size: 22px;
-        margin-right: 12px;
+        justify-content: center;
       }
 
       .action-btn .btn-label {
@@ -688,15 +690,12 @@
     <div class="action-buttons-container" id="actionButtonsContainer">
       <div class="action-buttons">
         <a href="https://app.deriv.com/cashier/deposit?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn deposit-btn">
-          <span class="btn-icon">💳</span>
           <span class="btn-label">Deposit</span>
         </a>
         <a href="https://app.deriv.com/cashier/withdraw?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn withdraw-btn">
-          <span class="btn-icon">💸</span>
           <span class="btn-label">Withdraw</span>
         </a>
-        <a href="https://app.deriv.com/bot?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn trading-btn">
-          <span class="btn-icon">🤖</span>
+        <a href="trading-bots.html" class="action-btn trading-btn">
           <span class="btn-label">Start Trading</span>
         </a>
       </div>
