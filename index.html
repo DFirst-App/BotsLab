@@ -53,7 +53,7 @@
       max-width: 1400px;
       margin: 0 auto;
       min-height: 100vh;
-      padding: 24px;
+      padding: 16px 24px;
       padding-bottom: 100px;
       display: flex;
       flex-direction: column;
@@ -103,7 +103,38 @@
       color: var(--muted);
       text-align: center;
       line-height: 1.5;
-      font-size: 15px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .card p .powered-text {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.7;
+    }
+
+    .card p .deriv-brand {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ff444f;
+      text-transform: lowercase;
+      letter-spacing: 0.06em;
+      opacity: 1;
+    }
+
+    @media (min-width: 769px) {
+      .card p {
+        font-size: 14px;
+      }
+
+      .card p .powered-text {
+        font-size: 13px;
+      }
+
+      .card p .deriv-brand {
+        font-size: 15px;
+      }
     }
 
     .oauth-card {
@@ -376,9 +407,22 @@
 
     @media (max-width: 768px) {
       .page {
-        padding: 12px 12px;
+        padding: 8px 12px;
         padding-bottom: 60px;
         gap: 12px;
+      }
+
+      .card p {
+        font-size: 11px;
+        margin-bottom: 8px;
+      }
+
+      .card p .powered-text {
+        font-size: 10px;
+      }
+
+      .card p .deriv-brand {
+        font-size: 12px;
       }
 
       .account-info {
@@ -478,13 +522,8 @@
         text-align: center;
       }
 
-      .footer-text,
-      .powered-by {
+      .footer-text {
         font-size: 10px;
-      }
-
-      .powered-by span:last-child {
-        font-size: 12px;
       }
     }
 
@@ -742,7 +781,7 @@
   <div class="grid-bg"></div>
   <main class="page">
     <div class="card">
-      <p>Connect to deposit, withdraw, and trade on Deriv</p>
+      <p><span class="powered-text">Automated Trading Platform</span> - <span class="powered-text">Powered by</span> <span class="deriv-brand">deriv</span></p>
       
       <!-- OAuth Connect Card (shown when not connected) -->
       <div class="oauth-card" id="connectCard">
@@ -832,10 +871,6 @@
     <footer>
       <div class="footer-content">
         <div class="footer-text">© <span id="year"></span> DFirst Automation Lab</div>
-        <div class="powered-by">
-          <span>Powered by</span>
-          <span>deriv</span>
-        </div>
       </div>
     </footer>
   </main>
