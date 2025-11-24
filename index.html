@@ -633,6 +633,88 @@
       display: none;
     }
 
+    /* Disclaimer Section */
+    .disclaimer-section {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+      margin-bottom: 20px;
+      transition: opacity 0.3s ease;
+    }
+
+    .disclaimer-section.hidden {
+      display: none;
+    }
+
+    .disclaimer {
+      background: rgba(31, 37, 49, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .disclaimer-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #ff444f;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .disclaimer p {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.5;
+      color: rgba(152, 162, 189, 0.9);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    @media (max-width: 768px) {
+      .disclaimer-section {
+        padding: 0 12px;
+        margin-bottom: 12px;
+      }
+
+      .disclaimer {
+        padding: 12px 16px;
+      }
+
+      .disclaimer-title {
+        font-size: 10px;
+        margin-bottom: 6px;
+      }
+
+      .disclaimer p {
+        font-size: 10px;
+        line-height: 1.4;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .disclaimer-section {
+        padding: 0 10px;
+        margin-bottom: 10px;
+      }
+
+      .disclaimer {
+        padding: 10px 14px;
+      }
+
+      .disclaimer-title {
+        font-size: 9px;
+        margin-bottom: 5px;
+      }
+
+      .disclaimer p {
+        font-size: 9px;
+        line-height: 1.35;
+      }
+    }
+
     /* Action Buttons Container */
     .action-buttons-container {
       display: none;
@@ -886,6 +968,14 @@
       </div>
     </div>
 
+    <!-- Disclaimer Section (hidden when connected) -->
+    <div class="disclaimer-section" id="disclaimerSection">
+      <div class="disclaimer">
+        <div class="disclaimer-title">DISCLAIMER</div>
+        <p>Deriv offers complex derivatives, such as options and contracts for difference ("CFDs"). These products may not be suitable for all clients, and trading them puts you at risk. Please make sure that you understand the following risks before trading Deriv products: a) you may lose some or all of the money you invest in the trade, b) if your trade involves currency conversion, exchange rates will affect your profit and loss. You should never trade with borrowed money or with money that you cannot afford to lose.</p>
+      </div>
+    </div>
+
     <footer>
       <div class="footer-content">
         <div class="footer-text">© <span id="year"></span> DFirst Automation Lab</div>
@@ -1074,6 +1164,9 @@
       document.getElementById('connectCard').classList.add('hidden');
       document.getElementById('accountCard').classList.add('connected');
       
+      // Hide disclaimer when connected
+      document.getElementById('disclaimerSection').classList.add('hidden');
+      
       // Show action buttons
       document.getElementById('actionButtonsContainer').classList.add('visible');
     }
@@ -1103,6 +1196,9 @@
         localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
         document.getElementById('connectCard').classList.remove('hidden');
         document.getElementById('accountCard').classList.remove('connected');
+        
+        // Show disclaimer when disconnected
+        document.getElementById('disclaimerSection').classList.remove('hidden');
         
         // Hide action buttons
         document.getElementById('actionButtonsContainer').classList.remove('visible');
