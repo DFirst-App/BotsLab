@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connecting to Deriv...</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #f5f7ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      text-align: center;
+    }
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top: 3px solid #00d2ff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <p>Connecting your Deriv account...</p>
+  </div>
+
+  <script>
+    // Parse OAuth callback parameters
+    function parseOAuthCallback() {
+      const queryString = window.location.search;
+      const params = new URLSearchParams(queryString);
+      const accounts = [];
+      let i = 1;
+      
+      while (params.has(`acct${i}`) && params.has(`token${i}`) && params.has(`cur${i}`)) {
+        accounts.push({
+          account: params.get(`acct${i}`),
+          token: params.get(`token${i}`),
+          currency: params.get(`cur${i}`).toUpperCase()
+        });
+        i++;
+      }
+
+      if (accounts.length === 0) {
+        console.error('No OAuth tokens found in callback');
+        alert('Failed to connect. Please try again.');
+        window.location.href = window.location.origin + '/unlocked/WebBots/';
+        return null;
+      }
+
+      return {
+        accounts: accounts,
+        selectedAccount: accounts[0] // Default to first account
+      };
+    }
+
+    // Store OAuth tokens in localStorage
+    function storeOAuthTokens(tokens) {
+      try {
+        localStorage.setItem('@deriv_oauth_tokens', JSON.stringify(tokens));
+        console.log('OAuth tokens stored successfully');
+        return true;
+      } catch (error) {
+        console.error('Error storing OAuth tokens:', error);
+        return false;
+      }
+    }
+
+    // Main callback handler
+    function handleOAuthCallback() {
+      const tokens = parseOAuthCallback();
+      
+      if (tokens) {
+        if (storeOAuthTokens(tokens)) {
+          // Redirect back to dashboard with OAuth params so it can process them
+          const params = new URLSearchParams(window.location.search);
+          window.location.href = window.location.origin + '/unlocked/WebBots/?' + params.toString();
+        } else {
+          alert('Failed to save connection. Please try again.');
+          window.location.href = window.location.origin + '/unlocked/WebBots/';
+        }
+      }
+    }
+
+    // Execute on page load
+    handleOAuthCallback();
+  </script>
+</body>
+</html>
+

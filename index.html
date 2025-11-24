@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DFirst WebBots Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1117;
+      --panel: #171b24;
+      --panel-strong: #1f2531;
+      --accent: #00d2ff;
+      --accent-2: #ff7a18;
+      --text: #f5f7ff;
+      --muted: #98a2bd;
+      --border: rgba(255,255,255,0.08);
+      --success: #24d970;
+      --danger: #ff5f6d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top right, rgba(0, 210, 255, 0.25), transparent 40%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(420px, 92vw);
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 40px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .card {
+      width: 100%;
+      background: var(--panel);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 18px 45px rgba(4, 6, 12, 0.55);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 22px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .oauth-card {
+      width: 100%;
+      background: var(--panel-strong);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(5, 6, 11, 0.5);
+    }
+
+    .oauth-card h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .oauth-card p {
+      margin: 0 0 16px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    .btn {
+      width: 100%;
+      height: 46px;
+      border-radius: 10px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary {
+      background: #ff444f;
+      color: #ffffff;
+      box-shadow: 0 10px 20px rgba(255, 68, 79, 0.35);
+    }
+
+    .btn-secondary {
+      background: #0891b2;
+      color: #ffffff;
+      box-shadow: 0 10px 20px rgba(8, 145, 178, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .divider {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #94a3b8;
+      font-size: 13px;
+      margin: 16px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+
+    .api-link {
+      font-size: 13px;
+      color: var(--muted);
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .powered-by {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .powered-by span:last-child {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ff444f;
+      text-transform: lowercase;
+      letter-spacing: 0.06em;
+    }
+
+    .account-info {
+      width: 100%;
+      background: var(--panel-strong);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: none;
+    }
+
+    .account-info.connected {
+      display: block;
+    }
+
+    .account-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .account-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .account-label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .account-value {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .balance-value {
+      color: var(--success);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .disconnect-btn {
+      width: 100%;
+      margin-top: 16px;
+      background: var(--danger);
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .disconnect-btn:hover {
+      opacity: 0.9;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    footer {
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <main class="page">
+    <div class="card">
+      <p>Connect to deposit, withdraw, and trade on Deriv</p>
+      
+      <!-- OAuth Connect Card (shown when not connected) -->
+      <div class="oauth-card" id="connectCard">
+        <h3>Connect with Deriv</h3>
+        <p>Sign in with your Deriv account to start trading</p>
+        <button class="btn btn-primary" id="connectBtn" onclick="handleOAuthLogin()">
+          Connect Account
+        </button>
+        <div class="divider">Don't have an account yet?</div>
+        <a class="btn btn-secondary" href="https://track.deriv.com/_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk/1/" target="_blank" rel="noopener">
+          Create Deriv Account
+        </a>
+      </div>
+
+      <!-- Account Info Card (shown when connected) -->
+      <div class="account-info" id="accountCard">
+        <h3 style="margin: 0 0 16px; font-size: 20px; font-weight: 600; color: var(--text);">Deriv Trading Account</h3>
+        <div class="account-row">
+          <span class="account-label">Account ID</span>
+          <span class="account-value" id="accountId">-</span>
+        </div>
+        <div class="account-row">
+          <span class="account-label">Available Balance</span>
+          <span class="balance-value" id="balance">-</span>
+        </div>
+        <div class="account-row">
+          <span class="account-label">Currency</span>
+          <span class="account-value" id="currency">-</span>
+        </div>
+        <button class="disconnect-btn" onclick="handleDisconnect()">Disconnect</button>
+      </div>
+
+      <span class="api-link">Use API Key Instead</span>
+      <div class="powered-by">
+        <span>Powered by</span>
+        <span>deriv</span>
+      </div>
+    </div>
+
+    <footer>© <span id="year"></span> DFirst Automation Lab</footer>
+  </main>
+
+  <script>
+    const APP_ID = '67709';
+    const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
+    const DERIV_OAUTH_TOKENS_KEY = '@deriv_oauth_tokens';
+
+    // Get OAuth URL with proper redirect
+    function getOAuthUrl() {
+      // Use the dashboard URL itself as redirect (Deriv will append OAuth params)
+      const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+      return `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&app_markup_percentage=0&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk&redirect_uri=${redirectUri}`;
+    }
+
+    // Handle OAuth login
+    function handleOAuthLogin() {
+      const btn = document.getElementById('connectBtn');
+      btn.disabled = true;
+      btn.innerHTML = 'Connecting<span class="loading"></span>';
+      
+      const oauthUrl = getOAuthUrl();
+      window.location.href = oauthUrl;
+    }
+
+    // Get stored OAuth tokens
+    function getStoredTokens() {
+      try {
+        const stored = localStorage.getItem(DERIV_OAUTH_TOKENS_KEY);
+        return stored ? JSON.parse(stored) : null;
+      } catch (error) {
+        console.error('Error reading stored tokens:', error);
+        return null;
+      }
+    }
+
+    // Connect with OAuth token and fetch account data
+    function connectWithOAuth(token) {
+      return new Promise((resolve, reject) => {
+        const ws = new WebSocket(DERIV_WS_URL);
+        let authorized = false;
+        let connectionTimeout;
+
+        const cleanup = () => {
+          if (connectionTimeout) clearTimeout(connectionTimeout);
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.close();
+          }
+        };
+
+        connectionTimeout = setTimeout(() => {
+          if (!authorized) {
+            cleanup();
+            reject(new Error('Connection timeout'));
+          }
+        }, 10000);
+
+        ws.onopen = () => {
+          console.log('WebSocket connected');
+          ws.send(JSON.stringify({
+            authorize: token,
+            req_id: Date.now()
+          }));
+        };
+
+        ws.onmessage = (msg) => {
+          try {
+            const response = JSON.parse(msg.data);
+
+            if (response.error) {
+              console.error('WebSocket error:', response.error);
+              cleanup();
+              reject(new Error(response.error.message || 'Connection failed'));
+              return;
+            }
+
+            if (response.msg_type === 'authorize' && response.authorize) {
+              authorized = true;
+              clearTimeout(connectionTimeout);
+
+              const accountData = {
+                account_id: response.authorize.loginid,
+                balance: Number(response.authorize.balance),
+                currency: response.authorize.currency
+              };
+
+              // Try to get MT5 account info
+              ws.send(JSON.stringify({
+                mt5_login_list: 1,
+                req_id: Date.now()
+              }));
+
+              // Update UI with account data
+              updateAccountDisplay(accountData);
+
+              // Wait a bit for MT5 response, then close
+              setTimeout(() => {
+                cleanup();
+                resolve(accountData);
+              }, 2000);
+            }
+
+            if (response.msg_type === 'mt5_login_list' && response.mt5_login_list?.length > 0) {
+              const mt5Account = response.mt5_login_list[0];
+              ws.send(JSON.stringify({
+                mt5_get_settings: 1,
+                login: mt5Account.login,
+                req_id: Date.now()
+              }));
+            }
+
+            if (response.msg_type === 'mt5_get_settings' && response.mt5_get_settings) {
+              const mt5Settings = response.mt5_get_settings;
+              // Could display MT5 info here if needed
+              console.log('MT5 account:', mt5Settings);
+            }
+          } catch (error) {
+            console.error('Error processing message:', error);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          cleanup();
+          reject(new Error('Connection error'));
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket closed');
+        };
+      });
+    }
+
+    // Update account display
+    function updateAccountDisplay(account) {
+      document.getElementById('accountId').textContent = account.account_id || '-';
+      document.getElementById('balance').textContent = account.balance ? account.balance.toFixed(2) : '-';
+      document.getElementById('currency').textContent = account.currency || '-';
+      
+      // Show account card, hide connect card
+      document.getElementById('connectCard').classList.add('hidden');
+      document.getElementById('accountCard').classList.add('connected');
+    }
+
+    // Handle disconnect
+    function handleDisconnect() {
+      if (confirm('Are you sure you want to disconnect your Deriv account?')) {
+        localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
+        document.getElementById('connectCard').classList.remove('hidden');
+        document.getElementById('accountCard').classList.remove('connected');
+        
+        // Reset account display
+        document.getElementById('accountId').textContent = '-';
+        document.getElementById('balance').textContent = '-';
+        document.getElementById('currency').textContent = '-';
+      }
+    }
+
+    // Parse OAuth callback from URL parameters
+    function parseOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const accounts = [];
+      let i = 1;
+      
+      while (urlParams.has(`acct${i}`) && urlParams.has(`token${i}`) && urlParams.has(`cur${i}`)) {
+        accounts.push({
+          account: urlParams.get(`acct${i}`),
+          token: urlParams.get(`token${i}`),
+          currency: urlParams.get(`cur${i}`).toUpperCase()
+        });
+        i++;
+      }
+
+      if (accounts.length === 0) {
+        return null;
+      }
+
+      return {
+        accounts: accounts,
+        selectedAccount: accounts[0]
+      };
+    }
+
+    // Handle OAuth callback from URL
+    async function handleOAuthCallbackFromUrl() {
+      const tokens = parseOAuthCallback();
+      
+      if (tokens) {
+        // Store tokens
+        try {
+          localStorage.setItem(DERIV_OAUTH_TOKENS_KEY, JSON.stringify(tokens));
+          console.log('OAuth tokens stored from callback');
+          
+          // Clean up URL (remove OAuth parameters)
+          window.history.replaceState({}, '', window.location.pathname);
+          
+          // Connect with the token
+          try {
+            await connectWithOAuth(tokens.selectedAccount.token);
+          } catch (error) {
+            console.error('Failed to connect after OAuth:', error);
+            alert('Connected but failed to load account data. Please refresh.');
+          }
+        } catch (error) {
+          console.error('Error storing OAuth tokens:', error);
+          alert('Failed to save connection. Please try again.');
+        }
+      }
+    }
+
+    // Check for existing connection on page load
+    async function checkExistingConnection() {
+      // First, check if this is an OAuth callback
+      const oauthTokens = parseOAuthCallback();
+      if (oauthTokens) {
+        await handleOAuthCallbackFromUrl();
+        return;
+      }
+
+      // Otherwise, check for stored tokens
+      const tokens = getStoredTokens();
+      
+      if (tokens && tokens.selectedAccount) {
+        try {
+          await connectWithOAuth(tokens.selectedAccount.token);
+        } catch (error) {
+          console.error('Failed to reconnect:', error);
+          // If reconnection fails, clear tokens
+          localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
+        }
+      }
+    }
+
+    // Initialize on page load
+    document.getElementById('year').textContent = new Date().getFullYear();
+    checkExistingConnection();
+  </script>
+</body>
+</html>

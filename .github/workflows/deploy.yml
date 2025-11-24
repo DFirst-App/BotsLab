@@ -1,0 +1,57 @@
+name: Deploy WebBots Dashboard
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build WebBots Dashboard
+        run: |
+          # Create web-build directory
+          mkdir -p web-build
+          
+          # Copy all HTML files from root to web-build
+          for file in *.html; do
+            if [ -f "$file" ]; then
+              cp "$file" web-build/
+              echo "✅ Copied $file"
+            fi
+          done
+          
+          # Create .nojekyll file to ensure GitHub Pages serves all files
+          touch web-build/.nojekyll
+          echo "✅ Created .nojekyll file"
+          
+          # Verify build output
+          echo "=== Build output structure ==="
+          ls -la web-build/ || true
+          echo ""
+          echo "=== All files in web-build ==="
+          find web-build -type f || true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './web-build'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
