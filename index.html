@@ -690,6 +690,39 @@
       transform: translateY(-1px);
     }
 
+    .mt5-dropdown-container {
+      display: none;
+    }
+
+    .mt5-dropdown {
+      width: 100%;
+      padding: 8px 12px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.06), rgba(255, 122, 24, 0.04));
+      border: 1px solid rgba(0, 210, 255, 0.12);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Inter', system-ui, sans-serif;
+      cursor: pointer;
+      outline: none;
+      margin-top: 8px;
+    }
+
+    .mt5-dropdown:hover {
+      border-color: rgba(0, 210, 255, 0.3);
+    }
+
+    .mt5-dropdown:focus {
+      border-color: rgba(0, 210, 255, 0.5);
+    }
+
+    .mt5-dropdown option {
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px;
+    }
+
     .account-section {
       margin-bottom: 24px;
       padding-bottom: 20px;
@@ -1077,6 +1110,18 @@
 
       .mt5-header h4 {
         font-size: 15px;
+      }
+
+      .mt5-accounts-list .mt5-account-item:not(:first-child) {
+        display: none !important;
+      }
+
+      .mt5-accounts-list .mt5-account-item:first-child {
+        display: flex !important;
+      }
+
+      .mt5-dropdown-container {
+        display: block;
       }
 
       .disconnect-btn {
@@ -1600,6 +1645,11 @@
           <div class="mt5-section-title">MT5 Accounts</div>
           <div class="mt5-accounts-list" id="mt5AccountsList">
             <!-- MT5 accounts will be populated here -->
+          </div>
+          <div class="mt5-dropdown-container" id="mt5DropdownContainer">
+            <select class="mt5-dropdown" id="mt5Dropdown">
+              <option value="">Select MT5 Account...</option>
+            </select>
           </div>
         </div>
         
@@ -2188,10 +2238,17 @@
       // Clear existing content
       mt5AccountsList.innerHTML = '';
 
+      // Get dropdown element
+      const dropdown = document.getElementById('mt5Dropdown');
+      if (dropdown) {
+        dropdown.innerHTML = '<option value="">Select MT5 Account...</option>';
+      }
+
       // Render all MT5 account types
-      allMT5Types.forEach(type => {
+      allMT5Types.forEach((type, index) => {
         const accountItem = document.createElement('div');
         accountItem.className = 'mt5-account-item';
+        accountItem.dataset.accountType = type.id;
         
         const accountName = document.createElement('span');
         accountName.className = 'mt5-account-name';
@@ -2227,7 +2284,45 @@
         accountItem.appendChild(accountName);
         accountItem.appendChild(accountInfo);
         mt5AccountsList.appendChild(accountItem);
+
+        // Add to dropdown (skip first item for small screens)
+        if (dropdown && index > 0) {
+          const option = document.createElement('option');
+          option.value = type.id;
+          option.textContent = type.name + (existingAccount ? ' (Created)' : ' (Not Created)');
+          option.dataset.accountType = type.id;
+          dropdown.appendChild(option);
+        }
       });
+
+      // Handle dropdown change to show selected account (only on small screens)
+      if (dropdown && !dropdown.hasAttribute('data-listener-attached')) {
+        dropdown.setAttribute('data-listener-attached', 'true');
+        
+        dropdown.addEventListener('change', function() {
+          const selectedType = this.value;
+          const allItems = mt5AccountsList.querySelectorAll('.mt5-account-item');
+          
+          // Hide all items
+          allItems.forEach(item => {
+            item.style.display = 'none';
+          });
+
+          if (!selectedType) {
+            // Reset to first account
+            if (allItems[0]) {
+              allItems[0].style.display = 'flex';
+            }
+            return;
+          }
+
+          // Show the selected account
+          const selectedItem = mt5AccountsList.querySelector(`[data-account-type="${selectedType}"]`);
+          if (selectedItem) {
+            selectedItem.style.display = 'flex';
+          }
+        });
+      }
     }
 
     // Legacy function for backward compatibility
