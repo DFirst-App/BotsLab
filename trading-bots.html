@@ -142,8 +142,15 @@
 
     .section-heading {
       display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-heading-text {
+      display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     .section-heading h2 {
@@ -157,6 +164,27 @@
       margin: 0;
       color: var(--muted);
       font-size: 14px;
+    }
+
+    .secondary-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      color: #00d2ff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      background: rgba(0, 210, 255, 0.08);
+      transition: all 0.2s ease;
+    }
+
+    .secondary-btn-link:hover {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: rgba(0, 210, 255, 0.6);
+      transform: translateY(-1px);
     }
 
     .bots-layout {
@@ -300,9 +328,56 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--muted);
+      padding: 40px 20px;
+    }
+
+    .placeholder-card {
+      width: 100%;
+      max-width: 520px;
+      background: radial-gradient(circle at top, rgba(0, 210, 255, 0.15), rgba(23, 27, 36, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 32px;
+      text-align: left;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .placeholder-chip {
+      align-self: flex-start;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: #00d2ff;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .placeholder-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .placeholder-text {
+      margin: 0;
       font-size: 15px;
-      text-align: center;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.6;
+    }
+
+    .placeholder-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
     }
 
     .bot-panel-content {
@@ -736,8 +811,13 @@
     </div>
 
     <div class="section-heading" id="sectionHeading">
-      <h2>Deriv Bots</h2>
-      <p>Discover digits-first automation built for volatility markets with smart safety controls.</p>
+      <div class="section-heading-text">
+        <h2>Deriv Bots</h2>
+        <p>Discover digits-first automation built for volatility markets with smart safety controls.</p>
+      </div>
+      <a class="secondary-btn-link" href="mt5trading-bots.html">
+        Explore MT5 Bots →
+      </a>
     </div>
 
     <div class="bots-layout">
@@ -787,7 +867,16 @@
 
       <div class="bot-detail-panel" id="botDetailPanel">
         <div class="panel-placeholder" id="panelPlaceholder">
-          Select a bot card to configure and start automated trading.
+          <div class="placeholder-card">
+            <span class="placeholder-chip">No Bot Selected</span>
+            <h3 class="placeholder-title">Pick a strategy to unlock live controls</h3>
+            <p class="placeholder-text">
+              Choose a digits bot to see its tailored configuration, live performance metrics, and rolling trade history. Each bot runs independently, so you can test different market styles instantly.
+            </p>
+            <div class="placeholder-actions">
+              <span class="secondary-btn-link" style="cursor: default;">Select a bot card on the left →</span>
+            </div>
+          </div>
         </div>
 
         <div class="bot-panel-content" id="botPanelContent" hidden>

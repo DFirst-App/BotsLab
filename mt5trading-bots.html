@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MT5 Trading Bots - DFirst Automation Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05060a;
+      --panel: rgba(12,15,24,0.9);
+      --panel-strong: rgba(17,21,32,0.95);
+      --accent: #7bffb7;
+      --accent-2: #00d2ff;
+      --text: #f5f7ff;
+      --muted: #9aa2c2;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.25), rgba(123, 255, 183, 0.15)), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(123, 255, 183, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 28px;
+      padding-bottom: 120px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+
+    .back-link {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 600;
+      transition: border 0.2s ease, background 0.2s ease;
+    }
+
+    .back-link:hover {
+      border-color: rgba(123, 255, 183, 0.6);
+      background: rgba(123, 255, 183, 0.1);
+    }
+
+    .mt5-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 22px;
+    }
+
+    .mt5-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      min-height: 200px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mt5-card h3 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    .mt5-card p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.5;
+    }
+
+    .mt5-card .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(123, 255, 183, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(123, 255, 183, 0.35);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    .coming-soon {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--muted);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      background: rgba(5, 6, 10, 0.4);
+      margin-top: 30px;
+    }
+
+    .coming-soon h2 {
+      margin: 0;
+      font-size: 28px;
+      color: var(--text);
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 20px 28px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(5, 6, 10, 0.6);
+      display: flex;
+      justify-content: center;
+    }
+
+    footer p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 24px 18px 100px;
+      }
+
+      .header h1 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <main class="page">
+    <div class="header">
+      <div>
+        <h1>MT5 Trading Bots</h1>
+        <p>High-frequency automation tuned for MetaTrader 5 accounts.</p>
+      </div>
+      <a href="trading-bots.html" class="back-link">← Back to Web Bots</a>
+    </div>
+
+    <div class="coming-soon">
+      <h2>MT5 Bots Coming Soon</h2>
+      <p>Our MT5 strategies are under development. Stay tuned for advanced hedging, scalping, and synthetic index bots built for MetaTrader 5.</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> DFirst Automation Lab — Powered by Deriv</p>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
+
