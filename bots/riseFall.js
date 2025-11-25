@@ -421,5 +421,31 @@
     }
 
     startRunningTimer() {
+      this.clearRunningTimer();
+      this.runningTimer = setInterval(() => {
+        if (this.isRunning) {
+          this.ui.updateRunningTime(this.getRunningTime());
+        }
+      }, 1000);
+    }
 
+    clearRunningTimer() {
+      if (this.runningTimer) {
+        clearInterval(this.runningTimer);
+        this.runningTimer = null;
+      }
+    }
+
+    getRunningTime() {
+      if (!this.startTime) return '00:00:00';
+      const diff = Math.max(0, Math.floor((Date.now() - this.startTime.getTime()) / 1000));
+      const hours = Math.floor(diff / 3600).toString().padStart(2, '0');
+      const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+      const seconds = (diff % 60).toString().padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    }
+  }
+
+  window.RiseFallBot = RiseFallBot;
+})();
 
