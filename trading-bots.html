@@ -731,7 +731,7 @@
       </div>
     </div>
 
-    <div class="section-heading">
+    <div class="section-heading" id="sectionHeading">
       <h2>Deriv Bots</h2>
       <p>Discover digits-first automation built for volatility markets with smart safety controls.</p>
     </div>
@@ -902,6 +902,7 @@
       botsList?.classList.add('hidden');
       activeBotName.textContent = BOT_DISPLAY_NAME;
       pageHeader.classList.add('show-active');
+      document.getElementById('sectionHeading').hidden = true;
     }
 
     function closeBotPanel(stopBot = true) {
@@ -911,6 +912,7 @@
       pageHeader.classList.remove('show-active');
       panelPlaceholder.hidden = false;
       botPanelContent.hidden = true;
+      document.getElementById('sectionHeading').hidden = false;
       botsList?.classList.remove('hidden');
       botCard.classList.remove('active');
       botUI?.showStatus('Waiting for bot configuration.');
