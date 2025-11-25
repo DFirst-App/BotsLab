@@ -164,11 +164,51 @@
       transform: translateY(-1px);
     }
 
+    .header-mt5-btn .full-text {
+      display: inline;
+    }
+
+    .header-mt5-btn .short-text {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .header-mt5-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        gap: 6px;
+      }
+
+      .header-mt5-btn .full-text {
+        display: none;
+      }
+
+      .header-mt5-btn .short-text {
+        display: inline;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-mt5-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        gap: 4px;
+      }
+    }
+
     .section-heading {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 12px;
+    }
+
+    .section-heading.hidden {
+      display: none !important;
+    }
+
+    .page:has(.header.show-active) .section-heading {
+      display: none !important;
     }
 
     .section-heading-text {
@@ -784,7 +824,8 @@
         <span id="activeBotName">BOT NAME</span>
       </div>
       <a class="header-mt5-btn" href="mt5trading-bots.html">
-        Explore MT5 Bots →
+        <span class="full-text">Explore MT5 Bots →</span>
+        <span class="short-text">MT5 Bots →</span>
       </a>
     </div>
 
@@ -1071,6 +1112,7 @@
       botsList?.classList.add('hidden');
       pageHeader.classList.add('show-active');
       sectionHeading.hidden = true;
+      sectionHeading.classList.add('hidden');
     }
 
     function closeBotPanel(stopBot = true) {
@@ -1085,6 +1127,7 @@
       botPanelContent.hidden = true;
       botsList?.classList.remove('hidden');
       sectionHeading.hidden = false;
+      sectionHeading.classList.remove('hidden');
       botUI?.showStatus('Waiting for bot configuration.');
     }
 
