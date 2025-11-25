@@ -10,25 +10,46 @@
   let popupContainer = null;
 
   function initPopupContainer() {
-    if (popupContainer) return;
+    if (popupContainer && popupContainer.parentNode) return;
 
-    popupContainer = document.createElement('div');
-    popupContainer.id = 'popupNotificationsContainer';
-    popupContainer.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      pointer-events: none;
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      box-sizing: border-box;
-    `;
-    document.body.appendChild(popupContainer);
+    // Wait for DOM to be ready
+    if (!document.body) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPopupContainer);
+        return;
+      }
+      // If body still doesn't exist, wait a bit
+      setTimeout(initPopupContainer, 100);
+      return;
+    }
+
+    // Remove existing container if it exists but isn't attached
+    if (popupContainer && !popupContainer.parentNode) {
+      popupContainer = null;
+    }
+
+    if (!popupContainer) {
+      popupContainer = document.createElement('div');
+      popupContainer.id = 'popupNotificationsContainer';
+      popupContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+      `;
+    }
+
+    if (!popupContainer.parentNode) {
+      document.body.appendChild(popupContainer);
+    }
   }
 
   function createPopup(type, title, message, details = {}) {
@@ -293,8 +314,50 @@
 
   // Auto-close after 8 seconds if not manually closed
   function showPopup(type, title, message, details = {}, autoClose = true) {
+    // Ensure DOM is ready
+    if (!document.body) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          showPopup(type, title, message, details, autoClose);
+        });
+        return null;
+      }
+      // If still no body, wait a bit
+      setTimeout(() => showPopup(type, title, message, details, autoClose), 100);
+      return null;
+    }
+
+    // Ensure container is initialized
+    initPopupContainer();
+    
+    // Final check - container should exist now
+    if (!popupContainer || !popupContainer.parentNode) {
+      console.error('Popup container not available. Retrying...');
+      // Try one more time after a short delay
+      setTimeout(() => {
+        initPopupContainer();
+        if (popupContainer && popupContainer.parentNode) {
+          showPopup(type, title, message, details, autoClose);
+        } else {
+          console.error('Popup container still not available after retry');
+        }
+      }, 100);
+      return null;
+    }
+
     const popup = createPopup(type, title, message, details);
-    popupContainer.appendChild(popup);
+    
+    if (!popup) {
+      console.error('Failed to create popup');
+      return null;
+    }
+
+    try {
+      popupContainer.appendChild(popup);
+    } catch (error) {
+      console.error('Error appending popup to container:', error);
+      return null;
+    }
 
     if (autoClose) {
       setTimeout(() => {
@@ -310,28 +373,59 @@
   // Public API
   window.PopupNotifications = {
     showTakeProfit: function(details = {}) {
-      return showPopup('take-profit', '🎉 Take Profit Reached!', 
-        'Congratulations! Your bot has successfully reached the take profit target.', 
-        details);
+      try {
+        return showPopup('take-profit', '🎉 Take Profit Reached!', 
+          'Congratulations! Your bot has successfully reached the take profit target.', 
+          details);
+      } catch (error) {
+        console.error('Error showing take profit popup:', error);
+        return null;
+      }
     },
 
     showStopLoss: function(details = {}) {
-      return showPopup('stop-loss', '⚠️ Stop Loss Hit', 
-        'The bot has been stopped as the stop loss limit has been reached.', 
-        details);
+      try {
+        return showPopup('stop-loss', '⚠️ Stop Loss Hit', 
+          'The bot has been stopped as the stop loss limit has been reached.', 
+          details);
+      } catch (error) {
+        console.error('Error showing stop loss popup:', error);
+        return null;
+      }
     },
 
     showSuccess: function(title, message, details = {}) {
-      return showPopup('success', title, message, details);
+      try {
+        return showPopup('success', title, message, details);
+      } catch (error) {
+        console.error('Error showing success popup:', error);
+        return null;
+      }
     },
 
     showError: function(title, message, details = {}) {
-      return showPopup('error', title, message, details);
+      try {
+        return showPopup('error', title, message, details);
+      } catch (error) {
+        console.error('Error showing error popup:', error);
+        return null;
+      }
     },
 
     close: function(popup) {
-      closePopup(popup);
+      try {
+        closePopup(popup);
+      } catch (error) {
+        console.error('Error closing popup:', error);
+      }
     }
   };
+
+  // Initialize container on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPopupContainer);
+  } else {
+    initPopupContainer();
+  }
 })();
 
