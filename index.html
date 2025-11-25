@@ -220,6 +220,117 @@
       cursor: default;
     }
 
+    /* API Key Input Section */
+    .api-key-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .api-key-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .api-key-label {
+      font-size: 12px;
+      color: rgba(152, 162, 189, 0.8);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .api-key-input-wrapper {
+      display: flex;
+      gap: 8px;
+    }
+
+    .api-key-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(31, 37, 49, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Inter', system-ui, sans-serif;
+      transition: all 0.2s ease;
+    }
+
+    .api-key-input:focus {
+      outline: none;
+      border-color: rgba(0, 210, 255, 0.5);
+      background: rgba(31, 37, 49, 0.8);
+      box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
+    }
+
+    .api-key-input::placeholder {
+      color: rgba(152, 162, 189, 0.5);
+    }
+
+    .api-key-connect-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.2) 0%, rgba(0, 210, 255, 0.1) 100%);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      border-radius: 8px;
+      color: #00d2ff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', system-ui, sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .api-key-connect-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.3) 0%, rgba(0, 210, 255, 0.2) 100%);
+      border-color: rgba(0, 210, 255, 0.5);
+      box-shadow: 0 4px 12px rgba(0, 210, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .api-key-connect-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .api-key-connect-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .api-key-error {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(255, 68, 79, 0.1);
+      border: 1px solid rgba(255, 68, 79, 0.3);
+      border-radius: 6px;
+      color: #ff444f;
+      font-size: 12px;
+      font-family: 'Inter', system-ui, sans-serif;
+      display: none;
+    }
+
+    .api-key-error.show {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .api-key-section {
+        margin-top: 16px;
+        padding-top: 16px;
+      }
+
+      .api-key-input-wrapper {
+        flex-direction: column;
+      }
+
+      .api-key-connect-btn {
+        width: 100%;
+      }
+    }
+
     .powered-by {
       display: flex;
       align-items: center;
@@ -895,6 +1006,35 @@
           Create Deriv Account
         </a>
       </div>
+      
+      <!-- API Key Input Section -->
+      <div class="api-key-section">
+        <div class="api-key-label">Use API Key Instead</div>
+        <div class="api-key-input-group">
+          <div class="api-key-input-wrapper">
+            <input 
+              type="text" 
+              id="apiKeyInput" 
+              class="api-key-input" 
+              placeholder="Paste your Deriv API key here"
+              autocomplete="off"
+            />
+            <button 
+              id="apiKeyConnectBtn" 
+              class="api-key-connect-btn"
+              onclick="handleApiKeyConnect()"
+            >
+              Connect
+            </button>
+          </div>
+          <div class="api-key-error" id="apiKeyError"></div>
+          <div style="margin-top: 8px;">
+            <a href="https://app.deriv.com/account/api-token?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" style="font-size: 12px; color: rgba(0, 210, 255, 0.8); text-decoration: none; font-family: 'Inter', system-ui, sans-serif;">
+              Don't have an API key? Create one here →
+            </a>
+          </div>
+        </div>
+      </div>
 
       <!-- Account Info Card (shown when connected) -->
       <div class="account-info" id="accountCard">
@@ -987,8 +1127,10 @@
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
     const DERIV_OAUTH_TOKENS_KEY = '@deriv_oauth_tokens';
+    const DERIV_API_KEY_KEY = '@deriv_api_key';
 
     const CREATE_MT5_URL = 'https://app.deriv.com/mt5?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+    const CREATE_API_KEY_URL = 'https://app.deriv.com/account/api-token?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
     const DEPOSIT_URL = 'https://app.deriv.com/cashier/deposit?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
     const WITHDRAW_URL = 'https://app.deriv.com/cashier/withdraw?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
     const TRADING_BOTS_URL = 'https://app.deriv.com/bot?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
@@ -1024,6 +1166,128 @@
         console.error('Error reading stored tokens:', error);
         return null;
       }
+    }
+
+    // Connect with API key and fetch account data (same flow as OAuth)
+    function connectWithApiKey(apiKey) {
+      return new Promise((resolve, reject) => {
+        const ws = new WebSocket(DERIV_WS_URL);
+        let authorized = false;
+        let connectionTimeout;
+
+        const cleanup = () => {
+          if (connectionTimeout) clearTimeout(connectionTimeout);
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.close();
+          }
+        };
+
+        connectionTimeout = setTimeout(() => {
+          if (!authorized) {
+            cleanup();
+            reject(new Error('Connection timeout'));
+          }
+        }, 10000);
+
+        ws.onopen = () => {
+          console.log('WebSocket connected (API Key)');
+          ws.send(JSON.stringify({
+            authorize: apiKey.trim(),
+            req_id: Date.now()
+          }));
+        };
+
+        ws.onmessage = (msg) => {
+          try {
+            const response = JSON.parse(msg.data);
+
+            if (response.error) {
+              console.error('WebSocket error:', response.error);
+              cleanup();
+              reject(new Error(response.error.message || 'Connection failed'));
+              return;
+            }
+
+            if (response.msg_type === 'authorize' && response.authorize) {
+              authorized = true;
+              clearTimeout(connectionTimeout);
+
+              const accountData = {
+                account_id: response.authorize.loginid,
+                balance: Number(response.authorize.balance),
+                currency: response.authorize.currency,
+                fullName: response.authorize.fullname || '-',
+                email: response.authorize.email || '-'
+              };
+
+              // Get account status for additional details
+              ws.send(JSON.stringify({
+                get_account_status: 1,
+                req_id: Date.now()
+              }));
+
+              // Try to get MT5 account info
+              ws.send(JSON.stringify({
+                mt5_login_list: 1,
+                req_id: Date.now()
+              }));
+
+              // Update UI with account data
+              updateAccountDisplay(accountData);
+            }
+
+            if (response.msg_type === 'get_account_status' && response.get_account_status) {
+              const status = response.get_account_status;
+              if (status.fullname) {
+                updateAccountName(status.fullname);
+              }
+            }
+
+            if (response.msg_type === 'mt5_login_list') {
+              if (response.mt5_login_list?.length > 0) {
+                const mt5Account = response.mt5_login_list[0];
+                ws.send(JSON.stringify({
+                  mt5_get_settings: 1,
+                  login: mt5Account.login,
+                  req_id: Date.now()
+                }));
+              } else {
+                // No MT5 account - show create button
+                updateMT5Display(null);
+                setTimeout(() => {
+                  cleanup();
+                  resolve(true);
+                }, 500);
+              }
+            }
+
+            if (response.msg_type === 'mt5_get_settings' && response.mt5_get_settings) {
+              const mt5Settings = response.mt5_get_settings;
+              updateMT5Display({
+                login: mt5Settings.login,
+                balance: Number(mt5Settings.balance),
+                currency: mt5Settings.currency
+              });
+              setTimeout(() => {
+                cleanup();
+                resolve(true);
+              }, 500);
+            }
+          } catch (error) {
+            console.error('Error processing message:', error);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          cleanup();
+          reject(new Error('Connection error'));
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket closed');
+        };
+      });
     }
 
     // Connect with OAuth token and fetch account data
@@ -1190,12 +1454,87 @@
       }
     }
 
+    // Get stored API key
+    function getStoredApiKey() {
+      try {
+        return localStorage.getItem(DERIV_API_KEY_KEY);
+      } catch (error) {
+        console.error('Error reading stored API key:', error);
+        return null;
+      }
+    }
+
+    // Store API key
+    function storeApiKey(apiKey) {
+      try {
+        localStorage.setItem(DERIV_API_KEY_KEY, apiKey);
+      } catch (error) {
+        console.error('Error storing API key:', error);
+      }
+    }
+
+    // Handle API key connect
+    async function handleApiKeyConnect() {
+      const apiKeyInput = document.getElementById('apiKeyInput');
+      const connectBtn = document.getElementById('apiKeyConnectBtn');
+      const errorDiv = document.getElementById('apiKeyError');
+      const apiKey = apiKeyInput.value.trim();
+
+      if (!apiKey) {
+        errorDiv.textContent = 'Please enter your API key';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      // Hide error, disable button, show loading
+      errorDiv.classList.remove('show');
+      connectBtn.disabled = true;
+      connectBtn.textContent = 'Connecting...';
+
+      try {
+        await connectWithApiKey(apiKey);
+        // Store API key on successful connection
+        storeApiKey(apiKey);
+        // Clear input
+        apiKeyInput.value = '';
+        // Clear URL params if any
+        if (window.location.search) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch (error) {
+        console.error('API key connection error:', error);
+        errorDiv.textContent = error.message || 'Failed to connect with API key. Please check your key and try again.';
+        errorDiv.classList.add('show');
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Connect';
+      }
+    }
+
+    // Allow Enter key to trigger connect
+    document.addEventListener('DOMContentLoaded', () => {
+      const apiKeyInput = document.getElementById('apiKeyInput');
+      if (apiKeyInput) {
+        apiKeyInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            handleApiKeyConnect();
+          }
+        });
+      }
+    });
+
     // Handle disconnect
     function handleDisconnect() {
       if (confirm('Are you sure you want to disconnect your Deriv account?')) {
         localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
+        localStorage.removeItem(DERIV_API_KEY_KEY);
         document.getElementById('connectCard').classList.remove('hidden');
         document.getElementById('accountCard').classList.remove('connected');
+        
+        // Clear API key input
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        if (apiKeyInput) {
+          apiKeyInput.value = '';
+        }
         
         // Show disclaimer when disconnected
         document.getElementById('disclaimerSection').classList.remove('hidden');
@@ -1276,16 +1615,28 @@
         return;
       }
 
-      // Otherwise, check for stored tokens
+      // Check for stored OAuth tokens first
       const tokens = getStoredTokens();
-      
       if (tokens && tokens.selectedAccount) {
         try {
           await connectWithOAuth(tokens.selectedAccount.token);
+          return;
         } catch (error) {
-          console.error('Failed to reconnect:', error);
+          console.error('Failed to reconnect with OAuth:', error);
           // If reconnection fails, clear tokens
           localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
+        }
+      }
+
+      // Fallback to API key if no OAuth tokens
+      const storedApiKey = getStoredApiKey();
+      if (storedApiKey) {
+        try {
+          await connectWithApiKey(storedApiKey);
+        } catch (error) {
+          console.error('Failed to reconnect with API key:', error);
+          // If reconnection fails, clear API key
+          localStorage.removeItem(DERIV_API_KEY_KEY);
         }
       }
     }
