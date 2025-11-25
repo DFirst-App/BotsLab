@@ -1239,8 +1239,8 @@
             <span class="meta-value" id="currencyValue">-</span>
           </div>
           <div class="meta-item">
-            <span class="meta-label">Account Type</span>
-            <span class="meta-value" id="accountTypeValue">-</span>
+            <span class="meta-label">Risk Classification</span>
+            <span class="meta-value" id="riskClassificationValue">-</span>
           </div>
           <div class="meta-item">
             <span class="meta-label">Landing Company</span>
@@ -1302,7 +1302,7 @@
     const accountMetaSection = document.getElementById('accountMeta');
     const countryValueEl = document.getElementById('countryValue');
     const currencyValueEl = document.getElementById('currencyValue');
-    const accountTypeValueEl = document.getElementById('accountTypeValue');
+    const riskClassificationValueEl = document.getElementById('riskClassificationValue');
     const landingCompanyValueEl = document.getElementById('landingCompanyValue');
     const metaDesktopMedia = window.matchMedia('(min-width: 769px)');
     const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
@@ -1382,8 +1382,9 @@
       if (!accountMetaSection) return;
       if (countryValueEl) countryValueEl.textContent = (details.country || '-').toUpperCase();
       if (currencyValueEl) currencyValueEl.textContent = (details.currency || '-').toUpperCase();
-      if (accountTypeValueEl) {
-        accountTypeValueEl.textContent = details.account_type || deriveAccountType(details.loginid, details.landingCompany);
+      if (riskClassificationValueEl) {
+        const riskClass = details.risk_classification || '-';
+        riskClassificationValueEl.textContent = riskClass === '-' ? '-' : riskClass.charAt(0).toUpperCase() + riskClass.slice(1).toLowerCase();
       }
       if (landingCompanyValueEl) {
         landingCompanyValueEl.textContent = details.landingCompany || '-';
@@ -1394,7 +1395,7 @@
     function resetAccountMeta() {
       if (countryValueEl) countryValueEl.textContent = '-';
       if (currencyValueEl) currencyValueEl.textContent = '-';
-      if (accountTypeValueEl) accountTypeValueEl.textContent = '-';
+      if (riskClassificationValueEl) riskClassificationValueEl.textContent = '-';
       if (landingCompanyValueEl) landingCompanyValueEl.textContent = '-';
       updateAccountMetaVisibility(false);
     }
@@ -1527,6 +1528,7 @@
                 country: response.authorize.country || '-',
                 landingCompany: landing,
                 account_type: response.authorize.account_type || deriveAccountType(loginid, landing),
+                risk_classification: response.authorize.risk_classification || '-',
                 server_time: response.authorize.server_time
               };
 
@@ -1656,6 +1658,7 @@
                 country: response.authorize.country || '-',
                 landingCompany: landing,
                 account_type: response.authorize.account_type || deriveAccountType(loginid, landing),
+                risk_classification: response.authorize.risk_classification || '-',
                 server_time: response.authorize.server_time
               };
 
