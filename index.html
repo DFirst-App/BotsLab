@@ -67,14 +67,6 @@
       align-items: center;
       justify-content: center;
       min-height: calc(100vh - 320px);
-      transition: opacity 0.3s ease;
-    }
-
-    .card-wrapper.hidden {
-      opacity: 0;
-      pointer-events: none;
-      height: 0;
-      overflow: hidden;
     }
 
     .card {
@@ -1275,8 +1267,7 @@
     }
 
     function updateTradingTipsState() {
-      const apiVisible = apiKeySectionEl && !apiKeySectionEl.classList.contains('secret-hidden');
-      const shouldShowTips = accountConnected && !apiVisible && !tipsMediaQuery.matches;
+      const shouldShowTips = accountConnected && !tipsMediaQuery.matches;
       if (shouldShowTips) {
         startTradingTipsRotation();
       } else {
@@ -1609,7 +1600,6 @@
       // Show account card, hide connect card
       document.getElementById('connectCard').classList.add('hidden');
       document.getElementById('accountCard').classList.add('connected');
-      cardWrapper?.classList.add('hidden');
       
       // Hide disclaimer when connected
       document.getElementById('disclaimerSection').classList.add('hidden');
@@ -1717,7 +1707,6 @@
         accountConnected = false;
         stopTradingTipsRotation();
         setApiKeyVisibility(false);
-        cardWrapper?.classList.remove('hidden');
         
         // Clear API key input
         const apiKeyInput = document.getElementById('apiKeyInput');
