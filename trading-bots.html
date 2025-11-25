@@ -311,6 +311,10 @@
       gap: 20px;
     }
 
+    .bot-panel-content[hidden] {
+      display: none !important;
+    }
+
     .bot-panel-header {
       display: flex;
       align-items: center;
@@ -765,6 +769,20 @@
             <button class="open-bot-btn" id="openAllMarketsOver">Open Bot</button>
           </div>
         </div>
+
+        <div class="bot-card" id="allMarketsUnderCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Digits Under</span>
+            <h3>Random Markets Under 9</h3>
+            <p>Targets Digit Under 9 entries on every tick while rotating through Volatility 10–100 markets for better distribution.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.8/5</li>
+              <li>Strategy: Random Markets · Under 9</li>
+              <li>Recovery: Smart Recovery</li>
+            </ul>
+            <button class="open-bot-btn" id="openAllMarketsUnder">Open Bot</button>
+          </div>
+        </div>
       </div>
 
       <div class="bot-detail-panel" id="botDetailPanel">
@@ -879,6 +897,7 @@
 
   <script src="bots/allMarketsDiffer.js"></script>
   <script src="bots/allMarketsOver.js"></script>
+  <script src="bots/allMarketsUnder.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -1103,6 +1122,13 @@
         cardId: 'allMarketsOverCard',
         buttonId: 'openAllMarketsOver',
         createInstance: () => new window.AllMarketsOverBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'allMarketsUnder',
+        name: 'Random Markets Under 9',
+        cardId: 'allMarketsUnderCard',
+        buttonId: 'openAllMarketsUnder',
+        createInstance: () => new window.AllMarketsUnderBot(botUI, sharedDependencies())
       }
     ];
 
