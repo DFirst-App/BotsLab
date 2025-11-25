@@ -133,9 +133,6 @@
         case 'mt5_login_list':
           this.handleMt5LoginList(data.mt5_login_list);
           break;
-        case 'mt5_trade':
-          this.handleMt5TradeResponse(data);
-          break;
         default:
           break;
       }
@@ -158,8 +155,24 @@
         this.ui.setRunningState(false);
         return;
       }
-      this.mt5Login = accounts.find((acc) => acc.account_type === 'real') || accounts[0];
-      this.ui.showStatus(`Connected to MT5 login ${this.mt5Login.login}`, 'running');
+
+      const primary = accounts.find((acc) => acc.account_type === 'real') || accounts[0];
+      this.mt5Login = primary;
+
+      const parts = [];
+      if (primary.account_type) {
+        parts.push(primary.account_type === 'demo' ? 'Standard Demo' : 'Real');
+      }
+      if (primary.market_type) {
+        parts.push(primary.market_type === 'financial' ? 'Financial' : primary.market_type);
+      }
+      if (primary.landing_company_short) {
+        parts.push(primary.landing_company_short.toUpperCase());
+      }
+      const label = parts.join(' · ') || primary.login;
+
+      this.ui.updateAccountHint?.(`MT5 account: ${label} (${primary.login})`);
+      this.ui.showStatus(`Connected to MT5 login ${primary.login}`, 'running');
       this.beginTradingLoop();
     }
 
@@ -259,42 +272,8 @@
     }
 
     executePlan(plan) {
-      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        this.ui.showStatus('Connection not ready. Skipping trade plan.', 'error');
-        return;
-      }
-
-      const payload = {
-        mt5_trade: 1,
-        login: this.mt5Login.login,
-        action: 'create',
-        symbol: plan.symbol,
-        volume: Number(plan.volume.toFixed(2)),
-        type: plan.direction === 'buy' ? 'buy' : 'sell',
-        order_type: 'market',
-        sl: Number(plan.stopLoss.toFixed(plan.priceDp)),
-        tp: Number(plan.takeProfit.toFixed(plan.priceDp))
-      };
-
-      this.pendingPlans.push({ plan, timestamp: new Date() });
-      this.ws.send(JSON.stringify(payload));
-      this.ui.showStatus(`Placing ${plan.direction.toUpperCase()} on ${plan.symbol}`, 'running');
-    }
-
-    handleMt5TradeResponse(response) {
-      const planMeta = this.pendingPlans.shift();
-      if (!planMeta) return;
-
-      const plan = planMeta.plan;
-
-      const success = !response.error;
-      const profit = success
-        ? this.estimateProfit(plan)
-        : -Math.abs(plan.riskUsd);
-
-      this.completedTrades += 1;
-      this.cycleProfit += profit;
-
+      // NOTE: Deriv's public WebSocket API does not support placing MT5 trades directly.
+      // This step generates risk-based trade plans and logs them as signals only.
       this.ui.addHistoryEntry({
         symbol: plan.symbol,
         direction: plan.direction,
@@ -302,32 +281,23 @@
         entryPrice: plan.entryPrice,
         stopLoss: plan.stopLoss,
         takeProfit: plan.takeProfit,
-        profit,
+        profit: 0,
         riskPct: plan.riskPct,
         priceDp: plan.priceDp,
         timestamp: new Date(),
-        result: success ? 'filled' : 'error'
+        result: 'signal'
       });
 
+      this.completedTrades += 1;
       this.ui.updateStats({
         cycleProfit: this.cycleProfit,
-        openRiskPct: Math.max(this.openRiskPct - plan.riskPct, 0),
-        activeSymbols: Math.max(this.currentConfig.maxSymbols - this.pendingPlans.length, 0),
+        openRiskPct: this.openRiskPct,
+        activeSymbols: this.currentConfig.maxSymbols,
         completedTrades: this.completedTrades,
         runningTime: this.getRunningTime()
       });
 
-      if (this.cycleProfit >= this.currentConfig.takeProfit) {
-        this.stop('Global take profit reached. Bot stopped.', 'success');
-      } else if (this.cycleProfit <= -Math.abs(this.currentConfig.stopLoss)) {
-        this.stop('Global stop loss hit. Bot stopped.', 'error');
-      }
-    }
-
-    estimateProfit(plan) {
-      const reward = (plan.stopDistance * 2) * (plan.tickValue || 1);
-      const randomness = (Math.random() - 0.5) * reward * 0.3;
-      return reward + randomness;
+      this.ui.showStatus(`Signal generated for ${plan.symbol} (${plan.direction.toUpperCase()}) — execute via MT5 EA.`, 'running');
     }
 
     clearTimers() {
