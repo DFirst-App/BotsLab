@@ -53,8 +53,7 @@
       max-width: 1400px;
       margin: 0 auto;
       min-height: 100vh;
-      padding: 16px 24px;
-      padding-bottom: 100px;
+      padding: 32px 24px 32px;
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -67,6 +66,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      min-height: calc(100vh - 320px);
+    }
+
+    .card-wrapper.connected {
+      display: none;
     }
 
     .card {
@@ -82,13 +86,16 @@
       flex-direction: column;
       align-items: center;
       gap: 18px;
-      min-height: 460px;
+      min-height: 440px;
     }
 
     .account-info {
-      position: relative;
-      width: 100%;
-      max-width: 620px;
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      width: auto;
+      min-width: 380px;
+      max-width: 480px;
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.12) 0%, rgba(31, 37, 49, 0.95) 100%);
       border-radius: 20px;
       padding: 28px;
@@ -371,22 +378,8 @@
       letter-spacing: 0.06em;
     }
 
-    .connected-view {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
     .account-info.connected {
       display: block;
-    }
-
-    .tips-actions {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
     }
 
     .account-info h3 {
@@ -513,7 +506,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 10;
+      width: 100%;
+      margin-top: auto;
     }
 
     .footer-content {
@@ -552,39 +546,41 @@
 
     .trading-tips-panel {
       width: 100%;
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
-      border: 1px solid rgba(0, 210, 255, 0.15);
-      border-radius: 18px;
-      padding: 18px 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      max-width: 600px;
+      margin: 20px auto 0;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.08), rgba(255, 122, 24, 0.06));
+      border: 1px solid rgba(0, 210, 255, 0.12);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .tips-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255, 255, 255, 0.7);
     }
 
     .tip-title {
       margin: 0;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       color: #f8fafc;
-      letter-spacing: -0.015em;
+      letter-spacing: -0.01em;
     }
 
     .tip-description {
       margin: 0;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
-      color: rgba(248, 250, 252, 0.9);
+      color: rgba(248, 250, 252, 0.88);
     }
 
     .tip-meta {
@@ -593,6 +589,14 @@
     }
 
     @media (max-width: 768px) {
+      .card-wrapper {
+        min-height: auto;
+      }
+
+      .trading-tips-panel {
+        display: none !important;
+      }
+
       .page {
         padding: 8px 12px;
         padding-bottom: 60px;
@@ -613,7 +617,11 @@
       }
 
       .account-info {
+        position: relative;
+        top: 0;
+        left: 0;
         width: 100%;
+        min-width: auto;
         max-width: 100%;
         margin-bottom: 12px;
         padding: 16px;
@@ -821,7 +829,7 @@
       width: 100%;
       max-width: 1400px;
       margin: 0 auto;
-      padding: 0 24px 12px;
+      padding: 0 24px 16px;
       margin-top: auto;
       margin-bottom: 0;
       transition: opacity 0.3s ease;
@@ -1055,23 +1063,8 @@
       }
 
       /* When account is connected, show buttons at top */
-      .connected-view .action-buttons-container {
+      .page:has(.account-info.connected) .action-buttons-container {
         margin-top: 0;
-      }
-
-      #tradingTipsPanel {
-        display: none !important;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .connected-view {
-        flex-direction: row;
-        align-items: flex-start;
-      }
-
-      .tips-actions {
-        max-width: 480px;
       }
     }
   </style>
@@ -1079,7 +1072,7 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
-    <div class="card-wrapper" id="disconnectedCard">
+    <div class="card-wrapper">
     <div class="card">
       <p class="powered-line">
         <span class="powered-text">Automated Trading Platform</span>
@@ -1188,7 +1181,33 @@
     </div>
     </div>
 
-    <div class="connected-view hidden" id="connectedView">
+    <!-- Action Buttons Container (shown when connected) -->
+    <div class="action-buttons-container" id="actionButtonsContainer">
+      <div class="action-buttons">
+        <a href="https://app.deriv.com/cashier/deposit?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn deposit-btn">
+          <span class="btn-label">Deposit</span>
+        </a>
+        <a href="https://app.deriv.com/cashier/withdraw?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn withdraw-btn">
+          <span class="btn-label">Withdraw</span>
+        </a>
+        <a href="trading-bots.html" class="action-btn trading-btn">
+          <span class="btn-label">Start Trading</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
+      <div class="tips-header">
+        <span>Market Intel</span>
+        <span id="tipBadge">Verified Insight</span>
+      </div>
+      <div>
+        <p class="tip-title" id="tipTitle">Stay patient</p>
+        <p class="tip-description" id="tipDescription">Follow your plan to avoid emotional trades.</p>
+      </div>
+      <div class="tip-meta" id="tipMeta">Source: Trading discipline best practices</div>
+    </div>
+
     <!-- Disclaimer Section (hidden when connected) -->
     <div class="disclaimer-section" id="disclaimerSection">
       <div class="disclaimer">
@@ -1224,8 +1243,8 @@
     const tipDescriptionEl = document.getElementById('tipDescription');
     const tipMetaEl = document.getElementById('tipMeta');
     const tipBadgeEl = document.getElementById('tipBadge');
-    const disconnectedCard = document.getElementById('disconnectedCard');
-    const connectedView = document.getElementById('connectedView');
+    const cardWrapper = document.querySelector('.card-wrapper');
+    const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
 
     const SECRET_CLICK_THRESHOLD = 3;
     const SECRET_CLICK_WINDOW = 1200;
@@ -1280,7 +1299,10 @@
     }
 
     function startTradingTipsRotation() {
-      if (!tradingTipsPanel || tradingTips.length === 0) return;
+      if (!tradingTipsPanel || tradingTips.length === 0 || tipsMediaQuery.matches) {
+        stopTradingTipsRotation();
+        return;
+      }
       tradingTipsPanel.classList.remove('secret-hidden');
       renderTradingTip();
       if (tradingTipInterval) {
@@ -1300,13 +1322,10 @@
       tradingTipsPanel?.classList.add('secret-hidden');
     }
 
-    function isSmallScreen() {
-      return window.matchMedia('(max-width: 768px)').matches;
-    }
-
     function updateTradingTipsState() {
       const apiVisible = apiKeySectionEl && !apiKeySectionEl.classList.contains('secret-hidden');
-      if (accountConnected && !apiVisible && !isSmallScreen()) {
+      const shouldShowTips = accountConnected && !apiVisible && !tipsMediaQuery.matches;
+      if (shouldShowTips) {
         startTradingTipsRotation();
       } else {
         stopTradingTipsRotation();
@@ -1324,6 +1343,12 @@
 
     setApiKeyVisibility(false);
 
+    if (typeof tipsMediaQuery.addEventListener === 'function') {
+      tipsMediaQuery.addEventListener('change', updateTradingTipsState);
+    } else if (typeof tipsMediaQuery.addListener === 'function') {
+      tipsMediaQuery.addListener(updateTradingTipsState);
+    }
+
     secretByTrigger?.addEventListener('click', () => {
       secretClickCount += 1;
       if (secretClickTimer) {
@@ -1338,10 +1363,6 @@
         const shouldShow = apiKeySectionEl?.classList.contains('secret-hidden');
         setApiKeyVisibility(shouldShow);
       }
-    });
-
-    window.addEventListener('resize', () => {
-      updateTradingTipsState();
     });
 
     // Get OAuth URL with proper redirect
@@ -1636,8 +1657,7 @@
       // Show account card, hide connect card
       document.getElementById('connectCard').classList.add('hidden');
       document.getElementById('accountCard').classList.add('connected');
-      disconnectedCard?.classList.add('hidden');
-      connectedView?.classList.remove('hidden');
+      cardWrapper?.classList.add('connected');
       
       // Hide disclaimer when connected
       document.getElementById('disclaimerSection').classList.add('hidden');
@@ -1742,11 +1762,10 @@
         localStorage.removeItem(DERIV_API_KEY_KEY);
         document.getElementById('connectCard').classList.remove('hidden');
         document.getElementById('accountCard').classList.remove('connected');
-        disconnectedCard?.classList.remove('hidden');
-        connectedView?.classList.add('hidden');
         accountConnected = false;
         stopTradingTipsRotation();
         setApiKeyVisibility(false);
+        cardWrapper?.classList.remove('connected');
         
         // Clear API key input
         const apiKeyInput = document.getElementById('apiKeyInput');
