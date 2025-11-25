@@ -75,14 +75,14 @@
       margin: 0 auto;
       background: var(--panel);
       border-radius: 24px;
-      padding: 26px;
+      padding: 20px;
       box-shadow: 0 18px 45px rgba(4, 6, 12, 0.55);
       border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 18px;
-      min-height: 440px;
+      min-height: 220px;
     }
 
     .account-info {
@@ -542,45 +542,44 @@
 
     .trading-tips-panel {
       width: 100%;
-      margin-top: 14px;
+      max-width: 100%;
+      margin: 4px 0 12px;
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.08), rgba(255, 122, 24, 0.06));
       border: 1px solid rgba(0, 210, 255, 0.12);
-      border-radius: 16px;
-      padding: 14px 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
       display: flex;
-      flex-direction: column;
-      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 48px;
     }
 
     .tips-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 6px;
       font-size: 11px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.65);
     }
 
-    .tip-title {
-      margin: 0;
-      font-size: 17px;
-      font-weight: 700;
-      color: #f8fafc;
-      letter-spacing: -0.01em;
+    .tips-label {
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: rgba(248, 250, 252, 0.8);
     }
 
-    .tip-description {
-      margin: 0;
+    .tip-text {
+      flex: 1;
+      text-align: right;
       font-size: 13px;
-      line-height: 1.5;
-      color: rgba(248, 250, 252, 0.88);
-    }
-
-    .tip-meta {
-      font-size: 12px;
-      color: rgba(148, 163, 184, 0.85);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #f8fafc;
+      text-transform: uppercase;
     }
 
     @media (max-width: 768px) {
@@ -1075,6 +1074,13 @@
         <span class="powered-text">Powered <span id="secretByTrigger" class="powered-by-trigger">by</span></span>
         <span class="deriv-brand">deriv</span>
       </p>
+
+      <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
+        <div class="tips-header">
+          <span class="tips-label">Market Tip</span>
+        </div>
+        <span class="tip-text" id="tipText">Risk one percent per trade</span>
+      </div>
       
       <!-- OAuth Connect Card (shown when not connected) -->
       <div class="oauth-card" id="connectCard">
@@ -1173,18 +1179,6 @@
       </div>
 
       <span class="api-link secret-hidden" id="apiKeyFooterText">Use API Key Instead</span>
-
-      <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
-        <div class="tips-header">
-          <span>Market Intel</span>
-          <span id="tipBadge">Verified Insight</span>
-        </div>
-        <div>
-          <p class="tip-title" id="tipTitle">Stay patient</p>
-          <p class="tip-description" id="tipDescription">Follow your plan to avoid emotional trades.</p>
-        </div>
-        <div class="tip-meta" id="tipMeta">Source: Trading discipline best practices</div>
-      </div>
     </div>
     </div>
 
@@ -1234,10 +1228,7 @@
     const apiKeyFooterText = document.getElementById('apiKeyFooterText');
     const secretByTrigger = document.getElementById('secretByTrigger');
     const tradingTipsPanel = document.getElementById('tradingTipsPanel');
-    const tipTitleEl = document.getElementById('tipTitle');
-    const tipDescriptionEl = document.getElementById('tipDescription');
-    const tipMetaEl = document.getElementById('tipMeta');
-    const tipBadgeEl = document.getElementById('tipBadge');
+    const tipTextEl = document.getElementById('tipText');
     const cardWrapper = document.getElementById('cardWrapper');
     const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
 
@@ -1250,47 +1241,18 @@
     let tradingTipIndex = 0;
 
     const tradingTips = [
-      {
-        title: 'Liquidity is highest during London–New York overlap',
-        description: 'The BIS 2022 FX Survey shows London and New York desks handle just over 60% of daily global FX turnover, keeping EUR/USD spreads tight between roughly 13:00–17:00 UTC.',
-        meta: 'Source: BIS Triennial FX Survey 2022',
-        badge: 'FX Market Data'
-      },
-      {
-        title: 'Risking ≤2% helps survive drawdowns',
-        description: 'If you cap each trade at 1–2% of equity, it would take more than 35 consecutive losses to halve your account, giving algorithms and discretionary systems time to recover.',
-        meta: 'Concept: Position sizing math',
-        badge: 'Risk Management'
-      },
-      {
-        title: 'News releases widen spreads',
-        description: 'During high-impact releases (NFP, CPI), institutional providers often pull quotes for a few seconds, so spreads on synthetic and FX markets spike. Plan entries away from the release unless you trade the news.',
-        meta: 'Observation: CME FX depth + retail liquidity',
-        badge: 'Market Microstructure'
-      },
-      {
-        title: 'Synthetic indices run 24/7',
-        description: 'Deriv’s synthetic volatility indices are algorithmic and uncorrelated to macro events, so they remain tradable every hour of the week, but they still demand the same stop-loss discipline.',
-        meta: 'Source: Deriv synthetic index spec',
-        badge: 'Synthetic Markets'
-      },
-      {
-        title: 'Compounding works both ways',
-        description: 'Letting winners trail with a modest take-profit (e.g., 2R) while cutting losers quickly keeps expectancy positive even with a sub‑50% win rate.',
-        meta: 'Principle: Expectancy formula',
-        badge: 'Trading Psychology'
-      }
+      'Liquidity peaks London New York',
+      'Risk one percent per trade',
+      'Spreads widen during news releases',
+      'Synthetic indices trade nonstop',
+      'Cut losses fast let winners run',
+      'Protect capital before seeking profits'
     ];
 
     function renderTradingTip() {
-      if (!tradingTips.length || !tipTitleEl) return;
+      if (!tradingTips.length || !tipTextEl) return;
       const tip = tradingTips[tradingTipIndex % tradingTips.length];
-      tipTitleEl.textContent = tip.title;
-      tipDescriptionEl.textContent = tip.description;
-      tipMetaEl.textContent = tip.meta;
-      if (tipBadgeEl) {
-        tipBadgeEl.textContent = tip.badge || 'Market Intel';
-      }
+      tipTextEl.textContent = tip;
     }
 
     function startTradingTipsRotation() {
