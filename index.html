@@ -123,6 +123,23 @@
       opacity: 1;
     }
 
+    .powered-by-trigger {
+      display: inline-block;
+      cursor: default;
+      user-select: none;
+      position: relative;
+    }
+
+    .powered-by-trigger::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+    }
+
+    .secret-hidden {
+      display: none !important;
+    }
+
     @media (min-width: 769px) {
       .card p {
         font-size: 14px;
@@ -992,7 +1009,12 @@
   <div class="grid-bg"></div>
   <main class="page">
     <div class="card">
-      <p><span class="powered-text">Automated Trading Platform</span> - <span class="powered-text">Powered by</span> <span class="deriv-brand">deriv</span></p>
+      <p class="powered-line">
+        <span class="powered-text">Automated Trading Platform</span>
+        <span class="powered-text">-</span>
+        <span class="powered-text">Powered <span id="secretByTrigger" class="powered-by-trigger">by</span></span>
+        <span class="deriv-brand">deriv</span>
+      </p>
       
       <!-- OAuth Connect Card (shown when not connected) -->
       <div class="oauth-card" id="connectCard">
@@ -1008,7 +1030,7 @@
       </div>
       
       <!-- API Key Input Section -->
-      <div class="api-key-section">
+      <div class="api-key-section secret-hidden" id="apiKeySection">
         <div class="api-key-label">Use API Key Instead</div>
         <div class="api-key-input-group">
           <div class="api-key-input-wrapper">
@@ -1090,7 +1112,7 @@
         <button class="disconnect-btn" onclick="handleDisconnect()" style="margin-top: 24px;">Disconnect</button>
       </div>
 
-      <span class="api-link">Use API Key Instead</span>
+      <span class="api-link secret-hidden" id="apiKeyFooterText">Use API Key Instead</span>
     </div>
 
     <!-- Action Buttons Container (shown when connected) -->
@@ -1134,6 +1156,40 @@
     const DEPOSIT_URL = 'https://app.deriv.com/cashier/deposit?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
     const WITHDRAW_URL = 'https://app.deriv.com/cashier/withdraw?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
     const TRADING_BOTS_URL = 'https://app.deriv.com/bot?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+
+    const apiKeySectionEl = document.getElementById('apiKeySection');
+    const apiKeyFooterText = document.getElementById('apiKeyFooterText');
+    const secretByTrigger = document.getElementById('secretByTrigger');
+    const SECRET_CLICK_THRESHOLD = 3;
+    const SECRET_CLICK_WINDOW = 1200;
+    let secretClickCount = 0;
+    let secretClickTimer = null;
+
+    function setApiKeyVisibility(visible) {
+      if (!apiKeySectionEl) return;
+      apiKeySectionEl.classList.toggle('secret-hidden', !visible);
+      if (apiKeyFooterText) {
+        apiKeyFooterText.classList.toggle('secret-hidden', !visible);
+      }
+    }
+
+    setApiKeyVisibility(false);
+
+    secretByTrigger?.addEventListener('click', () => {
+      secretClickCount += 1;
+      if (secretClickTimer) {
+        clearTimeout(secretClickTimer);
+      }
+      secretClickTimer = setTimeout(() => {
+        secretClickCount = 0;
+      }, SECRET_CLICK_WINDOW);
+
+      if (secretClickCount >= SECRET_CLICK_THRESHOLD) {
+        secretClickCount = 0;
+        const shouldShow = apiKeySectionEl?.classList.contains('secret-hidden');
+        setApiKeyVisibility(shouldShow);
+      }
+    });
 
     // Get OAuth URL with proper redirect
     function getOAuthUrl() {
