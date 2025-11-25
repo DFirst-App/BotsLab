@@ -633,6 +633,39 @@
       gap: 8px;
     }
 
+    .mt5-dropdown-container {
+      display: none;
+    }
+
+    .mt5-dropdown {
+      width: 100%;
+      padding: 8px 12px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.06), rgba(255, 122, 24, 0.04));
+      border: 1px solid rgba(0, 210, 255, 0.12);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Inter', system-ui, sans-serif;
+      cursor: pointer;
+      outline: none;
+      margin-top: 8px;
+    }
+
+    .mt5-dropdown:hover {
+      border-color: rgba(0, 210, 255, 0.3);
+    }
+
+    .mt5-dropdown:focus {
+      border-color: rgba(0, 210, 255, 0.5);
+    }
+
+    .mt5-dropdown option {
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px;
+    }
+
     .mt5-account-item {
       display: flex;
       justify-content: space-between;
@@ -688,39 +721,6 @@
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.25), rgba(0, 210, 255, 0.15));
       border-color: rgba(0, 210, 255, 0.5);
       transform: translateY(-1px);
-    }
-
-    .mt5-dropdown-container {
-      display: none;
-    }
-
-    .mt5-dropdown {
-      width: 100%;
-      padding: 8px 12px;
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.06), rgba(255, 122, 24, 0.04));
-      border: 1px solid rgba(0, 210, 255, 0.12);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 500;
-      font-family: 'Inter', system-ui, sans-serif;
-      cursor: pointer;
-      outline: none;
-      margin-top: 8px;
-    }
-
-    .mt5-dropdown:hover {
-      border-color: rgba(0, 210, 255, 0.3);
-    }
-
-    .mt5-dropdown:focus {
-      border-color: rgba(0, 210, 255, 0.5);
-    }
-
-    .mt5-dropdown option {
-      background: var(--panel);
-      color: var(--text);
-      padding: 8px;
     }
 
     .account-section {
@@ -2291,6 +2291,7 @@
           option.value = type.id;
           option.textContent = type.name + (existingAccount ? ' (Created)' : ' (Not Created)');
           option.dataset.accountType = type.id;
+          option.dataset.hasCreateBtn = !existingAccount ? 'true' : 'false';
           dropdown.appendChild(option);
         }
       });
@@ -2320,6 +2321,12 @@
           const selectedItem = mt5AccountsList.querySelector(`[data-account-type="${selectedType}"]`);
           if (selectedItem) {
             selectedItem.style.display = 'flex';
+            
+            // If it has a create button, ensure it's visible
+            const createBtn = selectedItem.querySelector('.mt5-create-btn');
+            if (createBtn) {
+              createBtn.href = CREATE_MT5_URL;
+            }
           }
         });
       }
