@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DFirst WebBots Lab</title>
+  <script>
+    // Check for existing connection synchronously before page renders
+    (function() {
+      try {
+        const oauthTokens = localStorage.getItem('@deriv_oauth_tokens');
+        const apiKey = localStorage.getItem('@deriv_api_key');
+        if (oauthTokens || apiKey) {
+          document.documentElement.setAttribute('data-has-connection', 'true');
+        }
+      } catch (e) {
+        // Ignore localStorage errors
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -886,6 +900,15 @@
     }
 
     .hidden {
+      display: none;
+    }
+
+    /* Prevent flash on page load - hide connect card and disclaimer if connection exists */
+    html[data-has-connection="true"] #connectCard {
+      display: none;
+    }
+
+    html[data-has-connection="true"] #disclaimerSection {
       display: none;
     }
 
@@ -1789,6 +1812,9 @@
       document.getElementById('balance').textContent = account.balance ? account.balance.toFixed(2) : '-';
       document.getElementById('currency').textContent = account.currency || '-';
       
+      // Set data attribute to prevent flash on refresh
+      document.documentElement.setAttribute('data-has-connection', 'true');
+      
       // Show account card, hide connect card
       document.getElementById('connectCard').classList.add('hidden');
       document.getElementById('accountCard').classList.add('connected');
@@ -1895,6 +1921,10 @@
       if (confirm('Are you sure you want to disconnect your Deriv account?')) {
         localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
         localStorage.removeItem(DERIV_API_KEY_KEY);
+        
+        // Remove data attribute to show connect card and disclaimer
+        document.documentElement.removeAttribute('data-has-connection');
+        
         document.getElementById('connectCard').classList.remove('hidden');
         document.getElementById('accountCard').classList.remove('connected');
         accountConnected = false;
@@ -1987,11 +2017,14 @@
         return;
       }
 
+      let connectionSucceeded = false;
+
       // Check for stored OAuth tokens first
       const tokens = getStoredTokens();
       if (tokens && tokens.selectedAccount) {
         try {
           await connectWithOAuth(tokens.selectedAccount.token);
+          connectionSucceeded = true;
           return;
         } catch (error) {
           console.error('Failed to reconnect with OAuth:', error);
@@ -2001,15 +2034,23 @@
       }
 
       // Fallback to API key if no OAuth tokens
-      const storedApiKey = getStoredApiKey();
-      if (storedApiKey) {
-        try {
-          await connectWithApiKey(storedApiKey);
-        } catch (error) {
-          console.error('Failed to reconnect with API key:', error);
-          // If reconnection fails, clear API key
-          localStorage.removeItem(DERIV_API_KEY_KEY);
+      if (!connectionSucceeded) {
+        const storedApiKey = getStoredApiKey();
+        if (storedApiKey) {
+          try {
+            await connectWithApiKey(storedApiKey);
+            connectionSucceeded = true;
+          } catch (error) {
+            console.error('Failed to reconnect with API key:', error);
+            // If reconnection fails, clear API key
+            localStorage.removeItem(DERIV_API_KEY_KEY);
+          }
         }
+      }
+
+      // If no connection succeeded, remove the data attribute to show connect card
+      if (!connectionSucceeded) {
+        document.documentElement.removeAttribute('data-has-connection');
       }
     }
 
