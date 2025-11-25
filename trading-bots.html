@@ -842,6 +842,20 @@
             <button class="open-bot-btn" id="openSmartEven">Open Bot</button>
           </div>
         </div>
+
+        <div class="bot-card" id="noTouchCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Range Guard</span>
+            <h3>No Touch Sentinel</h3>
+            <p>Monitors R100 momentum, RSI, and volatility snapshots to fire NOTOUCH contracts with directional barriers only when range strength spikes.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.88/5</li>
+              <li>Strategy: Trend-sensing No Touch</li>
+              <li>Recovery: 3.1× smart scaling</li>
+            </ul>
+            <button class="open-bot-btn" id="openNoTouch">Open Bot</button>
+          </div>
+        </div>
       </div>
 
       <div class="bot-detail-panel" id="botDetailPanel" hidden>
@@ -957,6 +971,7 @@
   <script src="bots/allMarketsUnder.js"></script>
   <script src="bots/smartVolatility.js"></script>
   <script src="bots/smartEven.js"></script>
+  <script src="bots/noTouch.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -982,6 +997,9 @@
     const activeBotName = document.getElementById('activeBotName');
     const sectionHeading = document.getElementById('sectionHeading');
     const martingaleGroup = document.getElementById('martingaleGroup');
+
+    let martingaleInputEl = null;
+    let currentMartingaleDefault = BOT_DEFAULTS.martingaleMultiplier;
 
     let botUI = null;
     let currentBotInstance = null;
@@ -1065,6 +1083,7 @@
       const takeProfitInput = document.getElementById('takeProfitInput');
       const stopLossInput = document.getElementById('stopLossInput');
       const martingaleInput = document.getElementById('martingaleInput');
+      martingaleInputEl = martingaleInput;
 
       const historyLimit = 20;
 
@@ -1178,6 +1197,11 @@
     function setMartingaleEnabled(enabled) {
       martingaleEnabled = enabled;
       botUI.setMartingaleVisibility(enabled);
+      if (!enabled && martingaleInputEl) {
+        martingaleInputEl.value = '1';
+      } else if (enabled && martingaleInputEl) {
+        martingaleInputEl.value = currentMartingaleDefault;
+      }
     }
     setMartingaleEnabled(true);
     const sharedDependencies = () => ({
@@ -1222,7 +1246,16 @@
         name: 'Smart Even',
         cardId: 'smartEvenCard',
         buttonId: 'openSmartEven',
+        defaultMartingale: 3.1,
         createInstance: () => new window.SmartEvenBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'noTouch',
+        name: 'No Touch Sentinel',
+        cardId: 'noTouchCard',
+        buttonId: 'openNoTouch',
+        defaultMartingale: 3.1,
+        createInstance: () => new window.NoTouchBot(botUI, sharedDependencies())
       }
     ];
 
@@ -1258,7 +1291,11 @@
       currentBotKey = key;
       currentBotInstance = getBotInstance(key);
       activeBotName.textContent = def.name;
+      currentMartingaleDefault = def.defaultMartingale ?? BOT_DEFAULTS.martingaleMultiplier;
       setMartingaleEnabled(def.supportsMartingale !== false);
+      if (martingaleInputEl && def.supportsMartingale !== false) {
+        martingaleInputEl.value = currentMartingaleDefault;
+      }
       setActiveCard(key);
       openBotPanelUI();
       botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
