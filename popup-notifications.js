@@ -376,7 +376,7 @@
       try {
         return showPopup('take-profit', '🎉 Take Profit Reached!', 
           'Congratulations! Your bot has successfully reached the take profit target.', 
-          details);
+          details, false); // Don't auto-close, user must close manually
       } catch (error) {
         console.error('Error showing take profit popup:', error);
         return null;
@@ -387,7 +387,7 @@
       try {
         return showPopup('stop-loss', '⚠️ Stop Loss Hit', 
           'The bot has been stopped as the stop loss limit has been reached.', 
-          details);
+          details, false); // Don't auto-close, user must close manually
       } catch (error) {
         console.error('Error showing stop loss popup:', error);
         return null;
