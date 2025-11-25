@@ -82,16 +82,13 @@
       flex-direction: column;
       align-items: center;
       gap: 18px;
-      min-height: 520px;
+      min-height: 460px;
     }
 
     .account-info {
-      position: absolute;
-      top: 24px;
-      left: 24px;
-      width: auto;
-      min-width: 380px;
-      max-width: 480px;
+      position: relative;
+      width: 100%;
+      max-width: 620px;
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.12) 0%, rgba(31, 37, 49, 0.95) 100%);
       border-radius: 20px;
       padding: 28px;
@@ -374,8 +371,22 @@
       letter-spacing: 0.06em;
     }
 
+    .connected-view {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
     .account-info.connected {
       display: block;
+    }
+
+    .tips-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
 
     .account-info h3 {
@@ -495,10 +506,6 @@
     }
 
     footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
       padding: 16px 24px;
       background: rgba(15, 17, 23, 0.95);
       backdrop-filter: blur(10px);
@@ -606,11 +613,7 @@
       }
 
       .account-info {
-        position: relative;
-        top: 0;
-        left: 0;
         width: 100%;
-        min-width: auto;
         max-width: 100%;
         margin-bottom: 12px;
         padding: 16px;
@@ -1052,8 +1055,23 @@
       }
 
       /* When account is connected, show buttons at top */
-      .page:has(.account-info.connected) .action-buttons-container {
+      .connected-view .action-buttons-container {
         margin-top: 0;
+      }
+
+      #tradingTipsPanel {
+        display: none !important;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .connected-view {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+
+      .tips-actions {
+        max-width: 480px;
       }
     }
   </style>
@@ -1061,7 +1079,7 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
-    <div class="card-wrapper">
+    <div class="card-wrapper" id="disconnectedCard">
     <div class="card">
       <p class="powered-line">
         <span class="powered-text">Automated Trading Platform</span>
@@ -1166,37 +1184,11 @@
         <button class="disconnect-btn" onclick="handleDisconnect()" style="margin-top: 24px;">Disconnect</button>
       </div>
 
-      <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
-        <div class="tips-header">
-          <span>Market Intel</span>
-          <span id="tipBadge">Verified Insight</span>
-        </div>
-        <div>
-          <p class="tip-title" id="tipTitle">Stay patient</p>
-          <p class="tip-description" id="tipDescription">Follow your plan to avoid emotional trades.</p>
-        </div>
-        <div class="tip-meta" id="tipMeta">Source: Trading discipline best practices</div>
-      </div>
-
       <span class="api-link secret-hidden" id="apiKeyFooterText">Use API Key Instead</span>
     </div>
     </div>
 
-    <!-- Action Buttons Container (shown when connected) -->
-    <div class="action-buttons-container" id="actionButtonsContainer">
-      <div class="action-buttons">
-        <a href="https://app.deriv.com/cashier/deposit?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn deposit-btn">
-          <span class="btn-label">Deposit</span>
-        </a>
-        <a href="https://app.deriv.com/cashier/withdraw?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn withdraw-btn">
-          <span class="btn-label">Withdraw</span>
-        </a>
-        <a href="trading-bots.html" class="action-btn trading-btn">
-          <span class="btn-label">Start Trading</span>
-        </a>
-      </div>
-    </div>
-
+    <div class="connected-view hidden" id="connectedView">
     <!-- Disclaimer Section (hidden when connected) -->
     <div class="disclaimer-section" id="disclaimerSection">
       <div class="disclaimer">
@@ -1232,6 +1224,8 @@
     const tipDescriptionEl = document.getElementById('tipDescription');
     const tipMetaEl = document.getElementById('tipMeta');
     const tipBadgeEl = document.getElementById('tipBadge');
+    const disconnectedCard = document.getElementById('disconnectedCard');
+    const connectedView = document.getElementById('connectedView');
 
     const SECRET_CLICK_THRESHOLD = 3;
     const SECRET_CLICK_WINDOW = 1200;
@@ -1306,9 +1300,13 @@
       tradingTipsPanel?.classList.add('secret-hidden');
     }
 
+    function isSmallScreen() {
+      return window.matchMedia('(max-width: 768px)').matches;
+    }
+
     function updateTradingTipsState() {
       const apiVisible = apiKeySectionEl && !apiKeySectionEl.classList.contains('secret-hidden');
-      if (accountConnected && !apiVisible) {
+      if (accountConnected && !apiVisible && !isSmallScreen()) {
         startTradingTipsRotation();
       } else {
         stopTradingTipsRotation();
@@ -1340,6 +1338,10 @@
         const shouldShow = apiKeySectionEl?.classList.contains('secret-hidden');
         setApiKeyVisibility(shouldShow);
       }
+    });
+
+    window.addEventListener('resize', () => {
+      updateTradingTipsState();
     });
 
     // Get OAuth URL with proper redirect
@@ -1634,6 +1636,8 @@
       // Show account card, hide connect card
       document.getElementById('connectCard').classList.add('hidden');
       document.getElementById('accountCard').classList.add('connected');
+      disconnectedCard?.classList.add('hidden');
+      connectedView?.classList.remove('hidden');
       
       // Hide disclaimer when connected
       document.getElementById('disclaimerSection').classList.add('hidden');
@@ -1738,6 +1742,8 @@
         localStorage.removeItem(DERIV_API_KEY_KEY);
         document.getElementById('connectCard').classList.remove('hidden');
         document.getElementById('accountCard').classList.remove('connected');
+        disconnectedCard?.classList.remove('hidden');
+        connectedView?.classList.add('hidden');
         accountConnected = false;
         stopTradingTipsRotation();
         setApiKeyVisibility(false);
