@@ -324,14 +324,7 @@
     }
 
     .panel-placeholder {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-      color: rgba(255, 255, 255, 0.55);
-      font-size: 15px;
-      text-align: center;
+      display: none;
     }
 
     .bot-panel-content {
@@ -820,9 +813,7 @@
       </div>
 
       <div class="bot-detail-panel" id="botDetailPanel">
-        <div class="panel-placeholder" id="panelPlaceholder">
-          Select a bot card to view its configuration and live stats.
-        </div>
+        <div class="panel-placeholder" id="panelPlaceholder"></div>
 
         <div class="bot-panel-content" id="botPanelContent" hidden>
           <div class="bot-panel-header">
@@ -960,11 +951,12 @@
     let currentBotInstance = null;
     let currentBotKey = null;
     const botInstances = {};
+    let lastKnownBalance = null;
+    let lastKnownCurrency = 'USD';
 
     activeBotName.textContent = 'Select a bot';
 
     function openBotPanelUI() {
-      panelPlaceholder.hidden = true;
       botPanelContent.hidden = false;
       botsList?.classList.add('hidden');
       pageHeader.classList.add('show-active');
@@ -979,7 +971,6 @@
       currentBotKey = null;
       document.querySelectorAll('.bot-card').forEach(card => card.classList.remove('active'));
       pageHeader.classList.remove('show-active');
-      panelPlaceholder.hidden = false;
       botPanelContent.hidden = true;
       botsList?.classList.remove('hidden');
       sectionHeading.hidden = false;
@@ -1085,6 +1076,8 @@
           }
         },
         updateBalance(value, currency = 'USD') {
+          lastKnownBalance = value;
+          lastKnownCurrency = currency;
           balanceValue.textContent = `${currency} ${Number(value).toFixed(2)}`;
         },
         updateStats(stats) {
@@ -1201,6 +1194,9 @@
       setActiveCard(key);
       openBotPanelUI();
       botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (lastKnownBalance !== null) {
+        botUI.updateBalance(lastKnownBalance, lastKnownCurrency);
+      }
     }
 
     BOT_DEFINITIONS.forEach((def) => {

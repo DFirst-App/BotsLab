@@ -10,16 +10,13 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #04070f;
-      --panel: rgba(9, 12, 22, 0.92);
-      --panel-soft: rgba(11, 15, 26, 0.86);
-      --accent: #7bffb7;
+      --bg: #02040a;
+      --accent: #6ef3b4;
       --accent-2: #00d2ff;
       --text: #f5f7ff;
-      --muted: #96a0c0;
+      --muted: #9ca8c6;
+      --panel: rgba(6, 9, 18, 0.9);
       --border: rgba(255, 255, 255, 0.08);
-      --danger: #ff5f6d;
-      --warning: #fcd34d;
     }
 
     * {
@@ -29,11 +26,12 @@
     body {
       margin: 0;
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at top right, rgba(0, 210, 255, 0.35), transparent 40%), var(--bg);
-      color: var(--text);
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 20%, rgba(0, 210, 255, 0.25), transparent 45%), var(--bg);
+      color: var(--text);
     }
 
     .grid-bg {
@@ -41,10 +39,10 @@
       inset: 0;
       pointer-events: none;
       background-image:
-        radial-gradient(circle at 1px 1px, rgba(123, 255, 183, 0.22) 2px, transparent 0),
-        radial-gradient(circle at 20px 20px, rgba(0, 210, 255, 0.18) 2px, transparent 0);
-      background-size: 80px 80px;
-      opacity: 0.45;
+        linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(110, 243, 180, 0.04) 1px, transparent 1px);
+      background-size: 120px 120px;
+      opacity: 0.4;
       z-index: 0;
     }
 
@@ -52,523 +50,106 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 1340px;
-      margin: 0 auto;
-      padding: 26px;
-      padding-bottom: 120px;
-    }
-
-    .header {
+      max-width: 640px;
+      padding: 32px 20px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
+      gap: 24px;
+      text-align: center;
     }
 
-    .header h1 {
+    .back-link {
+      align-self: center;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 210, 255, 0.35);
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .back-link:hover {
+      border-color: rgba(110, 243, 180, 0.6);
+      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.25);
+    }
+
+    .announcement-card {
+      width: 100%;
+      padding: 36px 32px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(110, 243, 180, 0.12), rgba(0, 210, 255, 0.18)), var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 35px 60px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .announcement-card h1 {
       margin: 0;
-      font-size: 30px;
+      font-size: 32px;
       letter-spacing: -0.02em;
     }
 
-    .header p {
-      margin: 4px 0 0;
-      color: var(--muted);
-    }
-
-    .header .back-link {
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 210, 255, 0.4);
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    .header .back-link:hover {
-      border-color: rgba(123, 255, 183, 0.7);
-      box-shadow: 0 5px 18px rgba(0, 210, 255, 0.25);
-    }
-
-    .header-active {
-      display: none;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .header.show-active .header-default {
-      display: none;
-    }
-
-    .header.show-active .header-active {
-      display: flex;
-    }
-
-    .header-active button {
-      padding: 8px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .header-active button:hover {
-      border-color: rgba(0, 210, 255, 0.45);
-      background: rgba(0, 210, 255, 0.12);
-    }
-
-    .header-active span {
-      text-transform: uppercase;
-      font-size: 12px;
-      letter-spacing: 0.14em;
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    .section-heading {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-
-    .section-heading h2 {
+    .announcement-card p {
       margin: 0;
-      font-size: 22px;
-      font-weight: 600;
-    }
-
-    .section-heading p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .bots-layout {
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-    }
-
-    .bots-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 18px;
-      flex: 1;
-      max-width: 520px;
-    }
-
-    .bot-card {
-      background: var(--panel);
-      border-radius: 20px;
-      padding: 24px;
-      border: 1px solid var(--border);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .bot-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      border: 1px solid transparent;
-      background: linear-gradient(120deg, rgba(0, 210, 255, 0.35), rgba(123, 255, 183, 0.22));
-      opacity: 0;
-      transition: opacity 0.25s ease;
-    }
-
-    .bot-card.active::after,
-    .bot-card:hover::after {
-      opacity: 1;
-    }
-
-    .bot-card-content {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .bot-chip {
-      align-self: flex-start;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border: 1px solid rgba(0, 210, 255, 0.3);
-      color: var(--accent-2);
-      background: rgba(0, 210, 255, 0.08);
-    }
-
-    .bot-card h3 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .bot-card p {
-      margin: 0;
-      color: rgba(255, 255, 255, 0.75);
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.78);
       line-height: 1.5;
     }
 
-    .bot-meta {
+    .pill {
+      align-self: center;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: rgba(0, 210, 255, 0.15);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .feature-list {
       list-style: none;
       padding: 0;
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 13px;
-    }
-
-    .open-bot-btn {
-      align-self: flex-start;
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: 1px solid rgba(0, 210, 255, 0.35);
-      background: rgba(0, 210, 255, 0.12);
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .open-bot-btn:hover {
-      border-color: rgba(123, 255, 183, 0.5);
-      background: rgba(123, 255, 183, 0.18);
-    }
-
-    .bot-detail-panel {
-      flex: 1.6;
-      background: var(--panel-soft);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 26px;
-      min-height: 520px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .panel-placeholder {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 46px 24px;
-    }
-
-    .placeholder-card {
-      background: radial-gradient(circle at top, rgba(123, 255, 183, 0.25), rgba(9, 12, 22, 0.95));
-      border-radius: 26px;
-      padding: 32px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 25px 55px rgba(0, 0, 0, 0.45);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      max-width: 520px;
-    }
-
-    .placeholder-chip {
-      align-self: flex-start;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      border: 1px solid rgba(123, 255, 183, 0.35);
-      color: var(--accent);
-      background: rgba(123, 255, 183, 0.12);
-    }
-
-    .placeholder-title {
-      margin: 0;
-      font-size: 24px;
-      letter-spacing: -0.02em;
-    }
-
-    .placeholder-text {
-      margin: 0;
-      font-size: 15px;
+      gap: 10px;
       color: rgba(255, 255, 255, 0.8);
-      line-height: 1.6;
+      text-align: left;
     }
 
-    .bot-panel-content {
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .bot-panel-content:not([hidden]) {
-      display: flex;
-    }
-
-    .bot-panel-header {
+    .feature-list li {
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .status-badge {
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-
-    .status-badge[data-state="idle"] {
-      color: rgba(255, 255, 255, 0.65);
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .status-badge[data-state="running"] {
-      color: var(--accent);
-      border-color: rgba(123, 255, 183, 0.4);
-      background: rgba(123, 255, 183, 0.12);
-    }
-
-    .status-badge[data-state="error"] {
-      color: var(--danger);
-      border-color: rgba(255, 95, 109, 0.45);
-      background: rgba(255, 95, 109, 0.12);
-    }
-
-    .status-text {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .bot-panel-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px;
-    }
-
-    .bot-column {
-      background: rgba(5, 7, 12, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .bot-column h4 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .config-grid {
-      display: grid;
-      gap: 14px;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .input-group label {
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .input-group input,
-    .input-group select {
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(5, 7, 12, 0.7);
-      color: var(--text);
       font-size: 14px;
     }
 
-    .checkbox-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .checkbox-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .checkbox-chip input {
-      accent-color: var(--accent-2);
-    }
-
-    .config-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .primary-btn,
-    .secondary-btn {
-      padding: 12px 18px;
-      border-radius: 12px;
-      border: none;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      flex: 1;
-      min-width: 130px;
-    }
-
-    .primary-btn {
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.45), rgba(123, 255, 183, 0.35));
-      border: 1px solid rgba(123, 255, 183, 0.6);
-      color: var(--text);
-    }
-
-    .primary-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .secondary-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--text);
-    }
-
-    .stats-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .stat-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
-      padding: 12px 14px;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .stat-value {
-      font-size: 20px;
-      font-weight: 600;
-      margin-top: 4px;
-      letter-spacing: -0.01em;
-    }
-
-    .stat-value.positive {
-      color: var(--accent);
-    }
-
-    .stat-value.negative {
-      color: var(--danger);
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 320px;
-      overflow-y: auto;
-      padding-right: 6px;
-    }
-
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.02);
-      font-size: 13px;
-    }
-
-    .history-item.win {
-      border-color: rgba(123, 255, 183, 0.35);
-    }
-
-    .history-item.loss {
-      border-color: rgba(255, 95, 109, 0.35);
-    }
-
-    .history-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      color: var(--muted);
-    }
-
-    .history-profit.win {
-      color: var(--accent);
-    }
-
-    .history-profit.loss {
-      color: var(--danger);
+    .feature-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.6);
     }
 
     footer {
-      margin-top: auto;
-      padding: 20px 0;
-      text-align: center;
+      margin-top: 8px;
       color: var(--muted);
       font-size: 13px;
     }
 
-    @media (max-width: 1024px) {
-      .bots-layout {
-        flex-direction: column;
+    @media (max-width: 600px) {
+      .announcement-card {
+        padding: 28px 22px;
       }
 
-      .bots-list {
-        max-width: none;
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .page {
-        padding: 22px 16px 100px;
-      }
-
-      .header h1 {
+      .announcement-card h1 {
         font-size: 26px;
       }
     }
@@ -577,26 +158,22 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
-    <div class="header">
-      <div>
-        <h1>MT5 Trading Bots</h1>
-        <p>High-frequency automation tuned for MetaTrader 5 accounts.</p>
-      </div>
-      <a href="trading-bots.html" class="back-link">← Back to Web Bots</a>
-    </div>
-
-    <div class="coming-soon">
-      <h2>Available for Download Soon</h2>
+    <a href="trading-bots.html" class="back-link">← Back to Web Bots</a>
+    <div class="announcement-card">
+      <span class="pill">Download Coming Soon</span>
+      <h1>MT5 Bots Launching Shortly</h1>
       <p>
-        We are finalizing MT5-native bot packages so you can download and run them directly inside MetaTrader.
-        Stay tuned for the official release — you’ll be able to download, install, and connect them using your Deriv partner link for full tracking.
+        We’re packaging our MT5-native strategies so you can download, install, and run them directly inside MetaTrader.
+        Each bot will include full risk management, symbol presets, and Deriv partner tracking out of the box.
       </p>
+      <ul class="feature-list">
+        <li><span class="feature-dot"></span> One-click installers for Standard Demo, Financial, Swap-Free, Zero Spread, and MT5 Gold accounts</li>
+        <li><span class="feature-dot"></span> Built-in partner tracking (app_id 67709 &amp; t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk)</li>
+        <li><span class="feature-dot"></span> Ready-to-import presets with 1% risk per trade, global TP/SL, and multi-market rotation</li>
+      </ul>
     </div>
+    <footer>© <span id="year"></span> DFirst Automation Lab — Powered by Deriv</footer>
   </main>
-
-  <footer>
-    © <span id="year"></span> DFirst Automation Lab — Powered by Deriv
-  </footer>
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
