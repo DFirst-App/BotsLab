@@ -2213,40 +2213,60 @@
 
     // Handle disconnect
     function handleDisconnect() {
-      if (confirm('Are you sure you want to disconnect your Deriv account?')) {
-        localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
-        localStorage.removeItem(DERIV_API_KEY_KEY);
-        
-        // Remove data attribute to show connect card and disclaimer
-        document.documentElement.removeAttribute('data-has-connection');
-        
-        document.getElementById('connectCard').classList.remove('hidden');
-        document.getElementById('accountCard').classList.remove('connected');
-        accountConnected = false;
-        stopTradingTipsRotation();
-        setApiKeyVisibility(false);
-        resetAccountMeta();
-        
-        // Clear API key input
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        if (apiKeyInput) {
-          apiKeyInput.value = '';
+      if (window.PopupNotifications && window.PopupNotifications.showConfirm) {
+        window.PopupNotifications.showConfirm(
+          'Disconnect Account',
+          'Are you sure you want to disconnect your Deriv account? You will need to reconnect to use the trading bots.',
+          function() {
+            // User confirmed - proceed with disconnection
+            performDisconnect();
+          },
+          function() {
+            // User cancelled - do nothing
+          }
+        );
+      } else {
+        // Fallback to basic confirm if popup system not available
+        if (confirm('Are you sure you want to disconnect your Deriv account?')) {
+          performDisconnect();
         }
-        
-        // Show disclaimer when disconnected
-        document.getElementById('disclaimerSection').classList.remove('hidden');
-        
-        // Hide action buttons
-        document.getElementById('actionButtonsContainer').classList.remove('visible');
-        
-        // Reset account display
-        document.getElementById('fullName').textContent = '-';
-        document.getElementById('accountId').textContent = '-';
-        document.getElementById('balance').textContent = '-';
-        document.getElementById('currency').textContent = '-';
-        
-        // Clear MT5 accounts list
-        updateMT5AccountsDisplay([]);
+      }
+    }
+
+    function performDisconnect() {
+      localStorage.removeItem(DERIV_OAUTH_TOKENS_KEY);
+      localStorage.removeItem(DERIV_API_KEY_KEY);
+      
+      // Remove data attribute to show connect card and disclaimer
+      document.documentElement.removeAttribute('data-has-connection');
+      
+      document.getElementById('connectCard').classList.remove('hidden');
+      document.getElementById('accountCard').classList.remove('connected');
+      accountConnected = false;
+      stopTradingTipsRotation();
+      setApiKeyVisibility(false);
+      resetAccountMeta();
+      
+      // Clear API key input
+      const apiKeyInput = document.getElementById('apiKeyInput');
+      if (apiKeyInput) {
+        apiKeyInput.value = '';
+      }
+      
+      // Show disclaimer when disconnected
+      document.getElementById('disclaimerSection').classList.remove('hidden');
+      
+      // Hide action buttons
+      document.getElementById('actionButtonsContainer').classList.remove('visible');
+      
+      // Reset account display
+      document.getElementById('fullName').textContent = '-';
+      document.getElementById('accountId').textContent = '-';
+      document.getElementById('balance').textContent = '-';
+      document.getElementById('currency').textContent = '-';
+      
+      // Clear MT5 accounts list
+      updateMT5AccountsDisplay([]);
       }
     }
 
@@ -2352,5 +2372,6 @@
     document.getElementById('year').textContent = new Date().getFullYear();
     checkExistingConnection();
   </script>
+  <script src="popup-notifications.js"></script>
 </body>
 </html>
