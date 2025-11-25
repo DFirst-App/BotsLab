@@ -69,6 +69,7 @@
       align-items: center;
       gap: 16px;
       margin-bottom: 8px;
+      position: relative;
     }
 
     .header-default {
@@ -138,6 +139,29 @@
 
     .header.show-active .header-active {
       display: inline-flex;
+    }
+
+    .header-mt5-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      color: #00d2ff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      background: rgba(0, 210, 255, 0.08);
+      transition: all 0.2s ease;
+      font-family: 'Inter', system-ui, sans-serif;
+      margin-left: auto;
+    }
+
+    .header-mt5-btn:hover {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: rgba(0, 210, 255, 0.6);
+      transform: translateY(-1px);
     }
 
     .section-heading {
@@ -759,6 +783,9 @@
         <button id="headerBackBtn">← Back to bots</button>
         <span id="activeBotName">BOT NAME</span>
       </div>
+      <a class="header-mt5-btn" href="mt5trading-bots.html">
+        Explore MT5 Bots →
+      </a>
     </div>
 
     <div class="section-heading" id="sectionHeading">
@@ -766,9 +793,6 @@
         <h2>Deriv Bots</h2>
         <p>Discover digits-first automation built for volatility markets with smart safety controls.</p>
       </div>
-      <a class="secondary-btn-link" href="mt5trading-bots.html">
-        Explore MT5 Bots →
-      </a>
     </div>
 
     <div class="bots-layout">
