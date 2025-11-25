@@ -67,11 +67,26 @@
       max-width: 1400px;
       margin: 0 auto;
       min-height: 100vh;
-      padding: 32px 24px 32px;
+      padding: 32px 24px 100px;
       display: flex;
       flex-direction: column;
       gap: 24px;
       flex: 1;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 20px 16px 90px;
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page {
+        padding: 16px 12px 85px;
+        gap: 12px;
+      }
     }
 
     .card-wrapper {
@@ -80,7 +95,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: calc(100vh - 320px);
+      min-height: auto;
+      box-sizing: border-box;
     }
 
     .card {
@@ -96,7 +112,16 @@
       flex-direction: column;
       align-items: center;
       gap: 18px;
-      min-height: 220px;
+      min-height: auto;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        padding: 16px;
+        border-radius: 20px;
+        max-width: 100%;
+      }
     }
 
     .account-info {
@@ -104,15 +129,92 @@
       top: 24px;
       left: 24px;
       width: auto;
-      min-width: 380px;
-      max-width: 480px;
+      min-width: 300px;
+      max-width: 420px;
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.12) 0%, rgba(31, 37, 49, 0.95) 100%);
       border-radius: 20px;
-      padding: 28px;
+      padding: 20px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 210, 255, 0.2);
       border: 1px solid rgba(0, 210, 255, 0.15);
       display: none;
       backdrop-filter: blur(10px);
+      box-sizing: border-box;
+      z-index: 2;
+    }
+
+    @media (min-width: 1024px) {
+      .account-info {
+        max-width: min(420px, calc(100vw - 360px));
+      }
+    }
+
+    @media (max-width: 1023px) {
+      .account-info {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        max-width: 100%;
+        min-width: auto;
+        margin-bottom: 20px;
+        padding: 20px;
+      }
+
+      .account-section {
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+      }
+
+      .account-row {
+        margin-bottom: 12px;
+        padding: 10px 0;
+      }
+
+      .account-label {
+        font-size: 12px;
+      }
+
+      .account-value {
+        font-size: 14px;
+      }
+
+      .balance-value {
+        font-size: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .account-info {
+        padding: 16px;
+        border-radius: 16px;
+      }
+
+      .account-section {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+      }
+
+      .account-row {
+        margin-bottom: 10px;
+        padding: 8px 0;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .account-label {
+        font-size: 11px;
+        width: 100%;
+      }
+
+      .account-value {
+        font-size: 13px;
+        width: 100%;
+        text-align: right;
+      }
+
+      .balance-value {
+        font-size: 18px;
+      }
     }
 
     .card h2 {
@@ -575,6 +677,10 @@
     }
 
     footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
       padding: 16px 24px;
       background: rgba(15, 17, 23, 0.95);
       backdrop-filter: blur(10px);
@@ -583,7 +689,20 @@
       justify-content: center;
       align-items: center;
       width: 100%;
-      margin-top: auto;
+      z-index: 10;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+      footer {
+        padding: 12px 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      footer {
+        padding: 10px 12px;
+      }
     }
 
     .footer-content {
@@ -636,6 +755,18 @@
       min-height: 48px;
       max-height: 48px;
       overflow: hidden;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .tips-banner {
+        max-width: 100%;
+        padding: 10px 14px;
+        min-height: 44px;
+        max-height: 44px;
+        margin-bottom: 12px;
+      }
     }
 
     .tips-banner .tips-label {
@@ -1087,32 +1218,35 @@
       .action-buttons-container {
         position: fixed;
         top: 50%;
-        right: 120px;
+        right: 24px;
         transform: translateY(-50%);
         z-index: 3;
-        width: 320px;
+        width: 280px;
+        max-width: calc(100vw - 520px);
         margin: 0;
+        box-sizing: border-box;
       }
 
       .action-buttons {
         display: flex;
         flex-direction: column;
-        gap: 28px;
+        gap: 24px;
       }
 
       .action-btn {
         width: 100%;
-        padding: 20px 22px;
-        min-height: 72px;
+        padding: 18px 20px;
+        min-height: 68px;
         align-items: center;
         text-align: center;
         justify-content: center;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
         border-radius: 18px;
+        box-sizing: border-box;
       }
 
       .action-btn .btn-label {
-        font-size: 15px;
+        font-size: 14px;
         letter-spacing: 0.05em;
         text-align: center;
       }
@@ -1120,13 +1254,23 @@
 
     @media (min-width: 1200px) {
       .action-buttons-container {
-        right: 140px;
+        right: 32px;
+        width: 300px;
       }
     }
 
     @media (min-width: 1400px) {
       .action-buttons-container {
-        right: 160px;
+        right: 40px;
+        width: 320px;
+      }
+    }
+
+    @media (max-width: 1023px) {
+      .action-buttons-container {
+        position: relative;
+        margin-top: 20px;
+        margin-bottom: 20px;
       }
     }
 
