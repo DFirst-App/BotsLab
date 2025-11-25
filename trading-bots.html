@@ -171,7 +171,7 @@
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 20px;
       flex: 1;
-      max-width: 420px;
+      max-width: 900px;
     }
 
     .bots-list.hidden {
@@ -738,7 +738,7 @@
 
     <div class="bots-layout">
       <div class="bots-list" id="botsList">
-        <div class="bot-card active" id="allMarketsDifferCard">
+        <div class="bot-card" id="allMarketsDifferCard">
           <div class="bot-card-content">
             <span class="bot-chip">Digits Differ</span>
             <h3>All Markets Differ</h3>
@@ -749,6 +749,20 @@
               <li>Recovery: Smart Recovery</li>
             </ul>
             <button class="open-bot-btn" id="openAllMarketsDiffer">Open Bot</button>
+          </div>
+        </div>
+
+        <div class="bot-card" id="allMarketsOverCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Digits Over</span>
+            <h3>Random Markets Over 0</h3>
+            <p>Fires Digit Over 0 contracts across Volatility 10–100, rotating markets after every trade with the same protective recovery logic.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.7/5</li>
+              <li>Strategy: Random Markets · Over 0</li>
+              <li>Recovery: Smart Recovery</li>
+            </ul>
+            <button class="open-bot-btn" id="openAllMarketsOver">Open Bot</button>
           </div>
         </div>
       </div>
@@ -864,6 +878,7 @@
   </footer>
 
   <script src="bots/allMarketsDiffer.js"></script>
+  <script src="bots/allMarketsOver.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -880,54 +895,43 @@
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    const BOT_DISPLAY_NAME = 'All Markets Differ';
-    const botCard = document.getElementById('allMarketsDifferCard');
-    const openBotBtn = document.getElementById('openAllMarketsDiffer');
     const botsList = document.getElementById('botsList');
     const panelPlaceholder = document.getElementById('panelPlaceholder');
     const botPanelContent = document.getElementById('botPanelContent');
     const pageHeader = document.getElementById('pageHeader');
     const headerBackBtn = document.getElementById('headerBackBtn');
     const activeBotName = document.getElementById('activeBotName');
+    const sectionHeading = document.getElementById('sectionHeading');
 
     let botUI = null;
-    let allMarketsDifferBot = null;
+    let currentBotInstance = null;
+    let currentBotKey = null;
+    const botInstances = {};
 
-    activeBotName.textContent = BOT_DISPLAY_NAME;
+    activeBotName.textContent = 'Select a bot';
 
-    function openBotPanel() {
+    function openBotPanelUI() {
       panelPlaceholder.hidden = true;
       botPanelContent.hidden = false;
-      botCard.classList.add('active');
       botsList?.classList.add('hidden');
-      activeBotName.textContent = BOT_DISPLAY_NAME;
       pageHeader.classList.add('show-active');
-      document.getElementById('sectionHeading').hidden = true;
+      sectionHeading.hidden = true;
     }
 
     function closeBotPanel(stopBot = true) {
-      if (stopBot && allMarketsDifferBot?.isRunning) {
-        allMarketsDifferBot.stop('Bot hidden. Restart when ready.', 'warning');
+      if (stopBot && currentBotInstance?.isRunning) {
+        currentBotInstance.stop('Bot hidden. Restart when ready.', 'warning');
       }
+      currentBotInstance = null;
+      currentBotKey = null;
+      document.querySelectorAll('.bot-card').forEach(card => card.classList.remove('active'));
       pageHeader.classList.remove('show-active');
       panelPlaceholder.hidden = false;
       botPanelContent.hidden = true;
-      document.getElementById('sectionHeading').hidden = false;
       botsList?.classList.remove('hidden');
-      botCard.classList.remove('active');
+      sectionHeading.hidden = false;
       botUI?.showStatus('Waiting for bot configuration.');
     }
-
-    botCard.addEventListener('click', () => {
-      openBotPanel();
-      botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-
-    openBotBtn.addEventListener('click', (event) => {
-      event.stopPropagation();
-      openBotPanel();
-      botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
 
     headerBackBtn.addEventListener('click', () => closeBotPanel());
 
@@ -1078,26 +1082,95 @@
     }
 
     botUI = initBotUI();
-    const botDependencies = {
+    const sharedDependencies = () => ({
       wsUrl: DERIV_WS_URL,
       defaults: BOT_DEFAULTS,
       markets: VOLATILITY_MARKETS,
       resolveAuthToken
-    };
-    allMarketsDifferBot = new window.AllMarketsDifferBot(botUI, botDependencies);
+    });
+
+    const BOT_DEFINITIONS = [
+      {
+        key: 'allMarketsDiffer',
+        name: 'All Markets Differ',
+        cardId: 'allMarketsDifferCard',
+        buttonId: 'openAllMarketsDiffer',
+        createInstance: () => new window.AllMarketsDifferBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'allMarketsOver',
+        name: 'Random Markets Over 0',
+        cardId: 'allMarketsOverCard',
+        buttonId: 'openAllMarketsOver',
+        createInstance: () => new window.AllMarketsOverBot(botUI, sharedDependencies())
+      }
+    ];
+
+    const BOT_DEFINITION_MAP = BOT_DEFINITIONS.reduce((acc, def) => {
+      acc[def.key] = def;
+      return acc;
+    }, {});
+
+    function getBotInstance(key) {
+      if (!botInstances[key]) {
+        const def = BOT_DEFINITION_MAP[key];
+        if (!def) return null;
+        botInstances[key] = def.createInstance();
+      }
+      return botInstances[key];
+    }
+
+    function setActiveCard(key) {
+      document.querySelectorAll('.bot-card').forEach(card => card.classList.remove('active'));
+      if (key && BOT_DEFINITION_MAP[key]) {
+        document.getElementById(BOT_DEFINITION_MAP[key].cardId)?.classList.add('active');
+      }
+    }
+
+    function handleBotOpen(key) {
+      const def = BOT_DEFINITION_MAP[key];
+      if (!def) return;
+
+      if (currentBotKey && currentBotKey !== key && currentBotInstance?.isRunning) {
+        currentBotInstance.stop('Switched bots. Previous session stopped.', 'warning');
+      }
+
+      currentBotKey = key;
+      currentBotInstance = getBotInstance(key);
+      activeBotName.textContent = def.name;
+      setActiveCard(key);
+      openBotPanelUI();
+      botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    BOT_DEFINITIONS.forEach((def) => {
+      const card = document.getElementById(def.cardId);
+      const button = document.getElementById(def.buttonId);
+      card?.addEventListener('click', () => handleBotOpen(def.key));
+      button?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        handleBotOpen(def.key);
+      });
+    });
 
     document.getElementById('startBotBtn').addEventListener('click', () => {
+      if (!currentBotInstance) {
+        botUI.showStatus('Select a bot first to configure and start.', 'warning');
+        return;
+      }
       const config = botUI.getConfigValues();
       const validation = botUI.validateConfig(config);
       if (!validation.valid) {
         botUI.showStatus(validation.message, 'error');
         return;
       }
-      allMarketsDifferBot.start(config);
+      currentBotInstance.start(config);
     });
 
     document.getElementById('stopBotBtn').addEventListener('click', () => {
-      allMarketsDifferBot.stop('Bot stopped by user.', 'warning');
+      if (currentBotInstance) {
+        currentBotInstance.stop('Bot stopped by user.', 'warning');
+      }
     });
   </script>
 </body>
