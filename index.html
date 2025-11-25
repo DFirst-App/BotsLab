@@ -247,6 +247,51 @@
       cursor: default;
     }
 
+    .account-meta {
+      width: 100%;
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 210, 255, 0.18);
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .account-meta h4 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(248, 250, 252, 0.75);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .meta-card {
+      background: rgba(15, 17, 23, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .meta-label {
+      font-size: 11px;
+      color: rgba(148, 163, 184, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .meta-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+
     /* API Key Input Section */
     .api-key-section {
       margin-top: 20px;
@@ -572,6 +617,10 @@
     }
 
     @media (max-width: 768px) {
+      #accountMeta {
+        display: none !important;
+      }
+
       .card-wrapper {
         min-height: auto;
       }
@@ -1172,6 +1221,24 @@
       </div>
 
       <span class="api-link secret-hidden" id="apiKeyFooterText">Use API Key Instead</span>
+
+      <div class="account-meta secret-hidden" id="accountMeta">
+        <h4>Account Overview</h4>
+        <div class="meta-grid">
+          <div class="meta-card">
+            <div class="meta-label">Country</div>
+            <div class="meta-value" id="countryValue">-</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Server Time</div>
+            <div class="meta-value" id="serverTimeValue">--:--:--</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Account Type</div>
+            <div class="meta-value" id="accountTypeValue">-</div>
+          </div>
+        </div>
+      </div>
     </div>
     </div>
 
@@ -1223,6 +1290,11 @@
     const tradingTipsPanel = document.getElementById('tipsBanner');
     const tipTextEl = document.getElementById('tipText');
     const cardWrapper = document.getElementById('cardWrapper');
+    const accountMetaSection = document.getElementById('accountMeta');
+    const countryValueEl = document.getElementById('countryValue');
+    const serverTimeValueEl = document.getElementById('serverTimeValue');
+    const accountTypeValueEl = document.getElementById('accountTypeValue');
+    const metaDesktopMedia = window.matchMedia('(min-width: 769px)');
     const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
 
     const SECRET_CLICK_THRESHOLD = 3;
@@ -1232,6 +1304,8 @@
     let tradingTipInterval = null;
     let accountConnected = false;
     let tradingTipIndex = 0;
+    let serverTimeInterval = null;
+    let currentServerEpoch = null;
 
     const tradingTips = [
       'Liquidity peaks London New York',
@@ -1281,6 +1355,66 @@
       }
     }
 
+    function deriveAccountType(loginId, landingCompany) {
+      if (landingCompany) return landingCompany;
+      if (!loginId) return '-';
+      if (/VRTC/i.test(loginId)) return 'Synthetic Demo';
+      if (/CR/i.test(loginId)) return 'CR Account';
+      if (/MF/i.test(loginId)) return 'Financial';
+      return 'Deriv Account';
+    }
+
+    function updateAccountMetaVisibility(visible) {
+      if (!accountMetaSection) return;
+      const shouldShow = visible && metaDesktopMedia.matches;
+      accountMetaSection.classList.toggle('secret-hidden', !shouldShow);
+    }
+
+    function stopServerClock() {
+      if (serverTimeInterval) {
+        clearInterval(serverTimeInterval);
+        serverTimeInterval = null;
+      }
+      currentServerEpoch = null;
+    }
+
+    function startServerClock(epochSeconds) {
+      if (!serverTimeValueEl) return;
+      stopServerClock();
+      if (!epochSeconds) {
+        serverTimeValueEl.textContent = '--:--:--';
+        return;
+      }
+      currentServerEpoch = epochSeconds * 1000;
+      const updateDisplay = () => {
+        if (!currentServerEpoch) return;
+        const date = new Date(currentServerEpoch);
+        const timePart = date.toUTCString().split(' ')[4];
+        serverTimeValueEl.textContent = `${timePart} UTC`;
+        currentServerEpoch += 1000;
+      };
+      updateDisplay();
+      serverTimeInterval = setInterval(updateDisplay, 1000);
+    }
+
+    function updateAccountMetaDetails(details) {
+      if (!accountMetaSection) return;
+      if (countryValueEl) countryValueEl.textContent = (details.country || '-').toUpperCase();
+      if (accountTypeValueEl) {
+        accountTypeValueEl.textContent = details.account_type || deriveAccountType(details.loginid, details.landingCompany);
+      }
+      startServerClock(details.server_time);
+      updateAccountMetaVisibility(accountConnected);
+    }
+
+    function resetAccountMeta() {
+      stopServerClock();
+      if (countryValueEl) countryValueEl.textContent = '-';
+      if (serverTimeValueEl) serverTimeValueEl.textContent = '--:--:--';
+      if (accountTypeValueEl) accountTypeValueEl.textContent = '-';
+      updateAccountMetaVisibility(false);
+    }
+
     function setApiKeyVisibility(visible) {
       if (!apiKeySectionEl) return;
       apiKeySectionEl.classList.toggle('secret-hidden', !visible);
@@ -1296,6 +1430,12 @@
       tipsMediaQuery.addEventListener('change', updateTradingTipsState);
     } else if (typeof tipsMediaQuery.addListener === 'function') {
       tipsMediaQuery.addListener(updateTradingTipsState);
+    }
+
+    if (typeof metaDesktopMedia.addEventListener === 'function') {
+      metaDesktopMedia.addEventListener('change', () => updateAccountMetaVisibility(accountConnected));
+    } else if (typeof metaDesktopMedia.addListener === 'function') {
+      metaDesktopMedia.addListener(() => updateAccountMetaVisibility(accountConnected));
     }
 
     secretByTrigger?.addEventListener('click', () => {
@@ -1391,12 +1531,19 @@
               authorized = true;
               clearTimeout(connectionTimeout);
 
+              const landing = response.authorize.landing_company_fullname || response.authorize.landing_company_name || '-';
+              const loginid = response.authorize.loginid;
               const accountData = {
-                account_id: response.authorize.loginid,
+                account_id: loginid,
+                loginid,
                 balance: Number(response.authorize.balance),
                 currency: response.authorize.currency,
                 fullName: response.authorize.fullname || '-',
-                email: response.authorize.email || '-'
+                email: response.authorize.email || '-',
+                country: response.authorize.country || '-',
+                landingCompany: landing,
+                account_type: response.authorize.account_type || deriveAccountType(loginid, landing),
+                server_time: response.authorize.server_time
               };
 
               // Get account status for additional details
@@ -1513,12 +1660,19 @@
               authorized = true;
               clearTimeout(connectionTimeout);
 
+              const landing = response.authorize.landing_company_fullname || response.authorize.landing_company_name || '-';
+              const loginid = response.authorize.loginid;
               const accountData = {
-                account_id: response.authorize.loginid,
+                account_id: loginid,
+                loginid,
                 balance: Number(response.authorize.balance),
                 currency: response.authorize.currency,
                 fullName: response.authorize.fullname || '-',
-                email: response.authorize.email || '-'
+                email: response.authorize.email || '-',
+                country: response.authorize.country || '-',
+                landingCompany: landing,
+                account_type: response.authorize.account_type || deriveAccountType(loginid, landing),
+                server_time: response.authorize.server_time
               };
 
               // Get account status for additional details
@@ -1614,6 +1768,7 @@
       document.getElementById('actionButtonsContainer').classList.add('visible');
       accountConnected = true;
       updateTradingTipsState();
+      updateAccountMetaDetails(account);
     }
 
     // Update MT5 display
@@ -1713,6 +1868,7 @@
         accountConnected = false;
         stopTradingTipsRotation();
         setApiKeyVisibility(false);
+        resetAccountMeta();
         
         // Clear API key input
         const apiKeyInput = document.getElementById('apiKeyInput');
