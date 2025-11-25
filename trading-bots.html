@@ -105,16 +105,18 @@
     .header-active {
       display: none;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
     }
 
     .header-active button {
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.15);
       background: rgba(255, 255, 255, 0.05);
       color: var(--text);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -126,10 +128,10 @@
     }
 
     .header-active span {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       color: rgba(255, 255, 255, 0.8);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
     }
 
@@ -144,12 +146,12 @@
     .header-mt5-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 10px;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
       border: 1px solid rgba(0, 210, 255, 0.4);
       color: #00d2ff;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       text-decoration: none;
       background: rgba(0, 210, 255, 0.08);
@@ -174,9 +176,9 @@
 
     @media (max-width: 768px) {
       .header-mt5-btn {
-        padding: 8px 12px;
-        font-size: 12px;
-        gap: 6px;
+        padding: 5px 8px;
+        font-size: 10px;
+        gap: 4px;
       }
 
       .header-mt5-btn .full-text {
@@ -190,9 +192,9 @@
 
     @media (max-width: 480px) {
       .header-mt5-btn {
-        padding: 6px 10px;
-        font-size: 11px;
-        gap: 4px;
+        padding: 4px 6px;
+        font-size: 9px;
+        gap: 3px;
       }
     }
 
@@ -844,12 +846,39 @@
       }
 
       .header {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
       }
 
       .header h1 {
         font-size: 24px;
+      }
+
+      .header-active {
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .header-active button {
+        padding: 5px 8px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+
+      .header-active span {
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+      }
+
+      .header-mt5-btn {
+        flex-shrink: 0;
       }
 
       .bot-detail-panel {
@@ -897,6 +926,24 @@
     @media (max-width: 480px) {
       .page {
         padding-bottom: 85px;
+      }
+
+      .header {
+        gap: 6px;
+      }
+
+      .header-active {
+        gap: 4px;
+      }
+
+      .header-active button {
+        padding: 4px 6px;
+        font-size: 9px;
+      }
+
+      .header-active span {
+        font-size: 9px;
+        max-width: 100px;
       }
 
       .bot-detail-panel {
@@ -1530,7 +1577,13 @@
       }
       setActiveCard(key);
       openBotPanelUI();
-      botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Scroll to top on small screens, center on large screens
+      const isSmallScreen = window.innerWidth <= 768;
+      if (isSmallScreen) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       if (lastKnownBalance !== null) {
         botUI.updateBalance(lastKnownBalance, lastKnownCurrency);
       }
