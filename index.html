@@ -69,10 +69,6 @@
       min-height: calc(100vh - 320px);
     }
 
-    .card-wrapper.connected {
-      display: none;
-    }
-
     .card {
       width: 100%;
       max-width: 420px;
@@ -1072,7 +1068,7 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
-    <div class="card-wrapper">
+    <div class="card-wrapper" id="cardWrapper">
     <div class="card">
       <p class="powered-line">
         <span class="powered-text">Automated Trading Platform</span>
@@ -1243,7 +1239,7 @@
     const tipDescriptionEl = document.getElementById('tipDescription');
     const tipMetaEl = document.getElementById('tipMeta');
     const tipBadgeEl = document.getElementById('tipBadge');
-    const cardWrapper = document.querySelector('.card-wrapper');
+    const cardWrapper = document.getElementById('cardWrapper');
     const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
 
     const SECRET_CLICK_THRESHOLD = 3;
