@@ -870,6 +870,20 @@
             <button class="open-bot-btn" id="openAlienRiseFall">Open Bot</button>
           </div>
         </div>
+
+        <div class="bot-card" id="riseFallCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Momentum</span>
+            <h3>Rise/Fall Pro</h3>
+            <p>Blends RSI, MACD, and multi-frame momentum to time R10 CALL/PUT entries with volume-weighted confirmation.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.9/5</li>
+              <li>Strategy: Momentum-confirmed Rise/Fall</li>
+              <li>Recovery: 3.1× adaptive martingale</li>
+            </ul>
+            <button class="open-bot-btn" id="openRiseFall">Open Bot</button>
+          </div>
+        </div>
       </div>
 
       <div class="bot-detail-panel" id="botDetailPanel" hidden>
@@ -987,6 +1001,7 @@
   <script src="bots/smartEven.js"></script>
   <script src="bots/noTouch.js"></script>
   <script src="bots/alienRiseFall.js"></script>
+  <script src="bots/riseFall.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -1279,6 +1294,14 @@
         buttonId: 'openAlienRiseFall',
         defaultMartingale: 3.1,
         createInstance: () => new window.AlienRiseFallBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'riseFall',
+        name: 'Rise/Fall Pro',
+        cardId: 'riseFallCard',
+        buttonId: 'openRiseFall',
+        defaultMartingale: 3.1,
+        createInstance: () => new window.RiseFallBot(botUI, sharedDependencies())
       }
     ];
 
