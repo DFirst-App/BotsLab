@@ -542,13 +542,12 @@
 
     .trading-tips-panel {
       width: 100%;
-      max-width: 600px;
-      margin: 20px auto 0;
+      margin-top: 14px;
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.08), rgba(255, 122, 24, 0.06));
       border: 1px solid rgba(0, 210, 255, 0.12);
       border-radius: 16px;
-      padding: 16px 18px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      padding: 14px 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -1174,6 +1173,18 @@
       </div>
 
       <span class="api-link secret-hidden" id="apiKeyFooterText">Use API Key Instead</span>
+
+      <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
+        <div class="tips-header">
+          <span>Market Intel</span>
+          <span id="tipBadge">Verified Insight</span>
+        </div>
+        <div>
+          <p class="tip-title" id="tipTitle">Stay patient</p>
+          <p class="tip-description" id="tipDescription">Follow your plan to avoid emotional trades.</p>
+        </div>
+        <div class="tip-meta" id="tipMeta">Source: Trading discipline best practices</div>
+      </div>
     </div>
     </div>
 
@@ -1190,18 +1201,6 @@
           <span class="btn-label">Start Trading</span>
         </a>
       </div>
-    </div>
-
-    <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
-      <div class="tips-header">
-        <span>Market Intel</span>
-        <span id="tipBadge">Verified Insight</span>
-      </div>
-      <div>
-        <p class="tip-title" id="tipTitle">Stay patient</p>
-        <p class="tip-description" id="tipDescription">Follow your plan to avoid emotional trades.</p>
-      </div>
-      <div class="tip-meta" id="tipMeta">Source: Trading discipline best practices</div>
     </div>
 
     <!-- Disclaimer Section (hidden when connected) -->
