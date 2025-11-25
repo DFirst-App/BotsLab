@@ -458,11 +458,23 @@
       gap: 20px;
     }
 
-    .bot-config h4,
-    .bot-stats h4 {
+    .bot-config h4 {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
+    }
+
+    .bot-stats h4 {
+      margin: 0;
+      margin-bottom: 20px;
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00d2ff 0%, #ff7a18 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .config-grid {
@@ -585,34 +597,102 @@
     }
 
     .stat-card {
-      padding: 16px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.08) 0%, rgba(255, 122, 24, 0.05) 100%);
+      border: 1px solid rgba(0, 210, 255, 0.2);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 10px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #00d2ff, #ff7a18);
+      opacity: 0.6;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0, 210, 255, 0.4);
+      box-shadow: 0 8px 20px rgba(0, 210, 255, 0.15);
     }
 
     .stat-label {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
+      letter-spacing: 0.08em;
+      color: rgba(152, 162, 189, 0.9);
+      font-weight: 600;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .stat-value {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.2;
     }
 
     .stat-value.positive {
-      color: var(--success);
+      color: #24d970;
+      text-shadow: 0 0 10px rgba(36, 217, 112, 0.3);
     }
 
     .stat-value.negative {
-      color: var(--danger);
+      color: #ff5f6d;
+      text-shadow: 0 0 10px rgba(255, 95, 109, 0.3);
+    }
+
+    /* Color coding for different stat types */
+    .stat-card:nth-child(1) .stat-value {
+      color: #00d2ff;
+      text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+    }
+
+    .stat-card:nth-child(2) .stat-value {
+      color: #24d970;
+      text-shadow: 0 0 10px rgba(36, 217, 112, 0.3);
+    }
+
+    .stat-card:nth-child(3) .stat-value {
+      color: #ff7a18;
+      text-shadow: 0 0 10px rgba(255, 122, 24, 0.3);
+    }
+
+    .stat-card:nth-child(4) .stat-value {
+      color: #a855f7;
+      text-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+    }
+
+    .stat-card:nth-child(5) .stat-value {
+      color: #00d2ff;
+      text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+    }
+
+    .stat-card:nth-child(6) .stat-value {
+      color: #ff5f6d;
+      text-shadow: 0 0 10px rgba(255, 95, 109, 0.3);
+    }
+
+    .stat-card:nth-child(7) .stat-value {
+      color: #fcd34d;
+      text-shadow: 0 0 10px rgba(252, 211, 77, 0.3);
+    }
+
+    .stat-card:nth-child(8) .stat-value {
+      color: #00d2ff;
+      text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
     }
 
     .history-list {
@@ -830,6 +910,23 @@
         align-items: stretch;
       }
 
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-value {
+        font-size: 20px;
+      }
+
+      .bot-stats h4 {
+        font-size: 18px;
+      }
+
       .primary-btn,
       .secondary-btn {
         width: 100%;
@@ -868,6 +965,23 @@
 
       .history-list {
         padding-bottom: 30px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 14px;
+      }
+
+      .stat-value {
+        font-size: 18px;
+      }
+
+      .stat-label {
+        font-size: 10px;
       }
 
       footer {
