@@ -192,14 +192,14 @@
       gap: 24px;
       align-items: flex-start;
       width: 100%;
+      flex-wrap: wrap;
     }
 
     .bots-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
-      flex: 1;
-      max-width: 900px;
+      flex: 1 1 600px;
     }
 
     .bots-list.hidden {
@@ -312,7 +312,7 @@
     }
 
     .bot-detail-panel {
-      flex: 1.4;
+      flex: 1 1 520px;
       background: var(--panel-soft);
       border-radius: 20px;
       border: 1px solid var(--border);
@@ -324,6 +324,10 @@
     }
 
     .panel-placeholder {
+      display: none;
+    }
+
+    .bot-detail-panel[hidden] {
       display: none;
     }
 
@@ -812,7 +816,7 @@
         </div>
       </div>
 
-      <div class="bot-detail-panel" id="botDetailPanel">
+      <div class="bot-detail-panel" id="botDetailPanel" hidden>
         <div class="panel-placeholder" id="panelPlaceholder"></div>
 
         <div class="bot-panel-content" id="botPanelContent" hidden>
@@ -941,6 +945,7 @@
 
     const botsList = document.getElementById('botsList');
     const panelPlaceholder = document.getElementById('panelPlaceholder');
+    const botDetailPanel = document.getElementById('botDetailPanel');
     const botPanelContent = document.getElementById('botPanelContent');
     const pageHeader = document.getElementById('pageHeader');
     const headerBackBtn = document.getElementById('headerBackBtn');
@@ -957,6 +962,7 @@
     activeBotName.textContent = 'Select a bot';
 
     function openBotPanelUI() {
+      botDetailPanel.hidden = false;
       botPanelContent.hidden = false;
       botsList?.classList.add('hidden');
       pageHeader.classList.add('show-active');
@@ -971,6 +977,7 @@
       currentBotKey = null;
       document.querySelectorAll('.bot-card').forEach(card => card.classList.remove('active'));
       pageHeader.classList.remove('show-active');
+      botDetailPanel.hidden = true;
       botPanelContent.hidden = true;
       botsList?.classList.remove('hidden');
       sectionHeading.hidden = false;
