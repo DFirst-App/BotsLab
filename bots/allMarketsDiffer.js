@@ -37,6 +37,8 @@
       this.reconnectTimeout = null;
       this.isReconnecting = false;
       this.storedToken = null;
+      this.authorized = false;
+      this.authorizationTimeout = null;
     }
 
     async start(config) {
@@ -53,6 +55,7 @@
 
       this.storedToken = token;
       this.reconnectAttempts = 0;
+      this.authorized = false;
 
       this.config = { ...this.config, ...config };
       this.currentStake = this.config.initialStake;
@@ -82,7 +85,16 @@
     connectWebSocket() {
       if (this.stopRequested) return;
 
+      this.authorized = false;
       this.ws = new this.WebSocketImpl(this.wsUrl);
+
+      // Set authorization timeout
+      this.authorizationTimeout = setTimeout(() => {
+        if (!this.authorized && this.isRunning && !this.stopRequested) {
+          this.ui.showStatus('Authorization timeout. Retrying...', 'warning');
+          this.attemptReconnect('Authorization timeout');
+        }
+      }, 10000); // 10 second timeout
 
       this.ws.onopen = () => {
         this.reconnectAttempts = 0;
@@ -94,6 +106,9 @@
         const token = this.storedToken || this.resolveAuthToken();
         if (token) {
           this.ws.send(JSON.stringify({ authorize: token }));
+        } else {
+          this.ui.showStatus('No authorization token available. Please reconnect your account.', 'error');
+          this.stop('Authorization token missing', 'error');
         }
       };
 
@@ -132,7 +147,14 @@
       if (this.stopRequested || this.isReconnecting) return;
 
       this.isReconnecting = true;
+      this.authorized = false;
       this.reconnectAttempts += 1;
+
+      // Clear authorization timeout
+      if (this.authorizationTimeout) {
+        clearTimeout(this.authorizationTimeout);
+        this.authorizationTimeout = null;
+      }
 
       if (this.reconnectAttempts > 10) {
         this.ui.showStatus('Max reconnection attempts reached. Please restart the bot.', 'error');
@@ -170,9 +192,14 @@
       this.isReconnecting = false;
       this.tradeInProgress = false;
       this.activeContractId = null;
+      this.authorized = false;
       if (this.reconnectTimeout) {
         clearTimeout(this.reconnectTimeout);
         this.reconnectTimeout = null;
+      }
+      if (this.authorizationTimeout) {
+        clearTimeout(this.authorizationTimeout);
+        this.authorizationTimeout = null;
       }
       if (this.ws) {
         try {
@@ -204,7 +231,14 @@
           const errorCode = data.error?.code;
           const message = data.error.message || 'Deriv returned an error.';
           
+          // Clear authorization timeout on error
+          if (this.authorizationTimeout) {
+            clearTimeout(this.authorizationTimeout);
+            this.authorizationTimeout = null;
+          }
+
           if (errorCode === 'InvalidToken' || errorCode === 'AuthorizationRequired') {
+            this.authorized = false;
             this.ui.showStatus('Authorization expired. Reconnecting...', 'warning');
             this.attemptReconnect('Re-authenticating...');
             return;
@@ -219,29 +253,63 @@
             }, 5000);
             return;
           }
+
+          // Handle generic errors - retry if not authorized yet, otherwise show error
+          if (!this.authorized) {
+            this.ui.showStatus('Connection error. Retrying...', 'warning');
+            this.attemptReconnect('Connection error');
+            return;
+          }
           
+          // For authorized connections, log and retry the trade
           console.error('Deriv API error:', data.error);
-          this.ui.showStatus(message, 'error');
+          this.ui.showStatus(`Error: ${message}. Retrying trade...`, 'warning');
+          
+          // Reset trade state and retry after a delay
+          if (this.tradeInProgress) {
+            this.tradeInProgress = false;
+            this.activeContractId = null;
+            setTimeout(() => {
+              if (this.isRunning && !this.stopRequested && this.authorized) {
+                this.queueNextTrade();
+              }
+            }, 2000);
+          }
         }
 
         switch (data.msg_type) {
           case 'authorize':
-            this.accountCurrency = data.authorize.currency || 'USD';
-            this.balance = Number(data.authorize.balance) || 0;
-            this.ui.updateBalance(this.balance, this.accountCurrency);
-            
-            if (this.isReconnecting) {
-              this.ui.showStatus('Reconnected. Resuming trading...', 'success');
-              this.isReconnecting = false;
-            } else {
-              this.ui.showStatus('Connected. Starting digit differ sequence...', 'success');
-            }
+            if (data.authorize) {
+              // Clear authorization timeout
+              if (this.authorizationTimeout) {
+                clearTimeout(this.authorizationTimeout);
+                this.authorizationTimeout = null;
+              }
 
-            this.subscribeToBalance();
-            this.subscribeToContracts();
-            
-            if (!this.tradeInProgress) {
-              this.queueNextTrade();
+              this.authorized = true;
+              this.accountCurrency = data.authorize.currency || 'USD';
+              this.balance = Number(data.authorize.balance) || 0;
+              this.ui.updateBalance(this.balance, this.accountCurrency);
+              
+              if (this.isReconnecting) {
+                this.ui.showStatus('Reconnected. Resuming trading...', 'success');
+                this.isReconnecting = false;
+              } else {
+                this.ui.showStatus('Connected. Starting digit differ sequence...', 'success');
+              }
+
+              this.subscribeToBalance();
+              this.subscribeToContracts();
+              
+              // Small delay to ensure subscriptions are ready
+              setTimeout(() => {
+                if (!this.tradeInProgress && this.authorized && this.isRunning) {
+                  this.queueNextTrade();
+                }
+              }, 500);
+            } else {
+              this.ui.showStatus('Authorization failed. Retrying...', 'warning');
+              this.attemptReconnect('Authorization failed');
             }
             break;
           case 'balance':
@@ -286,6 +354,11 @@
 
     queueNextTrade() {
       if (!this.isRunning || this.tradeInProgress) {
+        return;
+      }
+
+      if (!this.authorized) {
+        this.ui.showStatus('Waiting for authorization...', 'warning');
         return;
       }
 
