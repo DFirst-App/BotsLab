@@ -977,30 +977,16 @@
       box-shadow: 0 6px 20px rgba(0, 210, 255, 0.2);
     }
 
-    /* Desktop: Position buttons next to account card */
+    /* Desktop: Move action buttons to right column */
     @media (min-width: 1024px) {
-      .page {
-        flex-direction: row;
-        align-items: stretch;
-      }
-
-      .card-wrapper {
-        flex: 0 0 480px;
-        justify-content: flex-start;
-      }
-
-      .tips-banner {
-        max-width: 480px;
-      }
-
       .action-buttons-container {
-        flex: 0 0 280px;
+        position: fixed;
+        top: 50%;
+        right: 32px;
+        transform: translateY(-50%);
+        z-index: 3;
+        width: 260px;
         margin: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 18px;
-        padding-left: 40px;
       }
 
       .action-buttons {
@@ -1011,14 +997,14 @@
 
       .action-btn {
         width: 100%;
-        min-height: 68px;
-        height: auto;
+        padding: 16px 18px;
+        min-height: 62px;
         align-items: flex-start;
-        padding: 18px;
+        text-align: left;
       }
 
       .action-btn .btn-label {
-        font-size: 15px;
+        font-size: 14px;
         letter-spacing: 0.04em;
       }
     }
