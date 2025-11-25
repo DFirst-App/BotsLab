@@ -868,14 +868,11 @@
       <div class="bot-detail-panel" id="botDetailPanel">
         <div class="panel-placeholder" id="panelPlaceholder">
           <div class="placeholder-card">
-            <span class="placeholder-chip">No Bot Selected</span>
-            <h3 class="placeholder-title">Pick a strategy to unlock live controls</h3>
-            <p class="placeholder-text">
-              Choose a digits bot to see its tailored configuration, live performance metrics, and rolling trade history. Each bot runs independently, so you can test different market styles instantly.
+            <span class="placeholder-chip" id="tipsChip">Trading Tip</span>
+            <h3 class="placeholder-title" id="tipsTitle">Stay patient. Let the edge play out.</h3>
+            <p class="placeholder-text" id="tipsBody">
+              Great traders think in probabilities, not certainties. Focus on executing a tested plan consistently instead of chasing every move.
             </p>
-            <div class="placeholder-actions">
-              <span class="secondary-btn-link" style="cursor: default;">Select a bot card on the left →</span>
-            </div>
           </div>
         </div>
 
@@ -1002,6 +999,42 @@
     };
 
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    const tips = [
+      {
+        title: 'Risk first. Profit second.',
+        body: 'Professional traders size every position from their maximum loss, not from their dream profit. Keep each trade small enough that a string of losses is survivable.'
+      },
+      {
+        title: 'Volatility is a feature, not a bug.',
+        body: 'Markets expand and contract in cycles. Strategies built for one volatility regime often fail in another—adapt your stake, frequency, and expectations accordingly.'
+      },
+      {
+        title: 'Protect capital during drawdowns.',
+        body: 'When equity drops, your first job is defense. Reducing position size and trade frequency during drawdowns can significantly extend your long-term edge.'
+      },
+      {
+        title: 'One instrument, many conditions.',
+        body: 'The same market can behave like a trend on higher timeframes and noise on lower timeframes. Always align your strategy with the timeframe you are actually trading.'
+      }
+    ];
+
+    (function rotateTips() {
+      const titleEl = document.getElementById('tipsTitle');
+      const bodyEl = document.getElementById('tipsBody');
+      if (!titleEl || !bodyEl) return;
+
+      let idx = 0;
+      function showNextTip() {
+        const tip = tips[idx];
+        titleEl.textContent = tip.title;
+        bodyEl.textContent = tip.body;
+        idx = (idx + 1) % tips.length;
+      }
+
+      showNextTip();
+      setInterval(showNextTip, 14000);
+    })();
 
     const botsList = document.getElementById('botsList');
     const panelPlaceholder = document.getElementById('panelPlaceholder');
