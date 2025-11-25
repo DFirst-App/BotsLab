@@ -10,14 +10,16 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #05060a;
-      --panel: rgba(12,15,24,0.9);
-      --panel-strong: rgba(17,21,32,0.95);
+      --bg: #04070f;
+      --panel: rgba(9, 12, 22, 0.92);
+      --panel-soft: rgba(11, 15, 26, 0.86);
       --accent: #7bffb7;
       --accent-2: #00d2ff;
       --text: #f5f7ff;
-      --muted: #9aa2c2;
-      --border: rgba(255,255,255,0.08);
+      --muted: #96a0c0;
+      --border: rgba(255, 255, 255, 0.08);
+      --danger: #ff5f6d;
+      --warning: #fcd34d;
     }
 
     * {
@@ -27,7 +29,7 @@
     body {
       margin: 0;
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.25), rgba(123, 255, 183, 0.15)), var(--bg);
+      background: radial-gradient(circle at top right, rgba(0, 210, 255, 0.35), transparent 40%), var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -39,20 +41,20 @@
       inset: 0;
       pointer-events: none;
       background-image:
-        linear-gradient(rgba(123, 255, 183, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px);
-      background-size: 60px 60px;
+        radial-gradient(circle at 1px 1px, rgba(123, 255, 183, 0.22) 2px, transparent 0),
+        radial-gradient(circle at 20px 20px, rgba(0, 210, 255, 0.18) 2px, transparent 0);
+      background-size: 80px 80px;
+      opacity: 0.45;
       z-index: 0;
-      opacity: 0.5;
     }
 
     .page {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 1300px;
+      max-width: 1340px;
       margin: 0 auto;
-      padding: 28px;
+      padding: 26px;
       padding-bottom: 120px;
     }
 
@@ -61,8 +63,8 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      margin-bottom: 24px;
       flex-wrap: wrap;
+      margin-bottom: 18px;
     }
 
     .header h1 {
@@ -76,99 +78,494 @@
       color: var(--muted);
     }
 
-    .back-link {
+    .header .back-link {
       padding: 10px 16px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      text-decoration: none;
+      border: 1px solid rgba(0, 210, 255, 0.4);
       color: var(--text);
+      text-decoration: none;
       font-weight: 600;
-      transition: border 0.2s ease, background 0.2s ease;
+      transition: all 0.2s ease;
     }
 
-    .back-link:hover {
-      border-color: rgba(123, 255, 183, 0.6);
-      background: rgba(123, 255, 183, 0.1);
+    .header .back-link:hover {
+      border-color: rgba(123, 255, 183, 0.7);
+      box-shadow: 0 5px 18px rgba(0, 210, 255, 0.25);
     }
 
-    .mt5-grid {
+    .header-active {
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header.show-active .header-default {
+      display: none;
+    }
+
+    .header.show-active .header-active {
+      display: flex;
+    }
+
+    .header-active button {
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .header-active button:hover {
+      border-color: rgba(0, 210, 255, 0.45);
+      background: rgba(0, 210, 255, 0.12);
+    }
+
+    .header-active span {
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .section-heading {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .bots-layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .bots-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 22px;
+      gap: 18px;
+      flex: 1;
+      max-width: 520px;
     }
 
-    .mt5-card {
+    .bot-card {
       background: var(--panel);
-      border: 1px solid var(--border);
       border-radius: 20px;
       padding: 24px;
-      min-height: 200px;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .bot-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid transparent;
+      background: linear-gradient(120deg, rgba(0, 210, 255, 0.35), rgba(123, 255, 183, 0.22));
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .bot-card.active::after,
+    .bot-card:hover::after {
+      opacity: 1;
+    }
+
+    .bot-card-content {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .mt5-card h3 {
-      margin: 0;
-      font-size: 20px;
-      letter-spacing: -0.01em;
+    .bot-chip {
+      align-self: flex-start;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: var(--accent-2);
+      background: rgba(0, 210, 255, 0.08);
     }
 
-    .mt5-card p {
+    .bot-card h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .bot-card p {
       margin: 0;
       color: rgba(255, 255, 255, 0.75);
       line-height: 1.5;
     }
 
-    .mt5-card .status {
+    .bot-meta {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+    }
+
+    .open-bot-btn {
+      align-self: flex-start;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 210, 255, 0.35);
+      background: rgba(0, 210, 255, 0.12);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .open-bot-btn:hover {
+      border-color: rgba(123, 255, 183, 0.5);
+      background: rgba(123, 255, 183, 0.18);
+    }
+
+    .bot-detail-panel {
+      flex: 1.6;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 26px;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-placeholder {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 46px 24px;
+    }
+
+    .placeholder-card {
+      background: radial-gradient(circle at top, rgba(123, 255, 183, 0.25), rgba(9, 12, 22, 0.95));
+      border-radius: 26px;
+      padding: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 55px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 520px;
+    }
+
+    .placeholder-chip {
+      align-self: flex-start;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid rgba(123, 255, 183, 0.35);
+      color: var(--accent);
+      background: rgba(123, 255, 183, 0.12);
+    }
+
+    .placeholder-title {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .placeholder-text {
+      margin: 0;
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+    }
+
+    .bot-panel-content {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .bot-panel-content:not([hidden]) {
+      display: flex;
+    }
+
+    .bot-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .status-badge[data-state="idle"] {
+      color: rgba(255, 255, 255, 0.65);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .status-badge[data-state="running"] {
+      color: var(--accent);
+      border-color: rgba(123, 255, 183, 0.4);
+      background: rgba(123, 255, 183, 0.12);
+    }
+
+    .status-badge[data-state="error"] {
+      color: var(--danger);
+      border-color: rgba(255, 95, 109, 0.45);
+      background: rgba(255, 95, 109, 0.12);
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .bot-panel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .bot-column {
+      background: rgba(5, 7, 12, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bot-column h4 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .config-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .input-group input,
+    .input-group select {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(5, 7, 12, 0.7);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .checkbox-chip {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 6px 12px;
       border-radius: 999px;
-      background: rgba(123, 255, 183, 0.12);
-      color: var(--accent);
-      border: 1px solid rgba(123, 255, 183, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       font-size: 12px;
+      cursor: pointer;
+    }
+
+    .checkbox-chip input {
+      accent-color: var(--accent-2);
+    }
+
+    .config-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      font-size: 14px;
       font-weight: 600;
-      letter-spacing: 0.08em;
+      cursor: pointer;
+      flex: 1;
+      min-width: 130px;
     }
 
-    .coming-soon {
-      text-align: center;
-      padding: 80px 24px;
-      color: var(--muted);
-      border: 1px dashed rgba(255, 255, 255, 0.2);
-      border-radius: 24px;
-      background: rgba(5, 6, 10, 0.4);
-      margin-top: 30px;
-    }
-
-    .coming-soon h2 {
-      margin: 0;
-      font-size: 28px;
+    .primary-btn {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.45), rgba(123, 255, 183, 0.35));
+      border: 1px solid rgba(123, 255, 183, 0.6);
       color: var(--text);
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .secondary-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+    }
+
+    .stats-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 4px;
+      letter-spacing: -0.01em;
+    }
+
+    .stat-value.positive {
+      color: var(--accent);
+    }
+
+    .stat-value.negative {
+      color: var(--danger);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 13px;
+    }
+
+    .history-item.win {
+      border-color: rgba(123, 255, 183, 0.35);
+    }
+
+    .history-item.loss {
+      border-color: rgba(255, 95, 109, 0.35);
+    }
+
+    .history-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      color: var(--muted);
+    }
+
+    .history-profit.win {
+      color: var(--accent);
+    }
+
+    .history-profit.loss {
+      color: var(--danger);
     }
 
     footer {
       margin-top: auto;
-      padding: 20px 28px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(5, 6, 10, 0.6);
-      display: flex;
-      justify-content: center;
-    }
-
-    footer p {
-      margin: 0;
+      padding: 20px 0;
+      text-align: center;
       color: var(--muted);
       font-size: 13px;
     }
 
+    @media (max-width: 1024px) {
+      .bots-layout {
+        flex-direction: column;
+      }
+
+      .bots-list {
+        max-width: none;
+        width: 100%;
+      }
+    }
+
     @media (max-width: 768px) {
       .page {
-        padding: 24px 18px 100px;
+        padding: 22px 16px 100px;
       }
 
       .header h1 {
@@ -180,26 +577,392 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
-    <div class="header">
-      <div>
-        <h1>MT5 Trading Bots</h1>
-        <p>High-frequency automation tuned for MetaTrader 5 accounts.</p>
+    <div class="header" id="pageHeader">
+      <div class="header-default" id="headerDefault">
+        <div>
+          <h1>MT5 Trading Bots</h1>
+          <p>Portfolio automation that balances synthetic, FX, and index exposure.</p>
+        </div>
+        <a href="trading-bots.html" class="back-link">← Back to Web Bots</a>
       </div>
-      <a href="trading-bots.html" class="back-link">← Back to Web Bots</a>
+      <div class="header-active" id="headerActive">
+        <button id="mt5BackToBots">← Back to bots</button>
+        <span id="mt5ActiveBotName">Global Flow MT5</span>
+      </div>
     </div>
 
-    <div class="coming-soon">
-      <h2>MT5 Bots Coming Soon</h2>
-      <p>Our MT5 strategies are under development. Stay tuned for advanced hedging, scalping, and synthetic index bots built for MetaTrader 5.</p>
+    <div class="section-heading" id="sectionHeading">
+      <div>
+        <h2>Deriv MT5 Portfolio Bots</h2>
+        <p>Risk-first execution that reallocates across volatility, Boom/Crash, FX, metals, and index symbols.</p>
+      </div>
+    </div>
+
+    <div class="bots-layout">
+      <div class="bots-list" id="mt5BotsList">
+        <div class="bot-card" id="globalFlowCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Multi-Market</span>
+            <h3>Global Flow MT5</h3>
+            <p>Allocates 1% risk per cycle across Deriv MT5 symbols, splitting lot sizes automatically and enforcing global TP/SL.</p>
+            <ul class="bot-meta">
+              <li>Markets: Volatility, Boom/Crash, FX, Metals, Indices</li>
+              <li>Risk Model: % of balance per cycle, adaptive lot sizing</li>
+              <li>Execution: Staggered entries with auto TP/SL per symbol</li>
+            </ul>
+            <button class="open-bot-btn" id="openGlobalFlowBot">Open Bot</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bot-detail-panel" id="mt5BotPanel">
+        <div class="panel-placeholder" id="mt5PanelPlaceholder">
+          <div class="placeholder-card">
+            <span class="placeholder-chip">MT5 POINTER</span>
+            <h3 class="placeholder-title">Risk-led engine for serious traders</h3>
+            <p class="placeholder-text">
+              Global Flow MT5 scales lot sizes from your risk percentage, rotates through high-probability markets, and enforces global TP/SL so total exposure never exceeds your plan.
+            </p>
+          </div>
+        </div>
+
+        <div class="bot-panel-content" id="mt5BotPanelContent" hidden>
+          <div class="bot-panel-header">
+            <div class="status-badge" id="mt5BotStatusBadge" data-state="idle">Idle</div>
+            <div class="status-text" id="mt5BotStatusText">Waiting for bot configuration.</div>
+          </div>
+
+          <div class="bot-panel-grid">
+            <div class="bot-column">
+              <h4>Configuration</h4>
+              <div class="config-grid">
+                <div class="input-group">
+                  <label for="riskPercentInput">Risk per cycle (% of balance)</label>
+                  <input type="number" id="riskPercentInput" min="0.1" step="0.1" value="1">
+                </div>
+                <div class="input-group">
+                  <label for="globalTpInput">Global Take Profit (USD)</label>
+                  <input type="number" id="globalTpInput" min="100" step="50" value="1000">
+                </div>
+                <div class="input-group">
+                  <label for="globalSlInput">Global Stop Loss (USD)</label>
+                  <input type="number" id="globalSlInput" min="100" step="100" value="10000">
+                </div>
+                <div class="input-group">
+                  <label for="maxSymbolsInput">Max concurrent markets</label>
+                  <input type="number" id="maxSymbolsInput" min="1" max="6" step="1" value="3">
+                </div>
+                <div class="input-group">
+                  <label>Market buckets</label>
+                  <div class="checkbox-row">
+                    <label class="checkbox-chip">
+                      <input type="checkbox" name="marketCategory" value="synthetic" checked> Synthetic
+                    </label>
+                    <label class="checkbox-chip">
+                      <input type="checkbox" name="marketCategory" value="boomCrash" checked> Boom/Crash
+                    </label>
+                    <label class="checkbox-chip">
+                      <input type="checkbox" name="marketCategory" value="forex" checked> Forex
+                    </label>
+                    <label class="checkbox-chip">
+                      <input type="checkbox" name="marketCategory" value="metals" checked> Metals
+                    </label>
+                    <label class="checkbox-chip">
+                      <input type="checkbox" name="marketCategory" value="indices" checked> Indices
+                    </label>
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label>
+                    <input type="checkbox" id="allowHedgingToggle" checked>
+                    Allow staggered hedging entries
+                  </label>
+                </div>
+              </div>
+
+              <div class="config-actions">
+                <button class="primary-btn" id="mt5StartBotBtn">Start Bot</button>
+                <button class="secondary-btn" id="mt5StopBotBtn" disabled>Stop Bot</button>
+              </div>
+              <div class="status-text" id="mt5AccountHint">Connect your Deriv + MT5 accounts before launching the bot.</div>
+            </div>
+
+            <div class="bot-column">
+              <h4>Live Performance</h4>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-label">Account Balance</div>
+                  <div class="stat-value" id="mt5BalanceValue">-</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Cycle Profit</div>
+                  <div class="stat-value" id="mt5CycleProfitValue">$0.00</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Open Risk</div>
+                  <div class="stat-value" id="mt5OpenRiskValue">0%</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Active Symbols</div>
+                  <div class="stat-value" id="mt5ActiveSymbolsValue">0</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Completed Trades</div>
+                  <div class="stat-value" id="mt5TradesValue">0</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Running Time</div>
+                  <div class="stat-value" id="mt5RunningTimeValue">00:00:00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bot-column">
+              <h4>Recent Trades</h4>
+              <div class="history-list" id="mt5HistoryList">
+                <div class="history-item">
+                  <div class="history-meta">
+                    <strong>No trades yet</strong>
+                    <span>Open the bot to start generating history.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 
   <footer>
-    <p>© <span id="year"></span> DFirst Automation Lab — Powered by Deriv</p>
+    © <span id="year"></span> DFirst Automation Lab — Powered by Deriv
   </footer>
 
+  <script src="bots/globalFlowMt5.js"></script>
   <script>
+    const APP_ID = '67709';
+    const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    const botsList = document.getElementById('mt5BotsList');
+    const panelPlaceholder = document.getElementById('mt5PanelPlaceholder');
+    const botPanelContent = document.getElementById('mt5BotPanelContent');
+    const pageHeader = document.getElementById('pageHeader');
+    const headerBackBtn = document.getElementById('mt5BackToBots');
+    const activeBotName = document.getElementById('mt5ActiveBotName');
+    const sectionHeading = document.getElementById('sectionHeading');
+
+    let currentBotInstance = null;
+    const botInstances = {};
+    let botUI = null;
+    let currentBotKey = null;
+
+    function openBotPanelUI(name) {
+      panelPlaceholder.hidden = true;
+      botPanelContent.hidden = false;
+      botsList?.classList.add('hidden');
+      pageHeader.classList.add('show-active');
+      sectionHeading.hidden = true;
+      activeBotName.textContent = name;
+    }
+
+    function closeBotPanel(stopBot = true) {
+      if (stopBot && currentBotInstance?.isRunning) {
+        currentBotInstance.stop('Bot hidden. Restart when ready.', 'warning');
+      }
+      currentBotInstance = null;
+      currentBotKey = null;
+      document.querySelectorAll('.bot-card').forEach(card => card.classList.remove('active'));
+      panelPlaceholder.hidden = false;
+      botPanelContent.hidden = true;
+      botsList?.classList.remove('hidden');
+      pageHeader.classList.remove('show-active');
+      sectionHeading.hidden = false;
+      botUI?.showStatus('Waiting for bot configuration.');
+    }
+
+    headerBackBtn.addEventListener('click', () => closeBotPanel());
+
+    function resolveAuthToken() {
+      try {
+        const stored = localStorage.getItem('@deriv_oauth_tokens');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.selectedAccount?.token) return parsed.selectedAccount.token;
+          if (Array.isArray(parsed?.accounts) && parsed.accounts.length) {
+            return parsed.accounts[0].token;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to read OAuth tokens', error);
+      }
+
+      try {
+        const key = localStorage.getItem('@deriv_api_key');
+        if (key) return key;
+      } catch (error) {
+        console.error('Failed to read API key', error);
+      }
+
+      return null;
+    }
+
+    function initGlobalFlowUI() {
+      const startBtn = document.getElementById('mt5StartBotBtn');
+      const stopBtn = document.getElementById('mt5StopBotBtn');
+      const statusBadge = document.getElementById('mt5BotStatusBadge');
+      const statusText = document.getElementById('mt5BotStatusText');
+      const accountHint = document.getElementById('mt5AccountHint');
+
+      const balanceValue = document.getElementById('mt5BalanceValue');
+      const cycleProfitValue = document.getElementById('mt5CycleProfitValue');
+      const openRiskValue = document.getElementById('mt5OpenRiskValue');
+      const activeSymbolsValue = document.getElementById('mt5ActiveSymbolsValue');
+      const tradesValue = document.getElementById('mt5TradesValue');
+      const runningTimeValue = document.getElementById('mt5RunningTimeValue');
+      const historyList = document.getElementById('mt5HistoryList');
+
+      const riskPercentInput = document.getElementById('riskPercentInput');
+      const globalTpInput = document.getElementById('globalTpInput');
+      const globalSlInput = document.getElementById('globalSlInput');
+      const maxSymbolsInput = document.getElementById('maxSymbolsInput');
+      const allowHedgingToggle = document.getElementById('allowHedgingToggle');
+      const categoryInputs = Array.from(document.querySelectorAll('input[name="marketCategory"]'));
+
+      const historyLimit = 30;
+
+      return {
+        getConfigValues() {
+          const selectedCategories = categoryInputs
+            .filter((input) => input.checked)
+            .map((input) => input.value);
+          return {
+            riskPercent: parseFloat(riskPercentInput.value) || 1,
+            takeProfit: parseFloat(globalTpInput.value) || 1000,
+            stopLoss: parseFloat(globalSlInput.value) || 10000,
+            maxSymbols: parseInt(maxSymbolsInput.value, 10) || 3,
+            categories: selectedCategories.length ? selectedCategories : ['synthetic', 'forex'],
+            allowHedging: allowHedgingToggle.checked
+          };
+        },
+        setRunningState(isRunning) {
+          startBtn.disabled = isRunning;
+          stopBtn.disabled = !isRunning;
+          statusBadge.dataset.state = isRunning ? 'running' : 'idle';
+          statusBadge.textContent = isRunning ? 'Running' : 'Idle';
+        },
+        showStatus(message, type = 'info') {
+          statusText.textContent = message;
+          if (type === 'error') {
+            statusBadge.dataset.state = 'error';
+            statusBadge.textContent = 'Error';
+          } else if (type === 'running' || type === 'success') {
+            statusBadge.dataset.state = 'running';
+            statusBadge.textContent = 'Running';
+          } else {
+            if (!document.getElementById('mt5StartBotBtn').disabled) {
+              statusBadge.dataset.state = 'idle';
+              statusBadge.textContent = 'Idle';
+            }
+          }
+        },
+        updateBalance(amount, currency = 'USD') {
+          balanceValue.textContent = `${currency} ${Number(amount).toFixed(2)}`;
+        },
+        updateStats(stats) {
+          if (typeof stats.cycleProfit === 'number') {
+            const formatted = `${stats.cycleProfit >= 0 ? '+' : ''}$${stats.cycleProfit.toFixed(2)}`;
+            cycleProfitValue.textContent = formatted;
+            cycleProfitValue.classList.toggle('positive', stats.cycleProfit > 0);
+            cycleProfitValue.classList.toggle('negative', stats.cycleProfit < 0);
+          }
+          if (typeof stats.openRiskPct === 'number') {
+            openRiskValue.textContent = `${stats.openRiskPct.toFixed(2)}%`;
+          }
+          if (typeof stats.activeSymbols === 'number') {
+            activeSymbolsValue.textContent = stats.activeSymbols.toString();
+          }
+          if (typeof stats.completedTrades === 'number') {
+            tradesValue.textContent = stats.completedTrades.toString();
+          }
+          if (typeof stats.runningTime === 'string') {
+            runningTimeValue.textContent = stats.runningTime;
+          }
+        },
+        updateAccountHint(text) {
+          accountHint.textContent = text;
+        },
+        resetHistory() {
+          historyList.innerHTML = '';
+        },
+        addHistoryEntry(entry) {
+          const item = document.createElement('div');
+          item.className = `history-item ${entry.profit >= 0 ? 'win' : 'loss'}`;
+          const meta = document.createElement('div');
+          meta.className = 'history-meta';
+          meta.innerHTML = `
+            <strong>${entry.symbol} · ${entry.direction.toUpperCase()} · ${entry.volume.toFixed(2)} lots</strong>
+            <span>${entry.timestamp.toLocaleTimeString()} — Risk ${entry.riskPct}%</span>
+            <span>Entry: ${entry.entryPrice.toFixed(entry.priceDp)} | SL: ${entry.stopLoss.toFixed(entry.priceDp)} | TP: ${entry.takeProfit.toFixed(entry.priceDp)}</span>
+          `;
+          const profit = document.createElement('div');
+          profit.className = `history-profit ${entry.profit >= 0 ? 'win' : 'loss'}`;
+          profit.textContent = `${entry.profit >= 0 ? '+' : ''}$${entry.profit.toFixed(2)}`;
+          item.appendChild(meta);
+          item.appendChild(profit);
+          historyList.prepend(item);
+          while (historyList.children.length > historyLimit) {
+            historyList.removeChild(historyList.lastChild);
+          }
+        },
+      };
+    }
+
+    botUI = initGlobalFlowUI();
+
+    function getGlobalFlowInstance() {
+      if (!botInstances.globalFlow) {
+        botInstances.globalFlow = new window.GlobalFlowMt5Bot(botUI, {
+          resolveAuthToken,
+          wsUrl: DERIV_WS_URL
+        });
+      }
+      return botInstances.globalFlow;
+    }
+
+    function handleBotOpen() {
+      const instance = getGlobalFlowInstance();
+      currentBotInstance = instance;
+      currentBotKey = 'globalFlow';
+      document.querySelectorAll('.bot-card').forEach(card => card.classList.remove('active'));
+      document.getElementById('globalFlowCard')?.classList.add('active');
+      openBotPanelUI('Global Flow MT5');
+      botUI.showStatus('Configure your risk and press start.');
+    }
+
+    document.getElementById('openGlobalFlowBot').addEventListener('click', (event) => {
+      event.stopPropagation();
+      handleBotOpen();
+    });
+
+    document.getElementById('globalFlowCard').addEventListener('click', () => {
+      handleBotOpen();
+    });
+
+    document.getElementById('mt5StartBotBtn').addEventListener('click', () => {
+      if (!currentBotInstance) {
+        botUI.showStatus('Select a bot card first.', 'warning');
+        return;
+      }
+      const config = botUI.getConfigValues();
+      currentBotInstance.start(config);
+    });
+
+    document.getElementById('mt5StopBotBtn').addEventListener('click', () => {
+      if (currentBotInstance) {
+        currentBotInstance.stop('Bot stopped by user.', 'warning');
+      }
+    });
   </script>
 </body>
 </html>
