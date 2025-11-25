@@ -116,11 +116,15 @@
     }
 
     clearTimers() {
+      this.clearRunningTimer();
+      this.clearProposalTimeout();
+    }
+
+    clearRunningTimer() {
       if (this.runningTimer) {
         clearInterval(this.runningTimer);
         this.runningTimer = null;
       }
-      this.clearProposalTimeout();
     }
 
     clearProposalTimeout() {
