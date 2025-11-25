@@ -71,7 +71,13 @@
       margin-bottom: 8px;
     }
 
-    .header h1 {
+    .header-default {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-default h1 {
       margin: 0;
       font-size: 28px;
       font-weight: 700;
@@ -95,10 +101,43 @@
       font-family: 'Inter', system-ui, sans-serif;
     }
 
-    .back-btn:hover {
-      background: var(--panel-strong);
-      border-color: rgba(255, 255, 255, 0.12);
-      transform: translateY(-1px);
+    .header-active {
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-active button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .header-active button:hover {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: rgba(0, 210, 255, 0.4);
+    }
+
+    .header-active span {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .header.show-active .header-default {
+      display: none;
+    }
+
+    .header.show-active .header-active {
+      display: inline-flex;
     }
 
     .section-heading {
@@ -279,40 +318,19 @@
       flex-wrap: wrap;
     }
 
-    .back-panel-btn {
-      padding: 8px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .back-panel-btn:hover {
-      background: rgba(0, 210, 255, 0.15);
-      border-color: rgba(0, 210, 255, 0.4);
-    }
-
     .bot-panel-grid {
-      display: flex;
+      display: grid;
       gap: 20px;
-      align-items: flex-start;
+      width: 100%;
     }
 
-    .bot-left-column {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      flex: 0 1 520px;
-      min-width: 320px;
+    .bot-column {
+      min-width: 0;
     }
 
     .bot-history-column {
-      flex: 1;
-      min-width: 260px;
+      display: flex;
+      flex-direction: column;
     }
 
     .history-card {
@@ -320,7 +338,7 @@
       border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 16px;
       padding: 20px;
-      height: 100%;
+      flex: 1;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -598,7 +616,13 @@
       letter-spacing: 0.06em;
     }
 
-    @media (max-width: 1024px) {
+    @media (min-width: 1024px) {
+      .bot-panel-grid {
+        grid-template-columns: 1.05fr 0.9fr 1fr;
+      }
+    }
+
+    @media (max-width: 1023px) {
       .bots-layout {
         flex-direction: column;
       }
@@ -609,7 +633,7 @@
       }
 
       .bot-panel-grid {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
 
       .bot-history-column {
@@ -638,11 +662,6 @@
 
       .bot-detail-panel {
         padding: 18px;
-      }
-
-      .bot-panel-header {
-        flex-direction: column;
-        align-items: flex-start;
       }
 
       .config-grid {
@@ -699,11 +718,17 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
-    <div class="header">
-      <h1>Automated Trading Bots</h1>
-      <a href="index.html" class="back-btn">
-        ← Back to Dashboard
-      </a>
+    <div class="header" id="pageHeader">
+      <div class="header-default" id="headerDefault">
+        <h1>Automated Trading Bots</h1>
+        <a href="index.html" class="back-btn">
+          ← Back to Dashboard
+        </a>
+      </div>
+      <div class="header-active" id="headerActive">
+        <button id="headerBackBtn">← Back to bots</button>
+        <span id="activeBotName">BOT NAME</span>
+      </div>
     </div>
 
     <div class="section-heading">
@@ -721,7 +746,7 @@
             <ul class="bot-meta">
               <li>Rating: 4.9/5</li>
               <li>Strategy: Random Markets & Digits</li>
-              <li>Recovery: Smart Martingale x16</li>
+              <li>Recovery: Smart Recovery</li>
             </ul>
             <button class="open-bot-btn" id="openAllMarketsDiffer">Open Bot</button>
           </div>
@@ -735,13 +760,12 @@
 
         <div class="bot-panel-content" id="botPanelContent" hidden>
           <div class="bot-panel-header">
-            <button class="back-panel-btn" id="backToBotsBtn">← Back to bots</button>
             <div class="status-badge" id="botStatusBadge" data-state="idle">Idle</div>
             <div class="status-text" id="botStatusText">Waiting for bot configuration.</div>
           </div>
 
           <div class="bot-panel-grid">
-            <div class="bot-left-column">
+            <div class="bot-column" id="botConfigColumn">
               <div class="bot-config" id="botConfig">
                 <h4>Configuration</h4>
                 <div class="config-grid">
@@ -773,7 +797,9 @@
                   <div class="status-text" id="accountHint">Connect your Deriv account from the dashboard before running bots.</div>
                 </div>
               </div>
+            </div>
 
+            <div class="bot-column" id="botStatsColumn">
               <div class="bot-stats" id="botStats">
                 <h4>Live Performance</h4>
                 <div class="stats-grid">
@@ -813,7 +839,7 @@
               </div>
             </div>
 
-            <div class="bot-history-column">
+            <div class="bot-column bot-history-column">
               <div class="history-card">
                 <h4>Recent Trades</h4>
                 <div class="history-list" id="historyList">
@@ -854,18 +880,40 @@
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
+    const BOT_DISPLAY_NAME = 'All Markets Differ';
     const botCard = document.getElementById('allMarketsDifferCard');
     const openBotBtn = document.getElementById('openAllMarketsDiffer');
     const botsList = document.getElementById('botsList');
     const panelPlaceholder = document.getElementById('panelPlaceholder');
     const botPanelContent = document.getElementById('botPanelContent');
-    const backToBotsBtn = document.getElementById('backToBotsBtn');
+    const pageHeader = document.getElementById('pageHeader');
+    const headerBackBtn = document.getElementById('headerBackBtn');
+    const activeBotName = document.getElementById('activeBotName');
+
+    let botUI = null;
+    let allMarketsDifferBot = null;
+
+    activeBotName.textContent = BOT_DISPLAY_NAME;
 
     function openBotPanel() {
       panelPlaceholder.hidden = true;
       botPanelContent.hidden = false;
       botCard.classList.add('active');
       botsList?.classList.add('hidden');
+      activeBotName.textContent = BOT_DISPLAY_NAME;
+      pageHeader.classList.add('show-active');
+    }
+
+    function closeBotPanel(stopBot = true) {
+      if (stopBot && allMarketsDifferBot?.isRunning) {
+        allMarketsDifferBot.stop('Bot hidden. Restart when ready.', 'warning');
+      }
+      pageHeader.classList.remove('show-active');
+      panelPlaceholder.hidden = false;
+      botPanelContent.hidden = true;
+      botsList?.classList.remove('hidden');
+      botCard.classList.remove('active');
+      botUI?.showStatus('Waiting for bot configuration.');
     }
 
     botCard.addEventListener('click', () => {
@@ -878,6 +926,8 @@
       openBotPanel();
       botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
+
+    headerBackBtn.addEventListener('click', () => closeBotPanel());
 
     function resolveAuthToken() {
       try {
@@ -1025,28 +1075,14 @@
       };
     }
 
-    const botUI = initBotUI();
+    botUI = initBotUI();
     const botDependencies = {
       wsUrl: DERIV_WS_URL,
       defaults: BOT_DEFAULTS,
       markets: VOLATILITY_MARKETS,
       resolveAuthToken
     };
-    const allMarketsDifferBot = new window.AllMarketsDifferBot(botUI, botDependencies);
-
-    function closeBotPanel(stopBot = true) {
-      if (stopBot && allMarketsDifferBot?.isRunning) {
-        allMarketsDifferBot.stop('Bot hidden. Restart when ready.', 'warning');
-      }
-      panelPlaceholder.hidden = false;
-      botPanelContent.hidden = true;
-      botsList?.classList.remove('hidden');
-      botUI.showStatus('Waiting for bot configuration.');
-    }
-
-    backToBotsBtn.addEventListener('click', () => {
-      closeBotPanel();
-    });
+    allMarketsDifferBot = new window.AllMarketsDifferBot(botUI, botDependencies);
 
     document.getElementById('startBotBtn').addEventListener('click', () => {
       const config = botUI.getConfigValues();
