@@ -67,6 +67,14 @@
       align-items: center;
       justify-content: center;
       min-height: calc(100vh - 320px);
+      transition: opacity 0.3s ease;
+    }
+
+    .card-wrapper.hidden {
+      opacity: 0;
+      pointer-events: none;
+      height: 0;
+      overflow: hidden;
     }
 
     .card {
@@ -542,7 +550,7 @@
 
     .tips-banner {
       width: 100%;
-      max-width: 720px;
+      max-width: 420px;
       margin: 0 auto 16px;
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
       border: 1px solid rgba(0, 210, 255, 0.18);
@@ -1601,7 +1609,7 @@
       // Show account card, hide connect card
       document.getElementById('connectCard').classList.add('hidden');
       document.getElementById('accountCard').classList.add('connected');
-      cardWrapper?.classList.add('connected');
+      cardWrapper?.classList.add('hidden');
       
       // Hide disclaimer when connected
       document.getElementById('disclaimerSection').classList.add('hidden');
@@ -1709,7 +1717,7 @@
         accountConnected = false;
         stopTradingTipsRotation();
         setApiKeyVisibility(false);
-        cardWrapper?.classList.remove('connected');
+        cardWrapper?.classList.remove('hidden');
         
         // Clear API key input
         const apiKeyInput = document.getElementById('apiKeyInput');
