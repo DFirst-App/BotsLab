@@ -250,46 +250,52 @@
     .account-meta {
       width: 100%;
       margin-top: 18px;
-      padding: 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(0, 210, 255, 0.18);
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      padding: 0;
+      border-radius: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
     }
 
     .account-meta h4 {
-      margin: 0 0 12px;
-      font-size: 13px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(248, 250, 252, 0.75);
+      display: none;
     }
 
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+    .meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .meta-card {
-      background: rgba(15, 17, 23, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 12px;
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.08), rgba(255, 122, 24, 0.05));
+      border: 1px solid rgba(0, 210, 255, 0.15);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .meta-item:hover {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
+      border-color: rgba(0, 210, 255, 0.25);
     }
 
     .meta-label {
-      font-size: 11px;
-      color: rgba(148, 163, 184, 0.8);
+      font-size: 12px;
+      color: rgba(152, 162, 189, 0.85);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 6px;
+      letter-spacing: 0.06em;
+      font-weight: 500;
     }
 
     .meta-value {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
-      color: #f8fafc;
+      color: #00d2ff;
+      letter-spacing: 0.02em;
     }
 
     /* API Key Input Section */
@@ -1223,19 +1229,22 @@
       <span class="api-link secret-hidden" id="apiKeyFooterText">Use API Key Instead</span>
 
       <div class="account-meta secret-hidden" id="accountMeta">
-        <h4>Account Overview</h4>
-        <div class="meta-grid">
-          <div class="meta-card">
-            <div class="meta-label">Country</div>
-            <div class="meta-value" id="countryValue">-</div>
+        <div class="meta-list">
+          <div class="meta-item">
+            <span class="meta-label">Country</span>
+            <span class="meta-value" id="countryValue">-</span>
           </div>
-          <div class="meta-card">
-            <div class="meta-label">Server Time</div>
-            <div class="meta-value" id="serverTimeValue">--:--:--</div>
+          <div class="meta-item">
+            <span class="meta-label">Currency</span>
+            <span class="meta-value" id="currencyValue">-</span>
           </div>
-          <div class="meta-card">
-            <div class="meta-label">Account Type</div>
-            <div class="meta-value" id="accountTypeValue">-</div>
+          <div class="meta-item">
+            <span class="meta-label">Account Type</span>
+            <span class="meta-value" id="accountTypeValue">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Landing Company</span>
+            <span class="meta-value" id="landingCompanyValue">-</span>
           </div>
         </div>
       </div>
@@ -1292,8 +1301,9 @@
     const cardWrapper = document.getElementById('cardWrapper');
     const accountMetaSection = document.getElementById('accountMeta');
     const countryValueEl = document.getElementById('countryValue');
-    const serverTimeValueEl = document.getElementById('serverTimeValue');
+    const currencyValueEl = document.getElementById('currencyValue');
     const accountTypeValueEl = document.getElementById('accountTypeValue');
+    const landingCompanyValueEl = document.getElementById('landingCompanyValue');
     const metaDesktopMedia = window.matchMedia('(min-width: 769px)');
     const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
 
@@ -1304,8 +1314,6 @@
     let tradingTipInterval = null;
     let accountConnected = false;
     let tradingTipIndex = 0;
-    let serverTimeInterval = null;
-    let currentServerEpoch = null;
 
     const tradingTips = [
       'Liquidity peaks London New York',
@@ -1370,48 +1378,24 @@
       accountMetaSection.classList.toggle('secret-hidden', !shouldShow);
     }
 
-    function stopServerClock() {
-      if (serverTimeInterval) {
-        clearInterval(serverTimeInterval);
-        serverTimeInterval = null;
-      }
-      currentServerEpoch = null;
-    }
-
-    function startServerClock(epochSeconds) {
-      if (!serverTimeValueEl) return;
-      stopServerClock();
-      if (!epochSeconds) {
-        serverTimeValueEl.textContent = '--:--:--';
-        return;
-      }
-      currentServerEpoch = epochSeconds * 1000;
-      const updateDisplay = () => {
-        if (!currentServerEpoch) return;
-        const date = new Date(currentServerEpoch);
-        const timePart = date.toUTCString().split(' ')[4];
-        serverTimeValueEl.textContent = `${timePart} UTC`;
-        currentServerEpoch += 1000;
-      };
-      updateDisplay();
-      serverTimeInterval = setInterval(updateDisplay, 1000);
-    }
-
     function updateAccountMetaDetails(details) {
       if (!accountMetaSection) return;
       if (countryValueEl) countryValueEl.textContent = (details.country || '-').toUpperCase();
+      if (currencyValueEl) currencyValueEl.textContent = (details.currency || '-').toUpperCase();
       if (accountTypeValueEl) {
         accountTypeValueEl.textContent = details.account_type || deriveAccountType(details.loginid, details.landingCompany);
       }
-      startServerClock(details.server_time);
+      if (landingCompanyValueEl) {
+        landingCompanyValueEl.textContent = details.landingCompany || '-';
+      }
       updateAccountMetaVisibility(accountConnected);
     }
 
     function resetAccountMeta() {
-      stopServerClock();
       if (countryValueEl) countryValueEl.textContent = '-';
-      if (serverTimeValueEl) serverTimeValueEl.textContent = '--:--:--';
+      if (currencyValueEl) currencyValueEl.textContent = '-';
       if (accountTypeValueEl) accountTypeValueEl.textContent = '-';
+      if (landingCompanyValueEl) landingCompanyValueEl.textContent = '-';
       updateAccountMetaVisibility(false);
     }
 
