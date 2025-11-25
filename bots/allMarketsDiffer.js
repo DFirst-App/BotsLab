@@ -222,10 +222,15 @@
           
           console.error('Deriv API error:', data.error);
           this.ui.showStatus(message, 'error');
+          return; // Don't process message further if there's an error
         }
 
         switch (data.msg_type) {
           case 'authorize':
+            if (!data.authorize) {
+              console.error('Authorize response missing authorize data:', data);
+              return;
+            }
             this.accountCurrency = data.authorize.currency || 'USD';
             this.balance = Number(data.authorize.balance) || 0;
             this.ui.updateBalance(this.balance, this.accountCurrency);

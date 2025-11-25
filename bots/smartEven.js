@@ -212,10 +212,15 @@
           
           console.error('Deriv API error:', data.error);
           this.ui.showStatus(message, 'error');
+          return; // Don't process message further if there's an error
         }
 
         switch (data.msg_type) {
           case 'authorize':
+            if (!data.authorize) {
+              console.error('Authorize response missing authorize data:', data);
+              return;
+            }
             this.handleAuthorize(data.authorize);
             break;
           case 'balance':
@@ -243,6 +248,10 @@
     }
 
     handleAuthorize(authorize) {
+      if (!authorize) {
+        console.error('handleAuthorize called with undefined authorize data');
+        return;
+      }
       this.currency = authorize.currency || 'USD';
       this.balance = Number(authorize.balance) || 0;
       this.ui.updateBalance(this.balance, this.currency);
