@@ -540,44 +540,33 @@
       letter-spacing: 0.06em;
     }
 
-    .trading-tips-panel {
+    .tips-banner {
       width: 100%;
-      max-width: 100%;
-      margin: 4px 0 12px;
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.08), rgba(255, 122, 24, 0.06));
-      border: 1px solid rgba(0, 210, 255, 0.12);
+      max-width: 720px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
+      border: 1px solid rgba(0, 210, 255, 0.18);
       border-radius: 14px;
-      padding: 10px 14px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      padding: 10px 16px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      min-height: 48px;
-    }
-
-    .tips-header {
-      display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 12px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+    }
+
+    .tips-banner .tips-label {
       font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.65);
-    }
-
-    .tips-label {
-      font-weight: 600;
       letter-spacing: 0.12em;
-      color: rgba(248, 250, 252, 0.8);
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 600;
     }
 
-    .tip-text {
-      flex: 1;
-      text-align: right;
+    .tips-banner .tip-text {
       font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       color: #f8fafc;
       text-transform: uppercase;
     }
@@ -1066,6 +1055,11 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
+    <div class="tips-banner secret-hidden" id="tipsBanner">
+      <span class="tips-label">Market Tip</span>
+      <span class="tip-text" id="tipText">Risk one percent per trade</span>
+    </div>
+
     <div class="card-wrapper" id="cardWrapper">
     <div class="card">
       <p class="powered-line">
@@ -1075,13 +1069,6 @@
         <span class="deriv-brand">deriv</span>
       </p>
 
-      <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
-        <div class="tips-header">
-          <span class="tips-label">Market Tip</span>
-        </div>
-        <span class="tip-text" id="tipText">Risk one percent per trade</span>
-      </div>
-      
       <!-- OAuth Connect Card (shown when not connected) -->
       <div class="oauth-card" id="connectCard">
         <h3>Connect with Deriv</h3>
@@ -1227,7 +1214,7 @@
     const apiKeySectionEl = document.getElementById('apiKeySection');
     const apiKeyFooterText = document.getElementById('apiKeyFooterText');
     const secretByTrigger = document.getElementById('secretByTrigger');
-    const tradingTipsPanel = document.getElementById('tradingTipsPanel');
+    const tradingTipsPanel = document.getElementById('tipsBanner');
     const tipTextEl = document.getElementById('tipText');
     const cardWrapper = document.getElementById('cardWrapper');
     const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
