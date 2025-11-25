@@ -135,6 +135,10 @@
       max-width: 420px;
     }
 
+    .bots-list.hidden {
+      display: none;
+    }
+
     .bot-card {
       background: var(--panel);
       border-radius: 18px;
@@ -260,6 +264,73 @@
       color: var(--muted);
       font-size: 15px;
       text-align: center;
+    }
+
+    .bot-panel-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .bot-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .back-panel-btn {
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .back-panel-btn:hover {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: rgba(0, 210, 255, 0.4);
+    }
+
+    .bot-panel-grid {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .bot-left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 0 1 520px;
+      min-width: 320px;
+    }
+
+    .bot-history-column {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .history-card {
+      background: rgba(15, 17, 23, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 20px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 560px;
+    }
+
+    .history-card h4 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
     }
 
     .bot-config,
@@ -434,7 +505,8 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 220px;
+      flex: 1;
+      min-height: 0;
       overflow-y: auto;
       padding-right: 6px;
     }
@@ -535,6 +607,18 @@
         max-width: none;
         width: 100%;
       }
+
+      .bot-panel-grid {
+        flex-direction: column;
+      }
+
+      .bot-history-column {
+        width: 100%;
+      }
+
+      .history-card {
+        max-height: none;
+      }
     }
 
     @media (max-width: 768px) {
@@ -554,6 +638,11 @@
 
       .bot-detail-panel {
         padding: 18px;
+      }
+
+      .bot-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
       }
 
       .config-grid {
@@ -619,21 +708,20 @@
 
     <div class="section-heading">
       <h2>Deriv Bots</h2>
-      <p>Each bot executes trades one at a time using your Deriv OAuth/API connection (app_id 67709).</p>
+      <p>Discover digits-first automation built for volatility markets with smart safety controls.</p>
     </div>
 
     <div class="bots-layout">
-      <div class="bots-list">
+      <div class="bots-list" id="botsList">
         <div class="bot-card active" id="allMarketsDifferCard">
           <div class="bot-card-content">
             <span class="bot-chip">Digits Differ</span>
             <h3>All Markets Differ</h3>
-            <p>Cycles through Volatility 10–100 markets, executing single Digit Differ contracts with smart rotation and martingale recovery.</p>
+            <p>Cycles through Volatility 10–100 markets, rotating digits per trade with recovery logic tuned for high-frequency differ contracts.</p>
             <ul class="bot-meta">
-              <li>Stake: $1 default</li>
-              <li>Martingale ×16</li>
-              <li>Take Profit: $100</li>
-              <li>Stop Loss: $1000</li>
+              <li>Rating: 4.9/5</li>
+              <li>Strategy: Random Markets & Digits</li>
+              <li>Recovery: Smart Martingale x16</li>
             </ul>
             <button class="open-bot-btn" id="openAllMarketsDiffer">Open Bot</button>
           </div>
@@ -645,83 +733,93 @@
           Select a bot card to configure and start automated trading.
         </div>
 
-        <div class="bot-config" id="botConfig" hidden>
-          <div class="config-header">
+        <div class="bot-panel-content" id="botPanelContent" hidden>
+          <div class="bot-panel-header">
+            <button class="back-panel-btn" id="backToBotsBtn">← Back to bots</button>
             <div class="status-badge" id="botStatusBadge" data-state="idle">Idle</div>
             <div class="status-text" id="botStatusText">Waiting for bot configuration.</div>
           </div>
-          <h4>Configuration</h4>
-          <div class="config-grid">
-            <div class="input-group">
-              <label for="stakeInput">Initial Stake (USD)</label>
-              <input type="number" id="stakeInput" min="0.35" step="0.01" value="1">
-              <small>Default $1. Minimum $0.35. Adjust to match your balance and risk tolerance.</small>
-            </div>
-            <div class="input-group">
-              <label for="takeProfitInput">Take Profit (USD)</label>
-              <input type="number" id="takeProfitInput" min="5" step="1" value="100">
-              <small>Bot stops automatically once this profit target is reached.</small>
-            </div>
-            <div class="input-group">
-              <label for="stopLossInput">Stop Loss (USD)</label>
-              <input type="number" id="stopLossInput" min="50" step="1" value="1000">
-              <small>Bot halts immediately if losses reach this amount.</small>
-            </div>
-            <div class="input-group">
-              <label for="martingaleInput">Martingale Multiplier</label>
-              <input type="number" id="martingaleInput" min="1" step="0.1" value="16">
-              <small>Default ×16 (same as Differ bots in the app). Applies after each loss.</small>
-            </div>
-          </div>
 
-          <div class="config-actions">
-            <button class="primary-btn" id="startBotBtn">Start Bot</button>
-            <button class="secondary-btn" id="stopBotBtn" disabled>Stop Bot</button>
-            <div class="status-text" id="accountHint">Connect your Deriv account from the dashboard before running bots.</div>
-          </div>
-        </div>
+          <div class="bot-panel-grid">
+            <div class="bot-left-column">
+              <div class="bot-config" id="botConfig">
+                <h4>Configuration</h4>
+                <div class="config-grid">
+                  <div class="input-group">
+                    <label for="stakeInput">Initial Stake (USD)</label>
+                    <input type="number" id="stakeInput" min="0.35" step="0.01" value="1">
+                    <small>Default $1. Minimum $0.35. Adjust to match your balance and risk tolerance.</small>
+                  </div>
+                  <div class="input-group">
+                    <label for="takeProfitInput">Take Profit (USD)</label>
+                    <input type="number" id="takeProfitInput" min="5" step="1" value="100">
+                    <small>Bot stops automatically once this profit target is reached.</small>
+                  </div>
+                  <div class="input-group">
+                    <label for="stopLossInput">Stop Loss (USD)</label>
+                    <input type="number" id="stopLossInput" min="50" step="1" value="1000">
+                    <small>Bot halts immediately if losses reach this amount.</small>
+                  </div>
+                  <div class="input-group">
+                    <label for="martingaleInput">Martingale Multiplier</label>
+                    <input type="number" id="martingaleInput" min="1" step="0.1" value="16">
+                    <small>Default ×16 (same as Differ bots in the app). Applies after each loss.</small>
+                  </div>
+                </div>
 
-        <div class="bot-stats" id="botStats" hidden>
-          <h4>Live Performance</h4>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-label">Account Balance</span>
-              <span class="stat-value" id="balanceValue">-</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Total Profit</span>
-              <span class="stat-value" id="totalProfitValue">$0.00</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Total Trades</span>
-              <span class="stat-value" id="totalTradesValue">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Win Rate</span>
-              <span class="stat-value" id="winRateValue">0%</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Current Stake</span>
-              <span class="stat-value" id="currentStakeValue">$0.00</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Consecutive Losses</span>
-              <span class="stat-value" id="consecutiveLossesValue">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Market / Digit</span>
-              <span class="stat-value" id="targetValue">-</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Running Time</span>
-              <span class="stat-value" id="runningTimeValue">00:00:00</span>
-            </div>
-          </div>
+                <div class="config-actions">
+                  <button class="primary-btn" id="startBotBtn">Start Bot</button>
+                  <button class="secondary-btn" id="stopBotBtn" disabled>Stop Bot</button>
+                  <div class="status-text" id="accountHint">Connect your Deriv account from the dashboard before running bots.</div>
+                </div>
+              </div>
 
-          <div>
-            <h4 style="margin-bottom: 12px;">Recent Trades</h4>
-            <div class="history-list" id="historyList">
-              <!-- Trades injected here -->
+              <div class="bot-stats" id="botStats">
+                <h4>Live Performance</h4>
+                <div class="stats-grid">
+                  <div class="stat-card">
+                    <span class="stat-label">Account Balance</span>
+                    <span class="stat-value" id="balanceValue">-</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-label">Total Profit</span>
+                    <span class="stat-value" id="totalProfitValue">$0.00</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-label">Total Trades</span>
+                    <span class="stat-value" id="totalTradesValue">0</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-label">Win Rate</span>
+                    <span class="stat-value" id="winRateValue">0%</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-label">Current Stake</span>
+                    <span class="stat-value" id="currentStakeValue">$0.00</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-label">Consecutive Losses</span>
+                    <span class="stat-value" id="consecutiveLossesValue">0</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-label">Market / Digit</span>
+                    <span class="stat-value" id="targetValue">-</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-label">Running Time</span>
+                    <span class="stat-value" id="runningTimeValue">00:00:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bot-history-column">
+              <div class="history-card">
+                <h4>Recent Trades</h4>
+                <div class="history-list" id="historyList">
+                  <!-- Trades injected here -->
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -758,26 +856,27 @@
 
     const botCard = document.getElementById('allMarketsDifferCard');
     const openBotBtn = document.getElementById('openAllMarketsDiffer');
+    const botsList = document.getElementById('botsList');
     const panelPlaceholder = document.getElementById('panelPlaceholder');
-    const botConfig = document.getElementById('botConfig');
-    const botStats = document.getElementById('botStats');
+    const botPanelContent = document.getElementById('botPanelContent');
+    const backToBotsBtn = document.getElementById('backToBotsBtn');
 
     function openBotPanel() {
       panelPlaceholder.hidden = true;
-      botConfig.hidden = false;
-      botStats.hidden = false;
+      botPanelContent.hidden = false;
       botCard.classList.add('active');
+      botsList?.classList.add('hidden');
     }
 
     botCard.addEventListener('click', () => {
       openBotPanel();
-      botConfig.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     openBotBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       openBotPanel();
-      botConfig.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     function resolveAuthToken() {
@@ -934,6 +1033,20 @@
       resolveAuthToken
     };
     const allMarketsDifferBot = new window.AllMarketsDifferBot(botUI, botDependencies);
+
+    function closeBotPanel(stopBot = true) {
+      if (stopBot && allMarketsDifferBot?.isRunning) {
+        allMarketsDifferBot.stop('Bot hidden. Restart when ready.', 'warning');
+      }
+      panelPlaceholder.hidden = false;
+      botPanelContent.hidden = true;
+      botsList?.classList.remove('hidden');
+      botUI.showStatus('Waiting for bot configuration.');
+    }
+
+    backToBotsBtn.addEventListener('click', () => {
+      closeBotPanel();
+    });
 
     document.getElementById('startBotBtn').addEventListener('click', () => {
       const config = botUI.getConfigValues();
