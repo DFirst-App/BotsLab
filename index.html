@@ -58,6 +58,15 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
+      flex: 1;
+    }
+
+    .card-wrapper {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .card {
@@ -73,6 +82,7 @@
       flex-direction: column;
       align-items: center;
       gap: 18px;
+      min-height: 520px;
     }
 
     .account-info {
@@ -533,6 +543,48 @@
       letter-spacing: 0.06em;
     }
 
+    .trading-tips-panel {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
+      border: 1px solid rgba(0, 210, 255, 0.15);
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tips-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .tip-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.015em;
+    }
+
+    .tip-description {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: rgba(248, 250, 252, 0.9);
+    }
+
+    .tip-meta {
+      font-size: 12px;
+      color: rgba(148, 163, 184, 0.85);
+    }
+
     @media (max-width: 768px) {
       .page {
         padding: 8px 12px;
@@ -766,8 +818,9 @@
       width: 100%;
       max-width: 1400px;
       margin: 0 auto;
-      padding: 0 24px;
-      margin-bottom: 20px;
+      padding: 0 24px 12px;
+      margin-top: auto;
+      margin-bottom: 0;
       transition: opacity 0.3s ease;
     }
 
@@ -1008,6 +1061,7 @@
 <body>
   <div class="grid-bg"></div>
   <main class="page">
+    <div class="card-wrapper">
     <div class="card">
       <p class="powered-line">
         <span class="powered-text">Automated Trading Platform</span>
@@ -1112,7 +1166,20 @@
         <button class="disconnect-btn" onclick="handleDisconnect()" style="margin-top: 24px;">Disconnect</button>
       </div>
 
+      <div class="trading-tips-panel secret-hidden" id="tradingTipsPanel">
+        <div class="tips-header">
+          <span>Market Intel</span>
+          <span id="tipBadge">Verified Insight</span>
+        </div>
+        <div>
+          <p class="tip-title" id="tipTitle">Stay patient</p>
+          <p class="tip-description" id="tipDescription">Follow your plan to avoid emotional trades.</p>
+        </div>
+        <div class="tip-meta" id="tipMeta">Source: Trading discipline best practices</div>
+      </div>
+
       <span class="api-link secret-hidden" id="apiKeyFooterText">Use API Key Instead</span>
+    </div>
     </div>
 
     <!-- Action Buttons Container (shown when connected) -->
@@ -1160,10 +1227,93 @@
     const apiKeySectionEl = document.getElementById('apiKeySection');
     const apiKeyFooterText = document.getElementById('apiKeyFooterText');
     const secretByTrigger = document.getElementById('secretByTrigger');
+    const tradingTipsPanel = document.getElementById('tradingTipsPanel');
+    const tipTitleEl = document.getElementById('tipTitle');
+    const tipDescriptionEl = document.getElementById('tipDescription');
+    const tipMetaEl = document.getElementById('tipMeta');
+    const tipBadgeEl = document.getElementById('tipBadge');
+
     const SECRET_CLICK_THRESHOLD = 3;
     const SECRET_CLICK_WINDOW = 1200;
     let secretClickCount = 0;
     let secretClickTimer = null;
+    let tradingTipInterval = null;
+    let accountConnected = false;
+    let tradingTipIndex = 0;
+
+    const tradingTips = [
+      {
+        title: 'Liquidity is highest during London–New York overlap',
+        description: 'The BIS 2022 FX Survey shows London and New York desks handle just over 60% of daily global FX turnover, keeping EUR/USD spreads tight between roughly 13:00–17:00 UTC.',
+        meta: 'Source: BIS Triennial FX Survey 2022',
+        badge: 'FX Market Data'
+      },
+      {
+        title: 'Risking ≤2% helps survive drawdowns',
+        description: 'If you cap each trade at 1–2% of equity, it would take more than 35 consecutive losses to halve your account, giving algorithms and discretionary systems time to recover.',
+        meta: 'Concept: Position sizing math',
+        badge: 'Risk Management'
+      },
+      {
+        title: 'News releases widen spreads',
+        description: 'During high-impact releases (NFP, CPI), institutional providers often pull quotes for a few seconds, so spreads on synthetic and FX markets spike. Plan entries away from the release unless you trade the news.',
+        meta: 'Observation: CME FX depth + retail liquidity',
+        badge: 'Market Microstructure'
+      },
+      {
+        title: 'Synthetic indices run 24/7',
+        description: 'Deriv’s synthetic volatility indices are algorithmic and uncorrelated to macro events, so they remain tradable every hour of the week, but they still demand the same stop-loss discipline.',
+        meta: 'Source: Deriv synthetic index spec',
+        badge: 'Synthetic Markets'
+      },
+      {
+        title: 'Compounding works both ways',
+        description: 'Letting winners trail with a modest take-profit (e.g., 2R) while cutting losers quickly keeps expectancy positive even with a sub‑50% win rate.',
+        meta: 'Principle: Expectancy formula',
+        badge: 'Trading Psychology'
+      }
+    ];
+
+    function renderTradingTip() {
+      if (!tradingTips.length || !tipTitleEl) return;
+      const tip = tradingTips[tradingTipIndex % tradingTips.length];
+      tipTitleEl.textContent = tip.title;
+      tipDescriptionEl.textContent = tip.description;
+      tipMetaEl.textContent = tip.meta;
+      if (tipBadgeEl) {
+        tipBadgeEl.textContent = tip.badge || 'Market Intel';
+      }
+    }
+
+    function startTradingTipsRotation() {
+      if (!tradingTipsPanel || tradingTips.length === 0) return;
+      tradingTipsPanel.classList.remove('secret-hidden');
+      renderTradingTip();
+      if (tradingTipInterval) {
+        clearInterval(tradingTipInterval);
+      }
+      tradingTipInterval = setInterval(() => {
+        tradingTipIndex = (tradingTipIndex + 1) % tradingTips.length;
+        renderTradingTip();
+      }, 7000);
+    }
+
+    function stopTradingTipsRotation() {
+      if (tradingTipInterval) {
+        clearInterval(tradingTipInterval);
+        tradingTipInterval = null;
+      }
+      tradingTipsPanel?.classList.add('secret-hidden');
+    }
+
+    function updateTradingTipsState() {
+      const apiVisible = apiKeySectionEl && !apiKeySectionEl.classList.contains('secret-hidden');
+      if (accountConnected && !apiVisible) {
+        startTradingTipsRotation();
+      } else {
+        stopTradingTipsRotation();
+      }
+    }
 
     function setApiKeyVisibility(visible) {
       if (!apiKeySectionEl) return;
@@ -1171,6 +1321,7 @@
       if (apiKeyFooterText) {
         apiKeyFooterText.classList.toggle('secret-hidden', !visible);
       }
+      updateTradingTipsState();
     }
 
     setApiKeyVisibility(false);
@@ -1489,6 +1640,8 @@
       
       // Show action buttons
       document.getElementById('actionButtonsContainer').classList.add('visible');
+      accountConnected = true;
+      updateTradingTipsState();
     }
 
     // Update MT5 display
@@ -1585,6 +1738,9 @@
         localStorage.removeItem(DERIV_API_KEY_KEY);
         document.getElementById('connectCard').classList.remove('hidden');
         document.getElementById('accountCard').classList.remove('connected');
+        accountConnected = false;
+        stopTradingTipsRotation();
+        setApiKeyVisibility(false);
         
         // Clear API key input
         const apiKeyInput = document.getElementById('apiKeyInput');
