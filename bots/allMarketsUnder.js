@@ -32,6 +32,10 @@
       this.accountCurrency = 'USD';
       this.startTime = null;
       this.runningTimer = null;
+      this.reconnectAttempts = 0;
+      this.reconnectTimeout = null;
+      this.isReconnecting = false;
+      this.storedToken = null;
     }
 
     async start(config) {
@@ -45,6 +49,9 @@
         this.ui.showStatus('Connect your Deriv account on the dashboard before running bots.', 'error');
         return;
       }
+
+      this.storedToken = token;
+      this.reconnectAttempts = 0;
 
       this.config = { ...this.config, ...config };
       this.currentStake = this.config.initialStake;
@@ -67,25 +74,40 @@
       this.startTime = new Date();
       this.startRunningTimer();
 
+      this.connectWebSocket();
+    }
+
+    connectWebSocket() {
+      if (this.stopRequested) return;
+
       this.ws = new this.WebSocketImpl(this.wsUrl);
 
       this.ws.onopen = () => {
-        this.ws.send(JSON.stringify({ authorize: token }));
+        this.reconnectAttempts = 0;
+        this.isReconnecting = false;
+        if (this.reconnectTimeout) {
+          clearTimeout(this.reconnectTimeout);
+          this.reconnectTimeout = null;
+        }
+        const token = this.storedToken || this.resolveAuthToken();
+        if (token) {
+          this.ws.send(JSON.stringify({ authorize: token }));
+        }
       };
 
       this.ws.onmessage = (event) => this.handleMessage(event.data);
 
       this.ws.onerror = () => {
-        this.ui.showStatus('WebSocket error. Stopping bot.', 'error');
-        this.stop('Connection error', 'error');
+        if (!this.stopRequested && !this.isReconnecting) {
+          this.attemptReconnect('WebSocket error. Reconnecting...');
+        }
       };
 
       this.ws.onclose = () => {
         if (this.stopRequested) {
           this.finishStop();
-        } else {
-          this.stopMessage = { message: 'Connection closed unexpectedly.', type: 'error' };
-          this.finishStop();
+        } else if (!this.isReconnecting) {
+          this.attemptReconnect('Connection lost. Reconnecting...');
         }
       };
     }
@@ -104,15 +126,64 @@
       }
     }
 
+    attemptReconnect(message) {
+      if (this.stopRequested || this.isReconnecting) return;
+
+      this.isReconnecting = true;
+      this.reconnectAttempts += 1;
+
+      if (this.reconnectAttempts > 10) {
+        this.ui.showStatus('Max reconnection attempts reached. Please restart the bot.', 'error');
+        this.stop('Connection failed after multiple attempts', 'error');
+        return;
+      }
+
+      const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000);
+      this.ui.showStatus(`${message} (Attempt ${this.reconnectAttempts}/10)`, 'warning');
+
+      if (this.ws) {
+        try {
+          this.ws.onopen = null;
+          this.ws.onmessage = null;
+          this.ws.onerror = null;
+          this.ws.onclose = null;
+          if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+            this.ws.close();
+          }
+        } catch (e) {
+          console.error('Error closing WebSocket', e);
+        }
+        this.ws = null;
+      }
+
+      this.reconnectTimeout = setTimeout(() => {
+        if (!this.stopRequested && this.isRunning) {
+          this.connectWebSocket();
+        }
+      }, delay);
+    }
+
     finishStop() {
       this.isRunning = false;
+      this.isReconnecting = false;
       this.tradeInProgress = false;
       this.activeContractId = null;
+      if (this.reconnectTimeout) {
+        clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = null;
+      }
       if (this.ws) {
-        this.ws.onopen = null;
-        this.ws.onmessage = null;
-        this.ws.onerror = null;
-        this.ws.onclose = null;
+        try {
+          this.ws.onopen = null;
+          this.ws.onmessage = null;
+          this.ws.onerror = null;
+          this.ws.onclose = null;
+          if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+            this.ws.close();
+          }
+        } catch (e) {
+          console.error('Error closing WebSocket', e);
+        }
       }
       this.ws = null;
       this.clearRunningTimer();
@@ -128,10 +199,27 @@
         const data = JSON.parse(raw);
 
         if (data.error) {
+          const errorCode = data.error?.code;
           const message = data.error.message || 'Deriv returned an error.';
+          
+          if (errorCode === 'InvalidToken' || errorCode === 'AuthorizationRequired') {
+            this.ui.showStatus('Authorization expired. Reconnecting...', 'warning');
+            this.attemptReconnect('Re-authenticating...');
+            return;
+          }
+          
+          if (errorCode === 'RateLimit' || errorCode === 'TooManyRequests') {
+            this.ui.showStatus('Rate limited. Waiting before retry...', 'warning');
+            setTimeout(() => {
+              if (this.isRunning && !this.stopRequested) {
+                this.attemptReconnect('Retrying after rate limit...');
+              }
+            }, 5000);
+            return;
+          }
+          
+          console.error('Deriv API error:', data.error);
           this.ui.showStatus(message, 'error');
-          this.stop(message, 'error');
-          return;
         }
 
         switch (data.msg_type) {
@@ -139,11 +227,20 @@
             this.accountCurrency = data.authorize.currency || 'USD';
             this.balance = Number(data.authorize.balance) || 0;
             this.ui.updateBalance(this.balance, this.accountCurrency);
-            this.ui.showStatus('Connected. Starting digit under sequence...', 'success');
+            
+            if (this.isReconnecting) {
+              this.ui.showStatus('Reconnected. Resuming trading...', 'success');
+              this.isReconnecting = false;
+            } else {
+              this.ui.showStatus('Connected. Starting digit under sequence...', 'success');
+            }
 
             this.subscribeToBalance();
             this.subscribeToContracts();
-            this.queueNextTrade();
+            
+            if (!this.tradeInProgress) {
+              this.queueNextTrade();
+            }
             break;
           case 'balance':
             if (typeof data.balance?.balance !== 'undefined') {
@@ -191,7 +288,9 @@
       }
 
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        this.stop('Connection closed. Please restart the bot.', 'error');
+        if (!this.isReconnecting) {
+          this.attemptReconnect('Connection lost during trade. Reconnecting...');
+        }
         return;
       }
 
