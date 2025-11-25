@@ -613,12 +613,15 @@
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(255, 122, 24, 0.08));
       border: 1px solid rgba(0, 210, 255, 0.18);
       border-radius: 14px;
-      padding: 10px 16px;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+      min-height: 48px;
+      max-height: 48px;
+      overflow: hidden;
     }
 
     .tips-banner .tips-label {
@@ -627,14 +630,23 @@
       text-transform: uppercase;
       color: rgba(255, 255, 255, 0.75);
       font-weight: 600;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .tips-banner .tip-text {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       color: #f8fafc;
       text-transform: uppercase;
+      flex: 1;
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+      min-width: 0;
     }
 
     @media (max-width: 768px) {
@@ -1336,7 +1348,23 @@
       'Spreads widen during news releases',
       'Synthetic indices trade nonstop',
       'Cut losses fast let winners run',
-      'Protect capital before seeking profits'
+      'Protect capital before seeking profits',
+      'Most traders lose to emotions not markets',
+      'Volatility creates opportunity and risk',
+      'Trends persist longer than expected',
+      'Reversal signals need confirmation',
+      'Position size determines risk exposure',
+      'Market closes affect price gaps',
+      'Support resistance levels guide entries',
+      'Overtrading erodes account balance',
+      'Patience beats impulsive decisions',
+      'Stop losses protect against disasters',
+      'Take profit targets prevent greed',
+      'Market sentiment drives short moves',
+      'News events spike volatility fast',
+      'Demo practice builds real skills',
+      'Consistency beats occasional wins',
+      'Avoiding small losses prevents big ones'
     ];
 
     function renderTradingTip() {
