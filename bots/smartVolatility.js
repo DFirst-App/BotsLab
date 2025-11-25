@@ -510,11 +510,27 @@
 
     shouldStop() {
       if (this.config.takeProfit > 0 && this.totalProfit >= this.config.takeProfit) {
+        const stats = this.getStatsSnapshot();
+        if (window.PopupNotifications) {
+          window.PopupNotifications.showTakeProfit({
+            profit: stats.totalProfit,
+            trades: stats.totalTrades,
+            time: stats.runningTime
+          });
+        }
         this.stop('Take profit reached. Smart Volatility stopped.', 'success');
         return true;
       }
 
       if (this.config.stopLoss > 0 && this.totalProfit <= -Math.abs(this.config.stopLoss)) {
+        const stats = this.getStatsSnapshot();
+        if (window.PopupNotifications) {
+          window.PopupNotifications.showStopLoss({
+            profit: stats.totalProfit,
+            trades: stats.totalTrades,
+            time: stats.runningTime
+          });
+        }
         this.stop('Stop loss hit. Smart Volatility stopped.', 'error');
         return true;
       }
