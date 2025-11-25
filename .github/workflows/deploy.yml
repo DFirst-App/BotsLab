@@ -36,6 +36,13 @@ jobs:
             fi
           done
           
+          # Copy bots folder (JavaScript strategies) if it exists
+          if [ -d "bots" ]; then
+            mkdir -p web-build/bots
+            cp -r bots/. web-build/bots/
+            echo "✅ Copied bots/ directory"
+          fi
+          
           # Create .nojekyll file to ensure GitHub Pages serves all files
           touch web-build/.nojekyll
           echo "✅ Created .nojekyll file"
