@@ -828,6 +828,20 @@
             <button class="open-bot-btn" id="openSmartVolatility">Open Bot</button>
           </div>
         </div>
+
+        <div class="bot-card" id="smartEvenCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Digits Even/Odd</span>
+            <h3>Smart Even</h3>
+            <p>Scans R50 digit streaks, waits for imbalance confirmation, and attacks DIGITEVEN/DIGITODD entries with adaptive recovery logic.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.92/5</li>
+              <li>Strategy: Anti-streak even/odd patterning</li>
+              <li>Recovery: Pattern-aware martingale</li>
+            </ul>
+            <button class="open-bot-btn" id="openSmartEven">Open Bot</button>
+          </div>
+        </div>
       </div>
 
       <div class="bot-detail-panel" id="botDetailPanel" hidden>
@@ -942,6 +956,7 @@
   <script src="bots/allMarketsOver.js"></script>
   <script src="bots/allMarketsUnder.js"></script>
   <script src="bots/smartVolatility.js"></script>
+  <script src="bots/smartEven.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -1201,6 +1216,13 @@
         buttonId: 'openSmartVolatility',
         supportsMartingale: false,
         createInstance: () => new window.SmartVolatilityBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'smartEven',
+        name: 'Smart Even',
+        cardId: 'smartEvenCard',
+        buttonId: 'openSmartEven',
+        createInstance: () => new window.SmartEvenBot(botUI, sharedDependencies())
       }
     ];
 
