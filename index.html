@@ -294,8 +294,23 @@
     .meta-value {
       font-size: 14px;
       font-weight: 600;
-      color: #00d2ff;
       letter-spacing: 0.02em;
+    }
+
+    .meta-item:nth-child(1) .meta-value {
+      color: #00d2ff;
+    }
+
+    .meta-item:nth-child(2) .meta-value {
+      color: #ff7a18;
+    }
+
+    .meta-item:nth-child(3) .meta-value {
+      color: #24d970;
+    }
+
+    .meta-item:nth-child(4) .meta-value {
+      color: #a855f7;
     }
 
     /* API Key Input Section */
@@ -1239,8 +1254,8 @@
             <span class="meta-value" id="currencyValue">-</span>
           </div>
           <div class="meta-item">
-            <span class="meta-label">Risk Classification</span>
-            <span class="meta-value" id="riskClassificationValue">-</span>
+            <span class="meta-label">Account Status</span>
+            <span class="meta-value" id="accountStatusValue">-</span>
           </div>
           <div class="meta-item">
             <span class="meta-label">Landing Company</span>
@@ -1302,7 +1317,7 @@
     const accountMetaSection = document.getElementById('accountMeta');
     const countryValueEl = document.getElementById('countryValue');
     const currencyValueEl = document.getElementById('currencyValue');
-    const riskClassificationValueEl = document.getElementById('riskClassificationValue');
+    const accountStatusValueEl = document.getElementById('accountStatusValue');
     const landingCompanyValueEl = document.getElementById('landingCompanyValue');
     const metaDesktopMedia = window.matchMedia('(min-width: 769px)');
     const tipsMediaQuery = window.matchMedia('(max-width: 768px)');
@@ -1382,9 +1397,9 @@
       if (!accountMetaSection) return;
       if (countryValueEl) countryValueEl.textContent = (details.country || '-').toUpperCase();
       if (currencyValueEl) currencyValueEl.textContent = (details.currency || '-').toUpperCase();
-      if (riskClassificationValueEl) {
-        const riskClass = details.risk_classification || '-';
-        riskClassificationValueEl.textContent = riskClass === '-' ? '-' : riskClass.charAt(0).toUpperCase() + riskClass.slice(1).toLowerCase();
+      if (accountStatusValueEl) {
+        const isVirtual = details.is_virtual === true || details.is_virtual === 1;
+        accountStatusValueEl.textContent = isVirtual ? 'Demo' : 'Real';
       }
       if (landingCompanyValueEl) {
         landingCompanyValueEl.textContent = details.landingCompany || '-';
@@ -1395,7 +1410,7 @@
     function resetAccountMeta() {
       if (countryValueEl) countryValueEl.textContent = '-';
       if (currencyValueEl) currencyValueEl.textContent = '-';
-      if (riskClassificationValueEl) riskClassificationValueEl.textContent = '-';
+      if (accountStatusValueEl) accountStatusValueEl.textContent = '-';
       if (landingCompanyValueEl) landingCompanyValueEl.textContent = '-';
       updateAccountMetaVisibility(false);
     }
@@ -1528,7 +1543,7 @@
                 country: response.authorize.country || '-',
                 landingCompany: landing,
                 account_type: response.authorize.account_type || deriveAccountType(loginid, landing),
-                risk_classification: response.authorize.risk_classification || '-',
+                is_virtual: response.authorize.is_virtual === 1 || response.authorize.is_virtual === true,
                 server_time: response.authorize.server_time
               };
 
@@ -1658,7 +1673,7 @@
                 country: response.authorize.country || '-',
                 landingCompany: landing,
                 account_type: response.authorize.account_type || deriveAccountType(loginid, landing),
-                risk_classification: response.authorize.risk_classification || '-',
+                is_virtual: response.authorize.is_virtual === 1 || response.authorize.is_virtual === true,
                 server_time: response.authorize.server_time
               };
 
