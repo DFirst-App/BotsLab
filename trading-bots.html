@@ -856,6 +856,20 @@
             <button class="open-bot-btn" id="openNoTouch">Open Bot</button>
           </div>
         </div>
+
+        <div class="bot-card" id="alienRiseFallCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Trend Pulse</span>
+            <h3>Alien Rise/Fall</h3>
+            <p>Tracks R10 waves using fast RSI + EMA filters, waits for confirmed bursts, then fires CALL/PUT contracts with adaptive recovery.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.94/5</li>
+              <li>Strategy: Rapid trend re-entry</li>
+              <li>Recovery: 3.1× adaptive martingale</li>
+            </ul>
+            <button class="open-bot-btn" id="openAlienRiseFall">Open Bot</button>
+          </div>
+        </div>
       </div>
 
       <div class="bot-detail-panel" id="botDetailPanel" hidden>
@@ -972,6 +986,7 @@
   <script src="bots/smartVolatility.js"></script>
   <script src="bots/smartEven.js"></script>
   <script src="bots/noTouch.js"></script>
+  <script src="bots/alienRiseFall.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -1254,8 +1269,16 @@
         name: 'No Touch Sentinel',
         cardId: 'noTouchCard',
         buttonId: 'openNoTouch',
-        defaultMartingale: 3.1,
+        defaultMartingale: 16,
         createInstance: () => new window.NoTouchBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'alienRiseFall',
+        name: 'Alien Rise/Fall',
+        cardId: 'alienRiseFallCard',
+        buttonId: 'openAlienRiseFall',
+        defaultMartingale: 3.1,
+        createInstance: () => new window.AlienRiseFallBot(botUI, sharedDependencies())
       }
     ];
 
