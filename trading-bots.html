@@ -814,6 +814,20 @@
             <button class="open-bot-btn" id="openAllMarketsUnder">Open Bot</button>
           </div>
         </div>
+
+        <div class="bot-card" id="smartVolatilityCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Volatility AI</span>
+            <h3>Smart Volatility</h3>
+            <p>Tracks R75 tick speed, measures ATR in real-time, and flips between CALL and PUT contracts while auto-scaling stake and duration.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.95/5</li>
+              <li>Strategy: ATR-driven CALL/PUT scalps</li>
+              <li>Recovery: Volatility-weighted stake shaping</li>
+            </ul>
+            <button class="open-bot-btn" id="openSmartVolatility">Open Bot</button>
+          </div>
+        </div>
       </div>
 
       <div class="bot-detail-panel" id="botDetailPanel" hidden>
@@ -845,7 +859,7 @@
                     <input type="number" id="stopLossInput" min="50" step="1" value="1000">
                     <small>Bot halts immediately if losses reach this amount.</small>
                   </div>
-                  <div class="input-group">
+                  <div class="input-group" id="martingaleGroup">
                     <label for="martingaleInput">Martingale Multiplier</label>
                     <input type="number" id="martingaleInput" min="1" step="0.1" value="16">
                     <small>Default ×16 (same as Differ bots in the app). Applies after each loss.</small>
@@ -927,6 +941,7 @@
   <script src="bots/allMarketsDiffer.js"></script>
   <script src="bots/allMarketsOver.js"></script>
   <script src="bots/allMarketsUnder.js"></script>
+  <script src="bots/smartVolatility.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -951,6 +966,7 @@
     const headerBackBtn = document.getElementById('headerBackBtn');
     const activeBotName = document.getElementById('activeBotName');
     const sectionHeading = document.getElementById('sectionHeading');
+    const martingaleGroup = document.getElementById('martingaleGroup');
 
     let botUI = null;
     let currentBotInstance = null;
@@ -958,6 +974,7 @@
     const botInstances = {};
     let lastKnownBalance = null;
     let lastKnownCurrency = 'USD';
+    let martingaleEnabled = true;
 
     activeBotName.textContent = 'Select a bot';
 
@@ -1038,11 +1055,14 @@
 
       return {
         getConfigValues() {
+          const martingaleValue = martingaleEnabled
+            ? parseFloat(martingaleInput.value) || BOT_DEFAULTS.martingaleMultiplier
+            : 1;
           return {
             initialStake: parseFloat(stakeInput.value) || BOT_DEFAULTS.initialStake,
             takeProfit: parseFloat(takeProfitInput.value) || BOT_DEFAULTS.takeProfit,
             stopLoss: parseFloat(stopLossInput.value) || BOT_DEFAULTS.stopLoss,
-            martingaleMultiplier: parseFloat(martingaleInput.value) || BOT_DEFAULTS.martingaleMultiplier
+            martingaleMultiplier: martingaleValue
           };
         },
         validateConfig(config) {
@@ -1055,7 +1075,7 @@
           if (config.stopLoss <= 0) {
             return { valid: false, message: 'Stop loss must be greater than 0.' };
           }
-          if (config.martingaleMultiplier < 1) {
+          if (martingaleEnabled && config.martingaleMultiplier < 1) {
             return { valid: false, message: 'Martingale multiplier must be at least 1.' };
           }
           return { valid: true };
@@ -1130,11 +1150,21 @@
           while (historyList.children.length > historyLimit) {
             historyList.removeChild(historyList.lastChild);
           }
+        },
+        setMartingaleVisibility(show) {
+          if (martingaleGroup) {
+            martingaleGroup.style.display = show ? '' : 'none';
+          }
         }
       };
     }
 
     botUI = initBotUI();
+    function setMartingaleEnabled(enabled) {
+      martingaleEnabled = enabled;
+      botUI.setMartingaleVisibility(enabled);
+    }
+    setMartingaleEnabled(true);
     const sharedDependencies = () => ({
       wsUrl: DERIV_WS_URL,
       defaults: BOT_DEFAULTS,
@@ -1163,6 +1193,14 @@
         cardId: 'allMarketsUnderCard',
         buttonId: 'openAllMarketsUnder',
         createInstance: () => new window.AllMarketsUnderBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'smartVolatility',
+        name: 'Smart Volatility',
+        cardId: 'smartVolatilityCard',
+        buttonId: 'openSmartVolatility',
+        supportsMartingale: false,
+        createInstance: () => new window.SmartVolatilityBot(botUI, sharedDependencies())
       }
     ];
 
@@ -1198,6 +1236,7 @@
       currentBotKey = key;
       currentBotInstance = getBotInstance(key);
       activeBotName.textContent = def.name;
+      setMartingaleEnabled(def.supportsMartingale !== false);
       setActiveCard(key);
       openBotPanelUI();
       botPanelContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
