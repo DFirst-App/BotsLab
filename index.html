@@ -36,6 +36,29 @@
       --danger: #ff5f6d;
     }
 
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f5f5;
+      --panel: #ffffff;
+      --panel-strong: #f0f0f0;
+      --accent: #00a8cc;
+      --accent-2: #ff6b35;
+      --text: #1a1a1a;
+      --muted: #666666;
+      --border: rgba(0,0,0,0.1);
+      --success: #1db954;
+      --danger: #e63946;
+    }
+
+    [data-theme="light"] .grid-bg {
+      background-image: linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+    }
+
+    [data-theme="light"] body {
+      background: radial-gradient(circle at top right, rgba(0, 168, 204, 0.15), transparent 40%), var(--bg);
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -1615,9 +1638,68 @@
         margin-top: 0;
       }
     }
+
+    /* Theme Toggle Button */
+    .theme-toggle {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      border-color: var(--accent);
+    }
+
+    [data-theme="light"] .theme-toggle {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .theme-toggle:hover {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 768px) {
+      .theme-toggle {
+        top: 16px;
+        right: 16px;
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .theme-toggle {
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+    }
   </style>
 </head>
 <body>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+    <span id="themeIcon">☀️</span>
+  </button>
   <div class="grid-bg"></div>
   <main class="page">
     <div class="tips-banner secret-hidden" id="tipsBanner">
@@ -2616,6 +2698,31 @@
 
     // Initialize on page load
     checkExistingConnection();
+
+    // Theme Toggle Functionality
+    (function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const html = document.documentElement;
+
+      // Load saved theme preference
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      html.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+
+      // Toggle theme on button click
+      themeToggle.addEventListener('click', function() {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+      });
+
+      function updateThemeIcon(theme) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+      }
+    })();
   </script>
 </body>
 </html>
