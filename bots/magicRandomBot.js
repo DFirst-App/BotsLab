@@ -249,6 +249,20 @@
             this.subscribeToBalance();
             this.subscribeToContracts();
             
+            // After reconnection, if trade was in progress but no active contract ID,
+            // the contract subscription will receive updates for any active contracts.
+            // If no contract is active, we'll reset and continue after a brief delay
+            if (this.isReconnecting && this.tradeInProgress && !this.activeContractId) {
+              // Wait briefly for contract subscription to receive any active contract updates
+              setTimeout(() => {
+                if (this.isRunning && this.tradeInProgress && !this.activeContractId && this.ws?.readyState === WebSocket.OPEN) {
+                  // No active contract found, reset and continue
+                  this.tradeInProgress = false;
+                  this.queueNextTrade();
+                }
+              }, 1500);
+            }
+            
             if (!this.tradeInProgress) {
               this.queueNextTrade();
             }
@@ -306,7 +320,9 @@
       }
 
       // Check stop conditions (but wait for win if needed)
-      if (this.pendingStopReason) {
+      // Only block if we have a pending stop AND a trade is currently in progress
+      // If no trade in progress, we need to start one to get the required win
+      if (this.pendingStopReason && this.tradeInProgress) {
         // Don't queue new trade, wait for current one to finish
         return;
       }
