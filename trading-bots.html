@@ -1045,6 +1045,20 @@
           </div>
         </div>
 
+        <div class="bot-card" id="magicRandomBotCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Magic Random</span>
+            <h3>Magic Random Strategy</h3>
+            <p>Randomly selects between Differ, Under 9, and Over 0 trades across all markets with intelligent stop conditions and digit tracking.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.9/5</li>
+              <li>Strategy: Random Differ/Under/Over · Multi-Market</li>
+              <li>Recovery: Smart Recovery with Win-Gated Stops</li>
+            </ul>
+            <button class="open-bot-btn" id="openMagicRandomBot">Open Bot</button>
+          </div>
+        </div>
+
         <div class="bot-card" id="smartVolatilityCard">
           <div class="bot-card-content">
             <span class="bot-chip">Volatility AI</span>
@@ -1228,6 +1242,7 @@
   <script src="bots/allMarketsDiffer.js"></script>
   <script src="bots/allMarketsOver.js"></script>
   <script src="bots/allMarketsUnder.js"></script>
+  <script src="bots/magicRandomBot.js"></script>
   <script src="bots/smartVolatility.js"></script>
   <script src="bots/smartEven.js"></script>
   <script src="bots/noTouch.js"></script>
@@ -1495,6 +1510,13 @@
         cardId: 'allMarketsUnderCard',
         buttonId: 'openAllMarketsUnder',
         createInstance: () => new window.AllMarketsUnderBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'magicRandomBot',
+        name: 'Magic Random Strategy',
+        cardId: 'magicRandomBotCard',
+        buttonId: 'openMagicRandomBot',
+        createInstance: () => new window.MagicRandomBot(botUI, sharedDependencies())
       },
       {
         key: 'smartVolatility',
