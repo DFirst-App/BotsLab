@@ -150,7 +150,7 @@
 
     calculateIndicators(symbol) {
       const history = this.priceHistory.get(symbol);
-      if (!history || history.length < 50) return;
+      if (!history || history.length < 30) return; // Reduced from 50 to 30
 
       const prices = history.map(h => h.price);
       const indicators = {
@@ -269,11 +269,11 @@
 
       const currentPrice = marketData.price;
       const history = this.priceHistory.get(symbol);
-      if (!history || history.length < 50) return;
+      if (!history || history.length < 30) return; // Reduced from 50 to 30
 
-      // Prevent signal spam (max 1 signal per symbol per 5 minutes)
+      // Prevent signal spam (max 1 signal per symbol per 3 minutes) - Reduced from 5 minutes
       const lastSignal = this.lastSignalTime.get(symbol) || 0;
-      if (Date.now() - lastSignal < 300000) return; // 5 minutes
+      if (Date.now() - lastSignal < 180000) return; // 3 minutes
 
       // Multi-indicator signal analysis
       const signal = this.generateSignal(symbol, currentPrice, indicators, history);
@@ -316,9 +316,12 @@
       if (sma20 > sma50 && ema12 > ema26) buyScore += 20;
       else if (sma20 < sma50 && ema12 < ema26) sellScore += 20;
 
-      // Bollinger Bands
-      if (currentPrice < bb.lower) buyScore += 15;
-      else if (currentPrice > bb.upper) sellScore += 15;
+      // Bollinger Bands (more lenient - within 5% of bands)
+      const bbRange = bb.upper - bb.lower;
+      const priceFromLower = (currentPrice - bb.lower) / bbRange;
+      const priceFromUpper = (bb.upper - currentPrice) / bbRange;
+      if (priceFromLower < 0.05) buyScore += 15; // Price near lower band
+      else if (priceFromUpper < 0.05) sellScore += 15; // Price near upper band
 
       // Trend confirmation
       const recentPrices = history.slice(-20).map(h => h.price);
@@ -326,8 +329,8 @@
       if (trend > 0) buyScore += 10;
       else if (trend < 0) sellScore += 10;
 
-      // Minimum confidence threshold (60%)
-      const minConfidence = 60;
+      // Minimum confidence threshold (50% - lowered to generate more signals)
+      const minConfidence = 50;
       let direction = null;
       let confidence = 0;
 
