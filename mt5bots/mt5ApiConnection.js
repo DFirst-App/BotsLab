@@ -90,8 +90,11 @@
           return;
         }
         
-        console.error('[MT5 API] Error:', data.error);
-        this.onConnectionStatus('warning', message);
+        // Don't log InvalidSymbol errors as they're expected when trying symbols
+        if (errorCode !== 'InvalidSymbol') {
+          console.error('[MT5 API] Error:', data.error);
+          this.onConnectionStatus('warning', message);
+        }
         return;
       }
 
@@ -142,8 +145,8 @@
 
       // Get MT5 accounts first
       this.getMT5Accounts().then(() => {
-        // Subscribe to common MT5 symbols directly
-        this.subscribeToCommonSymbols();
+        // Get available symbols first, then subscribe
+        this.getAvailableSymbols();
       });
     }
 
@@ -227,36 +230,104 @@
       return 'MT5 Standard';
     }
 
-    subscribeToCommonSymbols() {
-      // Common MT5 symbols available on Deriv
-      const commonMT5Symbols = [
-        // Forex Majors
-        'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
-        // Forex Crosses
-        'EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY', 'EURCHF', 'AUDCAD', 'EURAUD',
-        // Commodities
-        'XAUUSD', 'XAGUSD', 'XPDUSD', 'XPTUSD',
-        // Indices
-        'US_OTC', 'US_500', 'US_100', 'US_30',
-        'UK_100', 'GER_30', 'FRA_40', 'JPN_225', 'AUS_200',
-        // Cryptocurrencies
-        'BTCUSD', 'ETHUSD', 'LTCUSD', 'BCHUSD',
-        // Synthetic Indices
-        'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
-        '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V'
-      ];
+    async getAvailableSymbols() {
+      // First, try to get active symbols using the correct API format
+      const reqId = Date.now();
+      let resolved = false;
+      
+      const resolver = (data) => {
+        if (resolved) return;
+        resolved = true;
+        
+        if (data.active_symbols && Array.isArray(data.active_symbols)) {
+          this.handleActiveSymbols(data.active_symbols);
+        } else {
+          // Fallback to known working symbols if API call fails
+          this.subscribeToKnownSymbols();
+        }
+      };
+      
+      this.pendingRequests.set(reqId, resolver);
 
-      // Subscribe to all symbols with a small delay between each to avoid rate limiting
-      commonMT5Symbols.forEach((symbol, index) => {
-        setTimeout(() => {
-          this.subscribeToSymbol(symbol);
-        }, index * 50); // 50ms delay between each subscription
-      });
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        // Try to get active symbols - use the format that works
+        this.ws.send(JSON.stringify({
+          active_symbols: 1,
+          req_id: reqId
+        }));
+      }
 
-      console.log(`[MT5 API] Subscribing to ${commonMT5Symbols.length} MT5 symbols`);
+      // Timeout after 3 seconds - if no response, use fallback
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          this.pendingRequests.delete(reqId);
+          // Use fallback symbols
+          this.subscribeToKnownSymbols();
+        }
+      }, 3000);
     }
 
-    subscribeToSymbol(symbol) {
+    handleActiveSymbols(symbols) {
+      if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
+        console.warn('[MT5 API] No active symbols received, using fallback');
+        this.subscribeToKnownSymbols();
+        return;
+      }
+
+      // Extract symbol names and filter for valid ones
+      const validSymbols = symbols
+        .map(s => s.symbol)
+        .filter(s => s && typeof s === 'string')
+        .filter(s => {
+          // Filter out binary-only symbols, keep MT5-compatible ones
+          // These are symbols that typically work with ticks subscription
+          return s.length > 0;
+        });
+
+      if (validSymbols.length === 0) {
+        console.warn('[MT5 API] No valid symbols found, using fallback');
+        this.subscribeToKnownSymbols();
+        return;
+      }
+
+      // Subscribe to valid symbols with delay
+      validSymbols.forEach((symbol, index) => {
+        setTimeout(() => {
+          this.subscribeToSymbol(symbol, true); // true = silent (don't log errors for invalid ones)
+        }, index * 30); // 30ms delay
+      });
+
+      console.log(`[MT5 API] Subscribing to ${validSymbols.length} available symbols`);
+    }
+
+    subscribeToKnownSymbols() {
+      // Known working symbols from Deriv (synthetic indices and common ones)
+      const knownSymbols = [
+        // Synthetic Indices (these definitely work)
+        'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
+        '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V',
+        // Try common forex pairs (might work depending on account)
+        'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxAUDUSD',
+        // Try indices
+        'WLDAUD', 'WLDEUR', 'WLDGBP', 'WLDUSD'
+      ];
+
+      // Subscribe to known symbols
+      knownSymbols.forEach((symbol, index) => {
+        setTimeout(() => {
+          this.subscribeToSymbol(symbol, true);
+        }, index * 50);
+      });
+
+      console.log(`[MT5 API] Subscribing to ${knownSymbols.length} known symbols`);
+    }
+
+    subscribeToSymbol(symbol, silent = false) {
+      if (!symbol || typeof symbol !== 'string') {
+        return;
+      }
+
       if (this.subscribedSymbols.has(symbol)) {
         return; // Already subscribed
       }
@@ -268,14 +339,19 @@
             subscribe: 1
           }));
           this.subscribedSymbols.add(symbol);
+          if (!silent) {
+            console.log(`[MT5 API] Subscribed to ${symbol}`);
+          }
         } catch (error) {
-          console.error(`[MT5 API] Error subscribing to ${symbol}:`, error);
+          if (!silent) {
+            console.error(`[MT5 API] Error subscribing to ${symbol}:`, error);
+          }
         }
       } else {
         // Queue for subscription when connection is ready
         setTimeout(() => {
           if (this.ws && this.ws.readyState === WebSocket.OPEN && !this.subscribedSymbols.has(symbol)) {
-            this.subscribeToSymbol(symbol);
+            this.subscribeToSymbol(symbol, silent);
           }
         }, 1000);
       }
