@@ -1653,6 +1653,64 @@
       mt5CreateAccountBtn.href = CREATE_MT5_URL;
     }
 
+    // Initialize MT5 bot files
+    function initializeMT5BotFiles() {
+      const filesContainer = document.getElementById('mt5BotFiles');
+      if (!filesContainer) return;
+
+      // Premium executive bot names with .ex5 extension (MT5 compiled EA files)
+      const botFiles = [
+        { name: 'QuantumPro_Elite', extension: '.ex5', icon: '⚡' },
+        { name: 'NexusPrime_Advanced', extension: '.ex5', icon: '🚀' },
+        { name: 'ApexTitan_Pro', extension: '.ex5', icon: '💎' },
+        { name: 'VortexElite_Premium', extension: '.ex5', icon: '🌟' }
+      ];
+
+      filesContainer.innerHTML = '';
+
+      botFiles.forEach((file, index) => {
+        const fileCard = document.createElement('div');
+        fileCard.className = 'mt5-bot-file-card';
+        
+        const fileInfo = document.createElement('div');
+        fileInfo.className = 'mt5-bot-file-info';
+        
+        const fileIcon = document.createElement('div');
+        fileIcon.className = 'mt5-bot-file-icon';
+        fileIcon.textContent = file.icon;
+        
+        const fileDetails = document.createElement('div');
+        fileDetails.className = 'mt5-bot-file-details';
+        
+        const fileName = document.createElement('div');
+        fileName.className = 'mt5-bot-file-name';
+        fileName.textContent = file.name;
+        
+        const fileType = document.createElement('div');
+        fileType.className = 'mt5-bot-file-type';
+        fileType.textContent = file.extension;
+        
+        fileDetails.appendChild(fileName);
+        fileDetails.appendChild(fileType);
+        fileInfo.appendChild(fileIcon);
+        fileInfo.appendChild(fileDetails);
+        
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'mt5-download-btn';
+        downloadBtn.textContent = '⬇️ Download';
+        downloadBtn.onclick = () => {
+          alert('This bot is currently under testing. It will be available for download soon. Please check back later or join our Telegram/WhatsApp groups for updates.');
+        };
+        
+        fileCard.appendChild(fileInfo);
+        fileCard.appendChild(downloadBtn);
+        filesContainer.appendChild(fileCard);
+      });
+    }
+
+    // Initialize MT5 bot files on page load
+    initializeMT5BotFiles();
+
     // Restore cached accounts immediately
     restoreCachedAccounts();
 
