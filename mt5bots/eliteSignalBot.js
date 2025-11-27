@@ -1,6 +1,71 @@
 (() => {
   'use strict';
 
+  // Signal Popup Queue Manager
+  const SignalPopupQueue = {
+    queue: [],
+    isShowing: false,
+    currentPopup: null,
+    pauseBetweenPopups: 3000, // 3 seconds pause between popups
+
+    add(signalData) {
+      this.queue.push(signalData);
+      this.processQueue();
+    },
+
+    processQueue() {
+      if (this.isShowing || this.queue.length === 0) return;
+
+      this.isShowing = true;
+      const signalData = this.queue.shift();
+      this.showPopup(signalData);
+    },
+
+    showPopup({ signal, details, directionColor, directionIcon, createPopupFn }) {
+      const popup = createPopupFn(signal, details, directionColor, directionIcon);
+      this.currentPopup = popup;
+
+      // Auto-close after 8 seconds
+      const autoCloseTimeout = setTimeout(() => {
+        this.closeCurrent();
+      }, 8000);
+
+      // Override close button to process next in queue
+      const closeBtn = popup.querySelector('button');
+      if (closeBtn) {
+        const originalOnClick = closeBtn.onclick;
+        closeBtn.onclick = () => {
+          clearTimeout(autoCloseTimeout);
+          this.closeCurrent();
+        };
+      }
+    },
+
+    closeCurrent() {
+      if (!this.currentPopup) {
+        this.isShowing = false;
+        this.processQueue();
+        return;
+      }
+
+      const popup = this.currentPopup;
+      popup.style.animation = 'signalPopupSlideOut 0.3s ease forwards';
+      
+      setTimeout(() => {
+        if (popup.parentNode) {
+          popup.parentNode.removeChild(popup);
+        }
+        this.currentPopup = null;
+        this.isShowing = false;
+        
+        // Wait before showing next popup
+        setTimeout(() => {
+          this.processQueue();
+        }, this.pauseBetweenPopups);
+      }, 300);
+    }
+  };
+
   class EliteSignalBot {
     constructor(ui, options) {
       this.ui = ui;
@@ -279,7 +344,8 @@
       
       if (signal) {
         this.lastSignalTime.set(symbol, Date.now());
-        this.showSignalPopup(signal);
+        // Add to queue instead of showing immediately
+        this.queueSignalPopup(signal);
         this.ui.addHistoryEntry({
           symbol: signal.displayName || symbol,
           direction: signal.direction,
@@ -433,7 +499,7 @@
       return symbolMap[symbol] || symbol.replace(/^frx/, '');
     }
 
-    showSignalPopup(signal) {
+    queueSignalPopup(signal) {
       if (typeof window.PopupNotifications === 'undefined') {
         console.warn('PopupNotifications not available');
         return;
@@ -466,8 +532,14 @@
         riskReward3: signal.riskReward3
       };
 
-      // Create custom signal popup
-      this.createSignalPopup(signal, details, directionColor, directionIcon);
+      // Add to queue instead of showing immediately
+      SignalPopupQueue.add({
+        signal,
+        details,
+        directionColor,
+        directionIcon,
+        createPopupFn: (sig, det, color, icon) => this.createSignalPopup(sig, det, color, icon)
+      });
     }
 
     createSignalPopup(signal, details, directionColor, directionIcon) {
@@ -501,12 +573,15 @@
         border-radius: 24px;
         padding: 32px;
         max-width: 520px;
-        width: 100%;
+        width: calc(100% - 40px);
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
         box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
         pointer-events: auto;
         position: relative;
         animation: signalPopupSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         backdrop-filter: blur(15px);
+        box-sizing: border-box;
       `;
 
       // Add animation styles if not already added
@@ -695,14 +770,8 @@
         closeBtn.style.background = `${directionColor}25`;
         closeBtn.style.transform = 'translateY(0)';
       };
-      closeBtn.onclick = () => {
-        popup.style.animation = 'signalPopupSlideOut 0.3s ease forwards';
-        setTimeout(() => {
-          if (popup.parentNode) {
-            popup.parentNode.removeChild(popup);
-          }
-        }, 300);
-      };
+      // Close handler will be set by queue manager
+      closeBtn.dataset.signalPopup = 'true';
 
       // Add slide out animation
       if (!document.getElementById('signalPopupSlideOut')) {
@@ -731,6 +800,8 @@
       popup.appendChild(closeBtn);
 
       container.appendChild(popup);
+      
+      return popup;
     }
 
     stop(message = 'Bot stopped', type = 'info') {

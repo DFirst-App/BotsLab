@@ -759,12 +759,91 @@
       font-size: 11px;
       color: var(--muted);
       line-height: 1.5;
-      margin: 0;
+      margin: 0 0 16px;
       flex: 1;
     }
 
     .download-card .bot-card-content {
       justify-content: flex-start;
+    }
+
+    .mt5-bot-files {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .mt5-bot-file-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .mt5-bot-file-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(0, 210, 255, 0.2);
+    }
+
+    .mt5-bot-file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .mt5-bot-file-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(0, 210, 255, 0.08));
+      border: 1px solid rgba(0, 210, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .mt5-bot-file-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .mt5-bot-file-size {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .mt5-download-btn {
+      padding: 6px 14px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(0, 210, 255, 0.08));
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      border-radius: 8px;
+      color: var(--accent-2);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .mt5-download-btn:hover {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.25), rgba(0, 210, 255, 0.15));
+      border-color: rgba(0, 210, 255, 0.5);
+      transform: translateY(-1px);
     }
 
     /* Coming Soon Bots Styles */
@@ -1104,9 +1183,12 @@
         <div class="bot-card download-card" id="downloadMT5BotsCard">
           <div class="bot-card-content">
             <h3 style="font-size: 16px; margin-bottom: 8px;">Download MT5 Fully Automated Trading AI Bots</h3>
-            <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0; flex: 1;">
+            <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0 0 16px;">
               Expert Advisors (EAs) for MetaTrader 5 platform. Fully automated trading bots ready for direct use in MT5.
             </p>
+            <div class="mt5-bot-files" id="mt5BotFiles">
+              <!-- File cards will be populated here -->
+            </div>
           </div>
         </div>
 
@@ -1514,6 +1596,9 @@
 
     // Restore cached accounts immediately
     restoreCachedAccounts();
+
+    // Initialize MT5 bot files
+    initializeMT5BotFiles();
 
     // Initialize immediately on page load (don't wait for DOMContentLoaded)
     if (document.readyState === 'loading') {

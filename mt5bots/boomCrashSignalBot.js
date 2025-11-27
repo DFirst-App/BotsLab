@@ -1,6 +1,74 @@
 (() => {
   'use strict';
 
+  // Signal Popup Queue Manager (shared with Elite Signal Bot)
+  const SignalPopupQueue = window.SignalPopupQueue || {
+    queue: [],
+    isShowing: false,
+    currentPopup: null,
+    pauseBetweenPopups: 3000, // 3 seconds pause between popups
+
+    add(signalData) {
+      this.queue.push(signalData);
+      this.processQueue();
+    },
+
+    processQueue() {
+      if (this.isShowing || this.queue.length === 0) return;
+
+      this.isShowing = true;
+      const signalData = this.queue.shift();
+      this.showPopup(signalData);
+    },
+
+    showPopup({ signal, details, directionColor, directionIcon, createPopupFn }) {
+      const popup = createPopupFn(signal, details, directionColor, directionIcon);
+      this.currentPopup = popup;
+
+      // Auto-close after 8 seconds
+      const autoCloseTimeout = setTimeout(() => {
+        this.closeCurrent();
+      }, 8000);
+
+      // Override close button to process next in queue
+      const closeBtn = popup.querySelector('button');
+      if (closeBtn) {
+        const originalOnClick = closeBtn.onclick;
+        closeBtn.onclick = () => {
+          clearTimeout(autoCloseTimeout);
+          this.closeCurrent();
+        };
+      }
+    },
+
+    closeCurrent() {
+      if (!this.currentPopup) {
+        this.isShowing = false;
+        this.processQueue();
+        return;
+      }
+
+      const popup = this.currentPopup;
+      popup.style.animation = 'signalPopupSlideOut 0.3s ease forwards';
+      
+      setTimeout(() => {
+        if (popup.parentNode) {
+          popup.parentNode.removeChild(popup);
+        }
+        this.currentPopup = null;
+        this.isShowing = false;
+        
+        // Wait before showing next popup
+        setTimeout(() => {
+          this.processQueue();
+        }, this.pauseBetweenPopups);
+      }, 300);
+    }
+  };
+
+  // Make queue available globally
+  window.SignalPopupQueue = SignalPopupQueue;
+
   class BoomCrashSignalBot {
     constructor(ui, options) {
       this.ui = ui;
@@ -259,7 +327,8 @@
       
       if (signal) {
         this.lastSignalTime.set(symbol, Date.now());
-        this.showSignalPopup(signal);
+        // Add to queue instead of showing immediately
+        this.queueSignalPopup(signal);
         this.ui.addHistoryEntry({
           symbol: signal.displayName || symbol,
           direction: signal.direction,
@@ -400,7 +469,7 @@
       return symbolMap[symbol] || symbol;
     }
 
-    showSignalPopup(signal) {
+    queueSignalPopup(signal) {
       if (typeof window.PopupNotifications === 'undefined') {
         console.warn('PopupNotifications not available');
         return;
@@ -425,7 +494,14 @@
         riskReward3: signal.riskReward3
       };
 
-      this.createSignalPopup(signal, details, directionColor, directionIcon);
+      // Add to queue instead of showing immediately
+      SignalPopupQueue.add({
+        signal,
+        details,
+        directionColor,
+        directionIcon,
+        createPopupFn: (sig, det, color, icon) => this.createSignalPopup(sig, det, color, icon)
+      });
     }
 
     createSignalPopup(signal, details, directionColor, directionIcon) {
@@ -480,12 +556,49 @@
               transform: scale(1) translateY(0) rotateX(0deg);
             }
           }
+          @keyframes signalPopupSlideOut {
+            to {
+              opacity: 0;
+              transform: scale(0.9) translateY(-20px);
+            }
+          }
           @keyframes signalPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
           }
           .signal-icon {
             animation: signalPulse 2s ease-in-out infinite;
+          }
+          @media (max-width: 768px) {
+            .signal-popup {
+              padding: 24px !important;
+              max-width: calc(100% - 32px) !important;
+              max-height: calc(100vh - 32px) !important;
+            }
+            .signal-popup h3 {
+              font-size: 22px !important;
+            }
+            .signal-popup > div:first-child {
+              width: 64px !important;
+              height: 64px !important;
+              font-size: 32px !important;
+            }
+          }
+          @media (max-width: 480px) {
+            .signal-popup {
+              padding: 20px !important;
+              max-width: calc(100% - 24px) !important;
+              max-height: calc(100vh - 24px) !important;
+            }
+            .signal-popup h3 {
+              font-size: 20px !important;
+            }
+            .signal-popup > div:first-child {
+              width: 56px !important;
+              height: 56px !important;
+              font-size: 28px !important;
+              margin-bottom: 16px !important;
+            }
           }
         `;
         document.head.appendChild(style);
@@ -683,6 +796,8 @@
       popup.appendChild(closeBtn);
 
       container.appendChild(popup);
+      
+      return popup;
     }
 
     stop(message = 'Bot stopped', type = 'info') {
