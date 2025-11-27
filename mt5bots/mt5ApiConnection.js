@@ -192,39 +192,20 @@
 
     handleMT5Accounts(accounts) {
       if (!accounts || !Array.isArray(accounts)) {
-        this.mt5AccountInfo = null;
-        this.onAccountInfo(null);
+        // Call with empty array to show create button
+        if (this.onAccountInfo) {
+          this.onAccountInfo({ mt5Accounts: [] });
+        }
         return;
       }
 
-      // Find real (non-demo) MT5 accounts
-      const realAccounts = accounts.filter(acc => {
-        // Check if account is real (not demo/virtual)
-        const isReal = !acc.is_virtual && acc.account_type !== 'demo';
-        return isReal;
-      });
-
-      if (realAccounts.length === 0) {
-        this.mt5AccountInfo = null;
-        this.onAccountInfo(null);
-        return;
+      // Pass all accounts to the callback
+      if (this.onAccountInfo) {
+        this.onAccountInfo({ 
+          ...this.accountInfo,
+          mt5Accounts: accounts 
+        });
       }
-
-      // Use the first real account
-      const account = realAccounts[0];
-      this.mt5AccountInfo = {
-        login: account.login,
-        server: account.server,
-        account_type: this.getMT5AccountType(account.server, account.account_type),
-        balance: Number(account.balance) || 0,
-        currency: account.currency || 'USD',
-        leverage: account.leverage || 0
-      };
-
-      this.onAccountInfo({
-        ...this.accountInfo,
-        mt5: this.mt5AccountInfo
-      });
     }
 
     getMT5AccountType(server, accountType) {
