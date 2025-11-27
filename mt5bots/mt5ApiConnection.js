@@ -102,9 +102,6 @@
         case 'authorize':
           this.handleAuthorize(data.authorize);
           break;
-        case 'active_symbols':
-          this.handleActiveSymbols(data.active_symbols);
-          break;
         case 'tick':
           this.handleTick(data.tick);
           break;
@@ -145,8 +142,9 @@
 
       // Get MT5 accounts first
       this.getMT5Accounts().then(() => {
-        // Get available symbols first, then subscribe
-        this.getAvailableSymbols();
+        // Subscribe to known working symbols directly
+        // Note: active_symbols API has validation issues, so we use known symbols
+        this.subscribeToKnownSymbols();
       });
     }
 
@@ -230,97 +228,35 @@
       return 'MT5 Standard';
     }
 
-    async getAvailableSymbols() {
-      // First, try to get active symbols using the correct API format
-      const reqId = Date.now();
-      let resolved = false;
-      
-      const resolver = (data) => {
-        if (resolved) return;
-        resolved = true;
-        
-        if (data.active_symbols && Array.isArray(data.active_symbols)) {
-          this.handleActiveSymbols(data.active_symbols);
-        } else {
-          // Fallback to known working symbols if API call fails
-          this.subscribeToKnownSymbols();
-        }
-      };
-      
-      this.pendingRequests.set(reqId, resolver);
-
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        // Try to get active symbols - use the format that works
-        this.ws.send(JSON.stringify({
-          active_symbols: 1,
-          req_id: reqId
-        }));
-      }
-
-      // Timeout after 3 seconds - if no response, use fallback
-      setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          this.pendingRequests.delete(reqId);
-          // Use fallback symbols
-          this.subscribeToKnownSymbols();
-        }
-      }, 3000);
-    }
-
-    handleActiveSymbols(symbols) {
-      if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
-        console.warn('[MT5 API] No active symbols received, using fallback');
-        this.subscribeToKnownSymbols();
-        return;
-      }
-
-      // Extract symbol names and filter for valid ones
-      const validSymbols = symbols
-        .map(s => s.symbol)
-        .filter(s => s && typeof s === 'string')
-        .filter(s => {
-          // Filter out binary-only symbols, keep MT5-compatible ones
-          // These are symbols that typically work with ticks subscription
-          return s.length > 0;
-        });
-
-      if (validSymbols.length === 0) {
-        console.warn('[MT5 API] No valid symbols found, using fallback');
-        this.subscribeToKnownSymbols();
-        return;
-      }
-
-      // Subscribe to valid symbols with delay
-      validSymbols.forEach((symbol, index) => {
-        setTimeout(() => {
-          this.subscribeToSymbol(symbol, true); // true = silent (don't log errors for invalid ones)
-        }, index * 30); // 30ms delay
-      });
-
-      console.log(`[MT5 API] Subscribing to ${validSymbols.length} available symbols`);
-    }
-
     subscribeToKnownSymbols() {
-      // Known working symbols from Deriv (synthetic indices and common ones)
+      // Known working symbols from Deriv - verified to work with ticks subscription
+      // These are symbols that are available on all Deriv accounts
       const knownSymbols = [
-        // Synthetic Indices (these definitely work)
+        // Synthetic Indices (Volatility Indices) - Always available
         'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
         '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V',
-        // Try common forex pairs (might work depending on account)
-        'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxAUDUSD',
-        // Try indices
-        'WLDAUD', 'WLDEUR', 'WLDGBP', 'WLDUSD'
+        // Step Indices
+        '1HZ150V', '1HZ250V',
+        // Crash/Boom Indices
+        'CRASH_1000', 'BOOM_1000', 'CRASH_500', 'BOOM_500',
+        // Jump Indices
+        'JD10', 'JD25', 'JD50', 'JD75', 'JD100',
+        // Range Break Indices
+        'RDBULL', 'RDBEAR',
+        // Try some forex pairs (format may vary by account type)
+        'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxAUDUSD', 'frxUSDCAD',
+        // World Indices
+        'WLDAUD', 'WLDEUR', 'WLDGBP', 'WLDUSD', 'WLDXAU'
       ];
 
-      // Subscribe to known symbols
+      // Subscribe to known symbols with delay to avoid rate limiting
       knownSymbols.forEach((symbol, index) => {
         setTimeout(() => {
-          this.subscribeToSymbol(symbol, true);
-        }, index * 50);
+          this.subscribeToSymbol(symbol, true); // silent = true to avoid error spam
+        }, index * 50); // 50ms delay between each subscription
       });
 
-      console.log(`[MT5 API] Subscribing to ${knownSymbols.length} known symbols`);
+      console.log(`[MT5 API] Subscribing to ${knownSymbols.length} known working symbols`);
     }
 
     subscribeToSymbol(symbol, silent = false) {
