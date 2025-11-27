@@ -131,7 +131,7 @@
 
     calculateIndicators(symbol) {
       const history = this.priceHistory.get(symbol);
-      if (!history || history.length < 25) return; // Lower threshold for faster signals
+      if (!history || history.length < 15) return; // Further reduced to 15 for faster signals
 
       const prices = history.map(h => h.price);
       const indicators = {
@@ -309,8 +309,8 @@
       if (trend > 0.1) buyScore += 10;
       else if (trend < -0.1) sellScore += 10;
 
-      // Lower threshold for Boom/Crash (45%)
-      const minConfidence = 45;
+      // Lower threshold for Boom/Crash (35% - further lowered to generate more signals)
+      const minConfidence = 35;
       let direction = null;
       let confidence = 0;
 
