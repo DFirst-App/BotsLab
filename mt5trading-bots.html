@@ -560,11 +560,6 @@
         grid-template-columns: 1fr;
       }
 
-      .bots-grid-two {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-
       .coming-soon-message {
         padding: 12px;
       }
@@ -696,13 +691,9 @@
     .signal-bot-section {
       margin-top: 24px;
       display: grid;
-      grid-template-columns: 1fr 2fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
       align-items: start;
-    }
-
-    #eliteSignalBotCard {
-      grid-column: 1;
     }
 
     .win-rate-badge {
@@ -722,17 +713,6 @@
       flex-direction: column;
       gap: 6px;
       margin-top: 8px;
-    }
-
-    /* Boom & Crash and Download Section */
-    .boom-crash-download-section {
-      margin-top: 24px;
-    }
-
-    .bots-grid-two {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
     }
 
     .download-card {
@@ -1043,6 +1023,7 @@
 
       <!-- Signal Bot Section -->
       <div class="signal-bot-section">
+        <!-- Elite Signal Bot -->
         <div class="bot-card" id="eliteSignalBotCard">
           <div class="bot-card-content">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -1064,47 +1045,42 @@
           </div>
         </div>
 
+        <!-- Boom & Crash Signal Bot -->
+        <div class="bot-card" id="boomCrashBotCard">
+          <div class="bot-card-content">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span class="bot-chip">Boom & Crash</span>
+              <span class="win-rate-badge">75% Win Rate</span>
+            </div>
+            <h3>Boom & Crash Signal Bot</h3>
+            <p>Specialized signal generator for Boom and Crash indices. Automatically analyzes market patterns and generates high-probability signals with stop loss and take profit levels.</p>
+            <ul class="bot-meta">
+              <li>Auto-Analysis</li>
+              <li>Boom/Crash Focus</li>
+              <li>Fast Signals</li>
+            </ul>
+            <div class="signal-bot-status" id="boomCrashBotStatus" style="margin-top: 8px;">
+              <span class="status-badge" id="boomCrashStatusBadge" data-state="idle">Analyzing...</span>
+              <span class="status-text" id="boomCrashStatusText">Auto-analyzing Boom & Crash markets</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Download MT5 Bots Card -->
+        <div class="bot-card download-card" id="downloadMT5BotsCard">
+          <div class="bot-card-content">
+            <h3 style="font-size: 16px; margin-bottom: 8px;">Download MT5 Fully Automated Trading AI Bots</h3>
+            <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0;">
+              Expert Advisors (EAs) for MetaTrader 5 platform. Fully automated trading bots ready for direct use in MT5.
+            </p>
+          </div>
+        </div>
+
         <!-- Signal History -->
-        <div class="signal-history-section" id="signalHistorySection" style="display: none;">
+        <div class="signal-history-section" id="signalHistorySection" style="display: none; grid-column: 1 / -1; margin-top: 24px;">
           <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600;">Signal History</h3>
           <div class="signal-history-list" id="signalHistoryList">
             <!-- Signals will appear here -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Boom & Crash and Download Section -->
-      <div class="boom-crash-download-section">
-        <div class="bots-grid-two">
-          <!-- Boom & Crash Signal Bot -->
-          <div class="bot-card" id="boomCrashBotCard">
-            <div class="bot-card-content">
-              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <span class="bot-chip">Boom & Crash</span>
-                <span class="win-rate-badge">75% Win Rate</span>
-              </div>
-              <h3>Boom & Crash Signal Bot</h3>
-              <p>Specialized signal generator for Boom and Crash indices. Automatically analyzes market patterns and generates high-probability signals with stop loss and take profit levels.</p>
-              <ul class="bot-meta">
-                <li>Auto-Analysis</li>
-                <li>Boom/Crash Focus</li>
-                <li>Fast Signals</li>
-              </ul>
-              <div class="signal-bot-status" id="boomCrashBotStatus" style="margin-top: 8px;">
-                <span class="status-badge" id="boomCrashStatusBadge" data-state="idle">Analyzing...</span>
-                <span class="status-text" id="boomCrashStatusText">Auto-analyzing Boom & Crash markets</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Download MT5 Bots Card -->
-          <div class="bot-card download-card" id="downloadMT5BotsCard">
-            <div class="bot-card-content">
-              <h3 style="font-size: 16px; margin-bottom: 8px;">Download MT5 Fully Automated Trading AI Bots</h3>
-              <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0;">
-                Expert Advisors (EAs) for MetaTrader 5 platform. Fully automated trading bots ready for direct use in MT5.
-              </p>
-            </div>
           </div>
         </div>
       </div>
