@@ -302,6 +302,51 @@
       color: var(--muted);
     }
 
+    .feature-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .feature-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+      border: 1px solid;
+    }
+
+    .feature-badge.deriv-bots {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(0, 210, 255, 0.08));
+      border-color: rgba(0, 210, 255, 0.3);
+      color: #00d2ff;
+    }
+
+    .feature-badge.mt5-bots {
+      background: linear-gradient(135deg, rgba(36, 217, 112, 0.15), rgba(36, 217, 112, 0.08));
+      border-color: rgba(36, 217, 112, 0.3);
+      color: #24d970;
+    }
+
+    .feature-badge.download-mt5 {
+      background: linear-gradient(135deg, rgba(255, 122, 24, 0.15), rgba(255, 122, 24, 0.08));
+      border-color: rgba(255, 122, 24, 0.3);
+      color: #ff7a18;
+    }
+
+    .feature-badge-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
     .btn {
       width: 100%;
       height: 46px;
@@ -1186,6 +1231,30 @@
         gap: 12px;
       }
 
+      .feature-badges {
+        gap: 5px;
+        margin-bottom: 14px;
+      }
+
+      .feature-badge {
+        padding: 5px 8px;
+        font-size: 9px;
+        gap: 3px;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .feature-badge span:not(.feature-badge-icon) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .feature-badge-icon {
+        font-size: 11px;
+        flex-shrink: 0;
+      }
+
       .action-buttons-container {
         margin-bottom: 12px;
         margin-top: 0;
@@ -1296,6 +1365,21 @@
 
       .action-btn .btn-label {
         font-size: 12px;
+      }
+
+      .feature-badges {
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+
+      .feature-badge {
+        padding: 4px 6px;
+        font-size: 8px;
+        gap: 2px;
+      }
+
+      .feature-badge-icon {
+        font-size: 10px;
       }
 
       footer {
@@ -1661,6 +1745,23 @@
       <div class="oauth-card" id="connectCard">
         <h3>Connect with Deriv</h3>
         <p>Sign in with your Deriv account to start trading</p>
+        
+        <!-- Feature Badges -->
+        <div class="feature-badges">
+          <span class="feature-badge deriv-bots">
+            <span class="feature-badge-icon">🤖</span>
+            <span>Deriv Bots</span>
+          </span>
+          <span class="feature-badge mt5-bots">
+            <span class="feature-badge-icon">📊</span>
+            <span>MT5 Bots</span>
+          </span>
+          <span class="feature-badge download-mt5">
+            <span class="feature-badge-icon">⬇️</span>
+            <span>Download MT5 Bots For Free</span>
+          </span>
+        </div>
+        
         <button class="btn btn-primary" id="connectBtn" onclick="handleOAuthLogin()">
           Connect Account
         </button>
@@ -2330,13 +2431,20 @@
       }
 
       if (realAccounts.length === 0) {
-        // Show message if no accounts
+        // Show create account button if no real accounts exist
         const noAccountsMsg = document.createElement('div');
         noAccountsMsg.className = 'mt5-account-item';
-        noAccountsMsg.style.justifyContent = 'center';
+        noAccountsMsg.style.display = 'flex';
+        noAccountsMsg.style.flexDirection = 'column';
+        noAccountsMsg.style.alignItems = 'center';
+        noAccountsMsg.style.gap = '12px';
         noAccountsMsg.style.padding = '16px';
+        noAccountsMsg.style.textAlign = 'center';
         noAccountsMsg.innerHTML = `
-          <span style="color: var(--muted); font-size: 13px;">No MT5 accounts found. <a href="${CREATE_MT5_URL}" target="_blank" rel="noopener" style="color: #00d2ff; text-decoration: none;">Create one</a></span>
+          <span style="color: var(--muted); font-size: 13px;">No real MT5 accounts found.</span>
+          <a href="${CREATE_MT5_URL}" target="_blank" rel="noopener" class="mt5-create-btn">
+            + Create MT5 Account
+          </a>
         `;
         mt5AccountsList.appendChild(noAccountsMsg);
         return;

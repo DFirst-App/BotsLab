@@ -1048,7 +1048,7 @@
           <!-- MT5 account cards will be populated here -->
         </div>
         <div class="mt5-create-account-container" id="mt5CreateContainer" style="display: none;">
-          <a href="https://app.deriv.com/?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="mt5-create-btn-small">
+          <a href="" id="mt5CreateAccountBtn" target="_blank" rel="noopener" class="mt5-create-btn-small">
             + Create MT5 Account
           </a>
         </div>
@@ -1506,6 +1506,12 @@
         document.getElementById('marketDataModal').classList.remove('active');
       }
     });
+
+    // Set up Create MT5 Account button link
+    const mt5CreateAccountBtn = document.getElementById('mt5CreateAccountBtn');
+    if (mt5CreateAccountBtn) {
+      mt5CreateAccountBtn.href = CREATE_MT5_URL;
+    }
 
     // Restore cached accounts immediately
     restoreCachedAccounts();
