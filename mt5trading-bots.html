@@ -1883,7 +1883,43 @@
 
     const signalBotUI = initSignalBotUI();
 
-    // Start/Stop Signal Bot
+    // Auto-start Signal Bot when MT5 connection is ready
+    function autoStartEliteSignalBot() {
+      if (signalBotInstance && signalBotInstance.isRunning) {
+        return;
+      }
+
+      if (!mt5Connection || !mt5Connection.isConnected) {
+        // Wait for connection
+        setTimeout(autoStartEliteSignalBot, 2000);
+        return;
+      }
+
+      // Create bot instance
+      signalBotInstance = new window.EliteSignalBot(signalBotUI, {
+        wsUrl: DERIV_WS_URL,
+        defaults: {},
+        resolveAuthToken: resolveAuthToken,
+        marketDataConnection: mt5Connection
+      });
+
+      signalBotInstance.start({});
+    }
+
+    // Start Signal Bot after MT5 connection is established
+    if (mt5Connection && mt5Connection.isConnected) {
+      setTimeout(autoStartEliteSignalBot, 3000);
+    } else {
+      // Wait for connection
+      const checkConnection = setInterval(() => {
+        if (mt5Connection && mt5Connection.isConnected) {
+          clearInterval(checkConnection);
+          setTimeout(autoStartEliteSignalBot, 3000);
+        }
+      }, 1000);
+    }
+
+    // Keep manual start button for stopping/restarting if needed
     startSignalBotBtn.addEventListener('click', () => {
       if (signalBotInstance && signalBotInstance.isRunning) {
         signalBotInstance.stop('Signal analysis stopped', 'info');

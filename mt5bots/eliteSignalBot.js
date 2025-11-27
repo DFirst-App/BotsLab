@@ -8,8 +8,8 @@
       isShowing: false,
       currentPopup: null,
       popupCount: 0,
-      pauseAfterCount: 5,
-      pauseDuration: 10000, // 10 seconds pause after 5 popups
+      pauseAfterCount: 3,
+      pauseDuration: 60000, // 60 seconds pause after 3 popups to allow traders to execute
       pauseTimeout: null,
       isPaused: false,
 
@@ -35,21 +35,16 @@
         this.currentPopup = popup;
         this.popupCount++;
 
-        // Auto-close after 8 seconds
-        const autoCloseTimeout = setTimeout(() => {
-          this.closeCurrent();
-        }, 8000);
-
+        // No auto-close - trader must close manually
         // Override close button to process next in queue
-        const closeBtn = popup.querySelector('button');
+        const closeBtn = popup.querySelector('button[data-signal-popup="true"]');
         if (closeBtn) {
           closeBtn.onclick = () => {
-            clearTimeout(autoCloseTimeout);
             this.closeCurrent();
           };
         }
 
-        // Check if we need to pause after 5 popups
+        // Check if we need to pause after 3 popups
         if (this.popupCount >= this.pauseAfterCount) {
           this.pause();
         }
@@ -86,10 +81,10 @@
           this.currentPopup = null;
           this.isShowing = false;
           
-          // Wait 1 second before showing next popup
+          // Wait 5 seconds before showing next popup
           setTimeout(() => {
             this.processQueue();
-          }, 1000);
+          }, 5000);
         }, 300);
       }
     };
@@ -618,12 +613,12 @@
       popup.style.cssText = `
         background: linear-gradient(135deg, rgba(0, 210, 255, 0.15) 0%, rgba(110, 243, 180, 0.12) 100%);
         border: 2px solid ${directionColor};
-        border-radius: 24px;
-        padding: 32px;
-        max-width: 520px;
+        border-radius: 20px;
+        padding: 20px;
+        max-width: 420px;
         width: calc(100% - 40px);
-        max-width: min(520px, calc(100vw - 40px));
-        max-height: calc(100vh - 40px);
+        max-width: min(420px, calc(100vw - 40px));
+        max-height: calc(100vh - 60px);
         overflow-y: auto;
         box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
         pointer-events: auto;
@@ -663,33 +658,34 @@
           }
           @media (max-width: 768px) {
             .signal-popup {
-              padding: 24px !important;
+              padding: 16px !important;
               max-width: calc(100% - 32px) !important;
-              max-height: calc(100vh - 32px) !important;
+              max-height: calc(100vh - 40px) !important;
             }
             .signal-popup h3 {
-              font-size: 22px !important;
+              font-size: 18px !important;
             }
             .signal-popup > div:first-child {
-              width: 64px !important;
-              height: 64px !important;
-              font-size: 32px !important;
+              width: 50px !important;
+              height: 50px !important;
+              font-size: 24px !important;
+              margin-bottom: 10px !important;
             }
           }
           @media (max-width: 480px) {
             .signal-popup {
-              padding: 20px !important;
+              padding: 14px !important;
               max-width: calc(100% - 24px) !important;
-              max-height: calc(100vh - 24px) !important;
+              max-height: calc(100vh - 30px) !important;
             }
             .signal-popup h3 {
-              font-size: 20px !important;
+              font-size: 16px !important;
             }
             .signal-popup > div:first-child {
-              width: 56px !important;
-              height: 56px !important;
-              font-size: 28px !important;
-              margin-bottom: 16px !important;
+              width: 44px !important;
+              height: 44px !important;
+              font-size: 22px !important;
+              margin-bottom: 8px !important;
             }
           }
         `;
@@ -699,24 +695,24 @@
       const iconCircle = document.createElement('div');
       iconCircle.className = 'signal-icon';
       iconCircle.style.cssText = `
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         background: ${directionColor}20;
-        border: 3px solid ${directionColor};
+        border: 2px solid ${directionColor};
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 20px;
-        font-size: 40px;
+        margin: 0 auto 12px;
+        font-size: 30px;
       `;
       iconCircle.textContent = directionIcon;
 
       const title = document.createElement('h3');
       title.textContent = `🎯 ${signal.direction} Signal Detected`;
       title.style.cssText = `
-        margin: 0 0 8px;
-        font-size: 26px;
+        margin: 0 0 6px;
+        font-size: 20px;
         font-weight: 700;
         color: #f5f7ff;
         text-align: center;
@@ -727,10 +723,10 @@
       symbolName.textContent = signal.displayName;
       symbolName.style.cssText = `
         text-align: center;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
         color: ${directionColor};
-        margin-bottom: 24px;
+        margin-bottom: 12px;
         letter-spacing: 0.05em;
       `;
 
@@ -738,17 +734,56 @@
       confidenceBadge.textContent = `${signal.confidence}% Confidence`;
       confidenceBadge.style.cssText = `
         text-align: center;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         color: rgba(255, 255, 255, 0.8);
         background: rgba(0, 210, 255, 0.2);
         border: 1px solid rgba(0, 210, 255, 0.4);
-        border-radius: 12px;
-        padding: 6px 16px;
+        border-radius: 10px;
+        padding: 4px 12px;
         display: inline-block;
-        margin: 0 auto 24px;
+        margin: 0 auto 12px;
         letter-spacing: 0.05em;
       `;
+
+      // Helper function to create copy button
+      const createCopyButton = (textToCopy, label) => {
+        const copyBtn = document.createElement('button');
+        copyBtn.innerHTML = '📋';
+        copyBtn.title = `Copy ${label}`;
+        copyBtn.style.cssText = `
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 6px;
+          padding: 4px 8px;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.2s ease;
+          margin-left: 8px;
+        `;
+        copyBtn.onmouseover = () => {
+          copyBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+        };
+        copyBtn.onmouseout = () => {
+          copyBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+        };
+        copyBtn.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+            await navigator.clipboard.writeText(textToCopy);
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '✓';
+            copyBtn.style.background = 'rgba(36, 217, 112, 0.3)';
+            setTimeout(() => {
+              copyBtn.innerHTML = originalText;
+              copyBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+            }, 1000);
+          } catch (err) {
+            console.error('Failed to copy:', err);
+          }
+        };
+        return copyBtn;
+      };
 
       // Entry Price
       const entryRow = document.createElement('div');
@@ -756,16 +791,22 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
+        padding: 8px 12px;
         background: rgba(0, 210, 255, 0.1);
-        border-radius: 12px;
-        margin-bottom: 12px;
+        border-radius: 10px;
+        margin-bottom: 8px;
         border: 1px solid rgba(0, 210, 255, 0.2);
       `;
-      entryRow.innerHTML = `
-        <span style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600;">Entry Price</span>
-        <span style="color: ${directionColor}; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;">${details.entryPrice}</span>
-      `;
+      const entryLabel = document.createElement('span');
+      entryLabel.textContent = 'Entry Price';
+      entryLabel.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
+      const entryValue = document.createElement('span');
+      entryValue.textContent = details.entryPrice;
+      entryValue.style.cssText = `color: ${directionColor}; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;`;
+      const entryCopyBtn = createCopyButton(details.entryPrice, 'Entry Price');
+      entryValue.appendChild(entryCopyBtn);
+      entryRow.appendChild(entryLabel);
+      entryRow.appendChild(entryValue);
 
       // Stop Loss
       const slRow = document.createElement('div');
@@ -773,16 +814,22 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
+        padding: 8px 12px;
         background: rgba(255, 95, 109, 0.1);
-        border-radius: 12px;
-        margin-bottom: 12px;
+        border-radius: 10px;
+        margin-bottom: 8px;
         border: 1px solid rgba(255, 95, 109, 0.2);
       `;
-      slRow.innerHTML = `
-        <span style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600;">Stop Loss</span>
-        <span style="color: #ff5f6d; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;">${details.stopLoss}</span>
-      `;
+      const slLabel = document.createElement('span');
+      slLabel.textContent = 'Stop Loss';
+      slLabel.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
+      const slValue = document.createElement('span');
+      slValue.textContent = details.stopLoss;
+      slValue.style.cssText = 'color: #ff5f6d; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
+      const slCopyBtn = createCopyButton(details.stopLoss, 'Stop Loss');
+      slValue.appendChild(slCopyBtn);
+      slRow.appendChild(slLabel);
+      slRow.appendChild(slValue);
 
       // Take Profits
       const tp1Row = document.createElement('div');
@@ -790,59 +837,77 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
+        padding: 8px 12px;
         background: rgba(36, 217, 112, 0.1);
-        border-radius: 12px;
-        margin-bottom: 8px;
+        border-radius: 10px;
+        margin-bottom: 6px;
         border: 1px solid rgba(36, 217, 112, 0.2);
       `;
-      tp1Row.innerHTML = `
-        <span style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600;">Take Profit 1 (R:R ${details.riskReward1})</span>
-        <span style="color: #24d970; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;">${details.takeProfit1}</span>
-      `;
+      const tp1Label = document.createElement('span');
+      tp1Label.textContent = `TP1 (R:R ${details.riskReward1})`;
+      tp1Label.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
+      const tp1Value = document.createElement('span');
+      tp1Value.textContent = details.takeProfit1;
+      tp1Value.style.cssText = 'color: #24d970; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
+      const tp1CopyBtn = createCopyButton(details.takeProfit1, 'Take Profit 1');
+      tp1Value.appendChild(tp1CopyBtn);
+      tp1Row.appendChild(tp1Label);
+      tp1Row.appendChild(tp1Value);
 
       const tp2Row = document.createElement('div');
       tp2Row.style.cssText = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
+        padding: 8px 12px;
         background: rgba(36, 217, 112, 0.1);
-        border-radius: 12px;
-        margin-bottom: 8px;
+        border-radius: 10px;
+        margin-bottom: 6px;
         border: 1px solid rgba(36, 217, 112, 0.2);
       `;
-      tp2Row.innerHTML = `
-        <span style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600;">Take Profit 2 (R:R ${details.riskReward2})</span>
-        <span style="color: #24d970; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;">${details.takeProfit2}</span>
-      `;
+      const tp2Label = document.createElement('span');
+      tp2Label.textContent = `TP2 (R:R ${details.riskReward2})`;
+      tp2Label.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
+      const tp2Value = document.createElement('span');
+      tp2Value.textContent = details.takeProfit2;
+      tp2Value.style.cssText = 'color: #24d970; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
+      const tp2CopyBtn = createCopyButton(details.takeProfit2, 'Take Profit 2');
+      tp2Value.appendChild(tp2CopyBtn);
+      tp2Row.appendChild(tp2Label);
+      tp2Row.appendChild(tp2Value);
 
       const tp3Row = document.createElement('div');
       tp3Row.style.cssText = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
+        padding: 8px 12px;
         background: rgba(36, 217, 112, 0.1);
-        border-radius: 12px;
-        margin-bottom: 20px;
+        border-radius: 10px;
+        margin-bottom: 12px;
         border: 1px solid rgba(36, 217, 112, 0.2);
       `;
-      tp3Row.innerHTML = `
-        <span style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600;">Take Profit 3 (R:R ${details.riskReward3})</span>
-        <span style="color: #24d970; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;">${details.takeProfit3}</span>
-      `;
+      const tp3Label = document.createElement('span');
+      tp3Label.textContent = `TP3 (R:R ${details.riskReward3})`;
+      tp3Label.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
+      const tp3Value = document.createElement('span');
+      tp3Value.textContent = details.takeProfit3;
+      tp3Value.style.cssText = 'color: #24d970; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
+      const tp3CopyBtn = createCopyButton(details.takeProfit3, 'Take Profit 3');
+      tp3Value.appendChild(tp3CopyBtn);
+      tp3Row.appendChild(tp3Label);
+      tp3Row.appendChild(tp3Value);
 
       const closeBtn = document.createElement('button');
       closeBtn.textContent = 'Got It';
       closeBtn.style.cssText = `
         width: 100%;
-        padding: 14px 24px;
-        border-radius: 12px;
+        padding: 10px 20px;
+        border-radius: 10px;
         border: 2px solid ${directionColor};
         background: ${directionColor}25;
         color: ${directionColor};
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
