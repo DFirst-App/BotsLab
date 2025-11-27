@@ -2517,6 +2517,12 @@
         // Hide action buttons
         document.getElementById('actionButtonsContainer').classList.remove('visible');
         
+        // Hide social buttons when disconnected
+        const socialButtons = document.querySelector('.social-buttons');
+        if (socialButtons) {
+          socialButtons.style.display = 'none';
+        }
+        
         // Reset account display
         document.getElementById('fullName').textContent = '-';
         document.getElementById('accountId').textContent = '-';
