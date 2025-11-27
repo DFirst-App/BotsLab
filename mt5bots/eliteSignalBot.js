@@ -30,6 +30,8 @@
       this.isReconnecting = false;
       this.storedToken = null;
       this.analysisInterval = null;
+      this.patienceMessageInterval = null;
+      this.patienceMessageInterval = null;
       
       // Symbols to analyze (priority markets)
       this.analysisSymbols = [
@@ -58,7 +60,7 @@
       this.ui.resetHistory();
       this.ui.updateStats(this.getStatsSnapshot());
       this.ui.setRunningState(true);
-      this.ui.showStatus('Initializing signal analysis...', 'info');
+      this.ui.showStatus('⏳ Patience is key in trading. Real profits come from disciplined analysis, not rushed decisions. Analyzing markets...', 'info');
 
       this.isRunning = true;
       this.stopRequested = false;
@@ -70,6 +72,26 @@
     }
 
     startMarketAnalysis() {
+      // Patience messages to rotate during analysis
+      const patienceMessages = [
+        '⏳ Patience is key in trading. Real profits come from disciplined analysis, not rushed decisions.',
+        '📊 Quality signals take time. We analyze multiple indicators to ensure accuracy.',
+        '💎 Remember: Successful traders wait for the right opportunity, not every opportunity.',
+        '🎯 Trading requires patience. We\'re analyzing markets thoroughly to find high-confidence signals.',
+        '⚡ Good things come to those who wait. We\'re scanning markets for the best entry points.'
+      ];
+      let messageIndex = 0;
+
+      // Show rotating patience messages
+      this.patienceMessageInterval = setInterval(() => {
+        if (!this.isRunning || this.stopRequested) {
+          clearInterval(this.patienceMessageInterval);
+          return;
+        }
+        this.ui.showStatus(patienceMessages[messageIndex], 'info');
+        messageIndex = (messageIndex + 1) % patienceMessages.length;
+      }, 8000); // Change message every 8 seconds
+
       // Analyze markets every 2 seconds
       this.analysisInterval = setInterval(() => {
         if (!this.isRunning || this.stopRequested) {

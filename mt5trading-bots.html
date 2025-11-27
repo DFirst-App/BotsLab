@@ -460,6 +460,40 @@
         font-size: 9px;
         padding: 5px 10px;
       }
+
+      .bot-card {
+        padding: 20px;
+      }
+
+      .bot-card h3 {
+        font-size: 18px;
+      }
+
+      .bot-card p {
+        font-size: 13px;
+      }
+
+      .bot-meta {
+        gap: 8px;
+      }
+
+      .bot-meta li {
+        font-size: 11px;
+        padding: 5px 10px;
+      }
+
+      .open-bot-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+
+      .signal-bot-status {
+        gap: 4px;
+      }
+
+      .status-text {
+        font-size: 12px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -475,85 +509,321 @@
       .mt5-account-row {
         gap: 6px;
       }
+
+      .bot-card {
+        padding: 16px;
+      }
+
+      .bot-card h3 {
+        font-size: 16px;
+      }
+
+      .bot-card p {
+        font-size: 12px;
+      }
+
+      .bot-chip,
+      .win-rate-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+      }
+
+      .bot-meta {
+        gap: 6px;
+      }
+
+      .bot-meta li {
+        font-size: 10px;
+        padding: 4px 8px;
+      }
+
+      .open-bot-btn {
+        padding: 10px 14px;
+        font-size: 12px;
+      }
+
+      .status-badge {
+        font-size: 11px;
+        padding: 5px 12px;
+      }
+
+      .status-text {
+        font-size: 11px;
+      }
+
+      .bots-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .coming-soon-message {
+        padding: 12px;
+      }
+
+      .coming-soon-text {
+        font-size: 13px;
+      }
+
+      .coming-soon-details {
+        font-size: 11px;
+      }
+
+      .waitlist-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
+
+    /* Bot Card Styles (for signal bot) */
+    .bot-card {
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bot-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid transparent;
+      background: linear-gradient(120deg, rgba(0, 210, 255, 0.35), rgba(255, 122, 24, 0.2));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
+    }
+
+    .bot-card:hover::after {
+      opacity: 1;
+    }
+
+    .bot-card-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .bot-chip {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      color: #00d2ff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .bot-card h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .bot-card p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .bot-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bot-meta li {
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .open-bot-btn {
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .open-bot-btn:hover:not(:disabled) {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: rgba(0, 210, 255, 0.4);
+    }
+
+    .open-bot-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     /* Signal Bot Styles */
     .signal-bot-section {
-      margin-top: 32px;
+      margin-top: 24px;
     }
 
-    .signal-bot-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 8px 24px rgba(4, 6, 12, 0.4);
-      transition: all 0.3s ease;
-    }
-
-    .signal-bot-card:hover {
-      border-color: rgba(0, 210, 255, 0.3);
-      box-shadow: 0 12px 32px rgba(0, 210, 255, 0.2);
-    }
-
-    .signal-bot-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 16px;
-    }
-
-    .signal-bot-icon {
-      font-size: 64px;
-      margin-bottom: 8px;
-    }
-
-    .signal-bot-card h3 {
-      margin: 0;
-      font-size: 28px;
+    .win-rate-badge {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(36, 217, 112, 0.15), rgba(36, 217, 112, 0.08));
+      border: 1px solid rgba(36, 217, 112, 0.3);
+      color: var(--success);
+      font-size: 12px;
       font-weight: 700;
-      color: var(--text);
-    }
-
-    .signal-bot-card p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.6;
-      max-width: 600px;
-    }
-
-    .signal-bot-btn {
-      padding: 14px 32px;
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(110, 243, 180, 0.15));
-      border: 2px solid rgba(0, 210, 255, 0.4);
-      border-radius: 12px;
-      color: var(--accent-2);
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 8px;
-    }
-
-    .signal-bot-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.3), rgba(110, 243, 180, 0.25));
-      border-color: rgba(0, 210, 255, 0.6);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3);
-    }
-
-    .signal-bot-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      letter-spacing: 0.05em;
     }
 
     .signal-bot-status {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      gap: 6px;
       margin-top: 8px;
+    }
+
+    /* Coming Soon Bots Styles */
+    .coming-soon-bots-section {
+      margin-top: 32px;
+    }
+
+    .bots-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .coming-soon-card {
+      opacity: 0.95;
+      position: relative;
+    }
+
+    .coming-soon-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 122, 24, 0.1), rgba(0, 210, 255, 0.1));
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .coming-soon-badge {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255, 122, 24, 0.2), rgba(255, 122, 24, 0.1));
+      border: 1px solid rgba(255, 122, 24, 0.4);
+      color: #ff7a18;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(255, 122, 24, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 16px rgba(255, 122, 24, 0.5);
+      }
+    }
+
+    .coming-soon-message {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(255, 122, 24, 0.08);
+      border: 1px solid rgba(255, 122, 24, 0.2);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .coming-soon-text {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .coming-soon-details {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .waitlist-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .waitlist-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid;
+    }
+
+    .whatsapp-btn {
+      background: rgba(37, 211, 102, 0.1);
+      border-color: rgba(37, 211, 102, 0.3);
+      color: #25d366;
+    }
+
+    .whatsapp-btn:hover {
+      background: rgba(37, 211, 102, 0.2);
+      border-color: rgba(37, 211, 102, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .telegram-btn {
+      background: rgba(0, 136, 204, 0.1);
+      border-color: rgba(0, 136, 204, 0.3);
+      color: #0088cc;
+    }
+
+    .telegram-btn:hover {
+      background: rgba(0, 136, 204, 0.2);
+      border-color: rgba(0, 136, 204, 0.5);
+      transform: translateY(-2px);
     }
 
     .status-badge {
@@ -728,14 +998,21 @@
 
       <!-- Signal Bot Section -->
       <div class="signal-bot-section">
-        <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 700; color: var(--text);">Elite Signal Bot</h2>
-        <div class="signal-bot-card" id="eliteSignalBotCard">
-          <div class="signal-bot-content">
-            <div class="signal-bot-icon">🎯</div>
+        <div class="bot-card" id="eliteSignalBotCard">
+          <div class="bot-card-content">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span class="bot-chip">Signal Analysis</span>
+              <span class="win-rate-badge">60% Win Rate</span>
+            </div>
             <h3>Elite Signal Bot</h3>
             <p>Advanced multi-market analysis with RSI, MACD, Moving Averages, and Bollinger Bands. Generates high-confidence trading signals with stop loss and three take profit levels.</p>
-            <button class="signal-bot-btn" id="startEliteSignalBot">Start Signal Analysis</button>
-            <div class="signal-bot-status" id="signalBotStatus">
+            <ul class="bot-meta">
+              <li>Multi-Indicator Analysis</li>
+              <li>3 Take Profit Levels</li>
+              <li>Real-time Signals</li>
+            </ul>
+            <button class="open-bot-btn" id="startEliteSignalBot">Start Signal Analysis</button>
+            <div class="signal-bot-status" id="signalBotStatus" style="margin-top: 8px;">
               <span class="status-badge" id="signalStatusBadge" data-state="idle">Idle</span>
               <span class="status-text" id="signalStatusText">Ready to analyze markets</span>
             </div>
@@ -747,6 +1024,69 @@
           <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600;">Signal History</h3>
           <div class="signal-history-list" id="signalHistoryList">
             <!-- Signals will appear here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Coming Soon Bots Section -->
+      <div class="coming-soon-bots-section">
+        <div class="bots-grid">
+          <div class="bot-card coming-soon-card" id="smartMoneyBotCard">
+            <div class="bot-card-content">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="bot-chip">Smart Money</span>
+                <span class="win-rate-badge">92% Win Rate</span>
+                <span class="coming-soon-badge">Coming Soon</span>
+              </div>
+              <h3>Smart Money Bot</h3>
+              <p>Advanced institutional trading strategies that follow smart money movements. Analyzes order blocks, liquidity zones, and market structure to identify high-probability setups with institutional-grade precision.</p>
+              <ul class="bot-meta">
+                <li>Order Block Analysis</li>
+                <li>Liquidity Zones</li>
+                <li>Market Structure</li>
+              </ul>
+              <div class="coming-soon-message">
+                <p class="coming-soon-text">🚀 <strong>Fully Automated Bot Coming Soon!</strong></p>
+                <p class="coming-soon-details">This bot is currently undergoing final testing and optimization. Join our waitlist to be notified when it's available for use. You'll receive early access and priority notifications via WhatsApp and Telegram.</p>
+                <div class="waitlist-buttons">
+                  <a href="https://wa.me/yourwhatsapp" target="_blank" rel="noopener" class="waitlist-btn whatsapp-btn">
+                    📱 Join WhatsApp Waitlist
+                  </a>
+                  <a href="https://t.me/yourtelegram" target="_blank" rel="noopener" class="waitlist-btn telegram-btn">
+                    ✈️ Join Telegram Waitlist
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bot-card coming-soon-card" id="ictBotCard">
+            <div class="bot-card-content">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="bot-chip">ICT Strategy</span>
+                <span class="win-rate-badge">84% Win Rate</span>
+                <span class="coming-soon-badge">Coming Soon</span>
+              </div>
+              <h3>ICT Bot</h3>
+              <p>Powered by Inner Circle Trader (ICT) methodology. Identifies premium and discount zones, fair value gaps, and optimal trade entries using institutional candle patterns and market maker strategies.</p>
+              <ul class="bot-meta">
+                <li>Premium/Discount Zones</li>
+                <li>Fair Value Gaps</li>
+                <li>ICT Concepts</li>
+              </ul>
+              <div class="coming-soon-message">
+                <p class="coming-soon-text">🚀 <strong>Fully Automated Bot Coming Soon!</strong></p>
+                <p class="coming-soon-details">This bot is currently undergoing final testing and optimization. Join our waitlist to be notified when it's available for use. You'll receive early access and priority notifications via WhatsApp and Telegram.</p>
+                <div class="waitlist-buttons">
+                  <a href="https://wa.me/yourwhatsapp" target="_blank" rel="noopener" class="waitlist-btn whatsapp-btn">
+                    📱 Join WhatsApp Waitlist
+                  </a>
+                  <a href="https://t.me/yourtelegram" target="_blank" rel="noopener" class="waitlist-btn telegram-btn">
+                    ✈️ Join Telegram Waitlist
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
