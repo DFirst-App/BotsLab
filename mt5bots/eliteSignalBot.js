@@ -142,8 +142,8 @@
         timestamp: Date.now()
       });
 
-      // Keep last 200 prices for analysis
-      if (history.length > 200) {
+      // Keep last 100 prices for analysis (reduced for faster signal generation)
+      if (history.length > 100) {
         history.shift();
       }
     }
@@ -302,11 +302,11 @@
       let buyScore = 0;
       let sellScore = 0;
 
-      // RSI Analysis
-      if (rsi < 30) buyScore += 25;
-      else if (rsi < 40) buyScore += 15;
-      else if (rsi > 70) sellScore += 25;
-      else if (rsi > 60) sellScore += 15;
+      // RSI Analysis (more lenient scoring)
+      if (rsi < 35) buyScore += 25;
+      else if (rsi < 45) buyScore += 15;
+      else if (rsi > 65) sellScore += 25;
+      else if (rsi > 55) sellScore += 15;
 
       // MACD Analysis
       if (macd.histogram > 0 && macd.macd > macd.signal) buyScore += 20;
