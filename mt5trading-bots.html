@@ -492,14 +492,6 @@
         font-size: 13px;
       }
 
-      .signal-bot-status {
-        gap: 4px;
-      }
-
-      .status-text {
-        font-size: 12px;
-      }
-
       .mt5-bot-file-card {
         padding: 8px 10px;
       }
@@ -514,13 +506,21 @@
         font-size: 11px;
       }
 
-      .mt5-bot-file-size {
+      .mt5-bot-file-type {
         font-size: 9px;
       }
 
       .mt5-download-btn {
         padding: 5px 10px;
         font-size: 10px;
+      }
+
+      .signal-bot-status {
+        gap: 4px;
+      }
+
+      .status-text {
+        font-size: 12px;
       }
     }
 
@@ -782,7 +782,7 @@
       font-size: 11px;
       color: var(--muted);
       line-height: 1.5;
-      margin: 0 0 16px;
+      margin: 0;
       flex: 1;
     }
 
@@ -794,7 +794,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     .mt5-bot-file-card {
@@ -818,6 +818,7 @@
       align-items: center;
       gap: 10px;
       flex: 1;
+      min-width: 0;
     }
 
     .mt5-bot-file-icon {
@@ -833,17 +834,28 @@
       flex-shrink: 0;
     }
 
+    .mt5-bot-file-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
     .mt5-bot-file-name {
       font-size: 12px;
       font-weight: 600;
       color: var(--text);
       line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .mt5-bot-file-size {
+    .mt5-bot-file-type {
       font-size: 10px;
       color: var(--muted);
-      margin-top: 2px;
+      font-family: 'Courier New', monospace;
     }
 
     .mt5-download-btn {
@@ -861,6 +873,7 @@
       align-items: center;
       gap: 6px;
       white-space: nowrap;
+      font-family: inherit;
     }
 
     .mt5-download-btn:hover {
@@ -1206,7 +1219,7 @@
         <div class="bot-card download-card" id="downloadMT5BotsCard">
           <div class="bot-card-content">
             <h3 style="font-size: 16px; margin-bottom: 8px;">Download MT5 Fully Automated Trading AI Bots</h3>
-            <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0 0 16px;">
+            <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0 0 12px;">
               Expert Advisors (EAs) for MetaTrader 5 platform. Fully automated trading bots ready for direct use in MT5.
             </p>
             <div class="mt5-bot-files" id="mt5BotFiles">
@@ -1619,9 +1632,6 @@
 
     // Restore cached accounts immediately
     restoreCachedAccounts();
-
-    // Initialize MT5 bot files
-    initializeMT5BotFiles();
 
     // Initialize immediately on page load (don't wait for DOMContentLoaded)
     if (document.readyState === 'loading') {

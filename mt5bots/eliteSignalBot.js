@@ -1,70 +1,99 @@
 (() => {
   'use strict';
 
-  // Signal Popup Queue Manager
-  const SignalPopupQueue = {
-    queue: [],
-    isShowing: false,
-    currentPopup: null,
-    pauseBetweenPopups: 3000, // 3 seconds pause between popups
+  // Global Signal Popup Queue Manager
+  if (!window.SignalPopupQueue) {
+    window.SignalPopupQueue = {
+      queue: [],
+      isShowing: false,
+      currentPopup: null,
+      popupCount: 0,
+      pauseAfterCount: 5,
+      pauseDuration: 10000, // 10 seconds pause after 5 popups
+      pauseTimeout: null,
+      isPaused: false,
 
-    add(signalData) {
-      this.queue.push(signalData);
-      this.processQueue();
-    },
-
-    processQueue() {
-      if (this.isShowing || this.queue.length === 0) return;
-
-      this.isShowing = true;
-      const signalData = this.queue.shift();
-      this.showPopup(signalData);
-    },
-
-    showPopup({ signal, details, directionColor, directionIcon, createPopupFn }) {
-      const popup = createPopupFn(signal, details, directionColor, directionIcon);
-      this.currentPopup = popup;
-
-      // Auto-close after 8 seconds
-      const autoCloseTimeout = setTimeout(() => {
-        this.closeCurrent();
-      }, 8000);
-
-      // Override close button to process next in queue
-      const closeBtn = popup.querySelector('button');
-      if (closeBtn) {
-        const originalOnClick = closeBtn.onclick;
-        closeBtn.onclick = () => {
-          clearTimeout(autoCloseTimeout);
-          this.closeCurrent();
-        };
-      }
-    },
-
-    closeCurrent() {
-      if (!this.currentPopup) {
-        this.isShowing = false;
+      add(signalData) {
+        this.queue.push(signalData);
         this.processQueue();
-        return;
-      }
+      },
 
-      const popup = this.currentPopup;
-      popup.style.animation = 'signalPopupSlideOut 0.3s ease forwards';
-      
-      setTimeout(() => {
-        if (popup.parentNode) {
-          popup.parentNode.removeChild(popup);
+      processQueue() {
+        if (this.isPaused) {
+          return;
         }
-        this.currentPopup = null;
-        this.isShowing = false;
+
+        if (this.isShowing || this.queue.length === 0) return;
+
+        this.isShowing = true;
+        const signalData = this.queue.shift();
+        this.showPopup(signalData);
+      },
+
+      showPopup({ signal, details, directionColor, directionIcon, createPopupFn }) {
+        const popup = createPopupFn(signal, details, directionColor, directionIcon);
+        this.currentPopup = popup;
+        this.popupCount++;
+
+        // Auto-close after 8 seconds
+        const autoCloseTimeout = setTimeout(() => {
+          this.closeCurrent();
+        }, 8000);
+
+        // Override close button to process next in queue
+        const closeBtn = popup.querySelector('button');
+        if (closeBtn) {
+          closeBtn.onclick = () => {
+            clearTimeout(autoCloseTimeout);
+            this.closeCurrent();
+          };
+        }
+
+        // Check if we need to pause after 5 popups
+        if (this.popupCount >= this.pauseAfterCount) {
+          this.pause();
+        }
+      },
+
+      pause() {
+        this.isPaused = true;
+        this.popupCount = 0; // Reset counter
         
-        // Wait before showing next popup
-        setTimeout(() => {
+        if (this.pauseTimeout) {
+          clearTimeout(this.pauseTimeout);
+        }
+        
+        this.pauseTimeout = setTimeout(() => {
+          this.isPaused = false;
           this.processQueue();
-        }, this.pauseBetweenPopups);
-      }, 300);
-    }
-  };
+        }, this.pauseDuration);
+      },
+
+      closeCurrent() {
+        if (!this.currentPopup) {
+          this.isShowing = false;
+          this.processQueue();
+          return;
+        }
+
+        const popup = this.currentPopup;
+        popup.style.animation = 'signalPopupSlideOut 0.3s ease forwards';
+        
+        setTimeout(() => {
+          if (popup.parentNode) {
+            popup.parentNode.removeChild(popup);
+          }
+          this.currentPopup = null;
+          this.isShowing = false;
+          
+          // Wait 1 second before showing next popup
+          setTimeout(() => {
+            this.processQueue();
+          }, 1000);
+        }, 300);
+      }
+    };
+  }
 
   class EliteSignalBot {
     constructor(ui, options) {
@@ -344,8 +373,7 @@
       
       if (signal) {
         this.lastSignalTime.set(symbol, Date.now());
-        // Add to queue instead of showing immediately
-        this.queueSignalPopup(signal);
+        this.showSignalPopup(signal);
         this.ui.addHistoryEntry({
           symbol: signal.displayName || symbol,
           direction: signal.direction,
@@ -499,7 +527,7 @@
       return symbolMap[symbol] || symbol.replace(/^frx/, '');
     }
 
-    queueSignalPopup(signal) {
+    showSignalPopup(signal) {
       if (typeof window.PopupNotifications === 'undefined') {
         console.warn('PopupNotifications not available');
         return;
@@ -533,7 +561,7 @@
       };
 
       // Add to queue instead of showing immediately
-      SignalPopupQueue.add({
+      window.SignalPopupQueue.add({
         signal,
         details,
         directionColor,
@@ -561,7 +589,27 @@
           justify-content: center;
           padding: 20px;
           box-sizing: border-box;
+          overflow: hidden;
         `;
+        
+        // Add responsive container styles
+        if (!document.getElementById('signalPopupContainerStyles')) {
+          const containerStyle = document.createElement('style');
+          containerStyle.id = 'signalPopupContainerStyles';
+          containerStyle.textContent = `
+            @media (max-width: 768px) {
+              #popupNotificationsContainer {
+                padding: 16px !important;
+              }
+            }
+            @media (max-width: 480px) {
+              #popupNotificationsContainer {
+                padding: 12px !important;
+              }
+            }
+          `;
+          document.head.appendChild(containerStyle);
+        }
         document.body.appendChild(container);
       }
 
@@ -574,6 +622,7 @@
         padding: 32px;
         max-width: 520px;
         width: calc(100% - 40px);
+        max-width: min(520px, calc(100vw - 40px));
         max-height: calc(100vh - 40px);
         overflow-y: auto;
         box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -603,8 +652,45 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
           }
+          @keyframes signalPopupSlideOut {
+            to {
+              opacity: 0;
+              transform: scale(0.9) translateY(-20px);
+            }
+          }
           .signal-icon {
             animation: signalPulse 2s ease-in-out infinite;
+          }
+          @media (max-width: 768px) {
+            .signal-popup {
+              padding: 24px !important;
+              max-width: calc(100% - 32px) !important;
+              max-height: calc(100vh - 32px) !important;
+            }
+            .signal-popup h3 {
+              font-size: 22px !important;
+            }
+            .signal-popup > div:first-child {
+              width: 64px !important;
+              height: 64px !important;
+              font-size: 32px !important;
+            }
+          }
+          @media (max-width: 480px) {
+            .signal-popup {
+              padding: 20px !important;
+              max-width: calc(100% - 24px) !important;
+              max-height: calc(100vh - 24px) !important;
+            }
+            .signal-popup h3 {
+              font-size: 20px !important;
+            }
+            .signal-popup > div:first-child {
+              width: 56px !important;
+              height: 56px !important;
+              font-size: 28px !important;
+              margin-bottom: 16px !important;
+            }
           }
         `;
         document.head.appendChild(style);
@@ -772,21 +858,6 @@
       };
       // Close handler will be set by queue manager
       closeBtn.dataset.signalPopup = 'true';
-
-      // Add slide out animation
-      if (!document.getElementById('signalPopupSlideOut')) {
-        const style = document.createElement('style');
-        style.id = 'signalPopupSlideOut';
-        style.textContent = `
-          @keyframes signalPopupSlideOut {
-            to {
-              opacity: 0;
-              transform: scale(0.9) translateY(-20px);
-            }
-          }
-        `;
-        document.head.appendChild(style);
-      }
 
       popup.appendChild(iconCircle);
       popup.appendChild(title);
