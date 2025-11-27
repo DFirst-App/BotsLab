@@ -75,109 +75,14 @@
       box-shadow: 0 6px 20px rgba(0, 210, 255, 0.25);
     }
 
-    .announcement-card {
-      width: 100%;
-      padding: 36px 32px;
-      border-radius: 28px;
-      background: linear-gradient(135deg, rgba(110, 243, 180, 0.12), rgba(0, 210, 255, 0.18)), var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 35px 60px rgba(0, 0, 0, 0.45);
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .announcement-card h1 {
-      margin: 0;
-      font-size: 32px;
-      letter-spacing: -0.02em;
-    }
-
-    .announcement-card p {
-      margin: 0;
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.78);
-      line-height: 1.5;
-    }
-
-    .pill {
-      align-self: center;
-      padding: 6px 16px;
-      border-radius: 999px;
-      background: rgba(0, 210, 255, 0.15);
-      border: 1px solid rgba(0, 210, 255, 0.3);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-
-    .feature-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      color: rgba(255, 255, 255, 0.8);
-      text-align: left;
-    }
-
-    .feature-list li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-    }
-
-    .feature-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent-2);
-      box-shadow: 0 0 12px rgba(0, 210, 255, 0.6);
-    }
-
-    footer {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    @media (max-width: 600px) {
-      .announcement-card {
-        padding: 28px 22px;
-      }
-
-      .announcement-card h1 {
-        font-size: 26px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="grid-bg"></div>
   <main class="page">
-    <a href="trading-bots.html" class="back-link">← Back to Web Bots</a>
-    <div class="announcement-card">
-      <span class="pill">Download Coming Soon</span>
-      <h1>MT5 Bots Launching Shortly</h1>
-      <p>
-        We’re packaging our MT5-native strategies so you can download, install, and run them directly inside MetaTrader.
-        Each bot includes premium risk controls, curated symbol presets, and seamless Deriv connectivity.
-      </p>
-      <ul class="feature-list">
-        <li><span class="feature-dot"></span> One-click installers designed for MT5 Standard, Financial, Swap-Free, Zero Spread, and MT5 Gold accounts</li>
-        <li><span class="feature-dot"></span> Native Deriv integrations so accounts connect instantly and stay in sync</li>
-        <li><span class="feature-dot"></span> Ready-to-import presets with smart risk defaults, global TP/SL, and multi-market rotation</li>
-      </ul>
-    </div>
-    <footer>© <span id="year"></span> DFirst Automation Lab — Powered by Deriv</footer>
+    <!-- MT5 Trading Bots will be implemented here -->
   </main>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
 </body>
 </html>
 
