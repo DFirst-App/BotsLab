@@ -431,6 +431,11 @@
       .see-market-data-btn {
         display: block;
       }
+
+      .signal-bot-section {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
     }
 
     @media (max-width: 768px) {
@@ -558,6 +563,11 @@
 
       .signal-bot-section {
         grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .signal-bot-section .bot-card {
+        height: auto;
       }
 
       .coming-soon-message {
@@ -693,7 +703,25 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 24px;
-      align-items: start;
+      align-items: stretch;
+    }
+
+    .signal-bot-section .bot-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .signal-bot-section .bot-card-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100%;
+    }
+
+    .signal-bot-section .bot-card .open-bot-btn,
+    .signal-bot-section .bot-card .signal-bot-status {
+      margin-top: auto;
     }
 
     .win-rate-badge {
@@ -724,12 +752,19 @@
       font-weight: 600;
       color: var(--text);
       letter-spacing: -0.01em;
+      margin-bottom: 8px;
     }
 
     .download-card p {
       font-size: 11px;
       color: var(--muted);
       line-height: 1.5;
+      margin: 0;
+      flex: 1;
+    }
+
+    .download-card .bot-card-content {
+      justify-content: flex-start;
     }
 
     /* Coming Soon Bots Styles */
@@ -1037,7 +1072,7 @@
               <li>3 Take Profit Levels</li>
               <li>Real-time Signals</li>
             </ul>
-            <button class="open-bot-btn" id="startEliteSignalBot">Start Signal Analysis</button>
+            <button class="open-bot-btn" id="startEliteSignalBot" style="margin-top: auto;">Start Signal Analysis</button>
             <div class="signal-bot-status" id="signalBotStatus" style="margin-top: 8px;">
               <span class="status-badge" id="signalStatusBadge" data-state="idle">Idle</span>
               <span class="status-text" id="signalStatusText">Ready to analyze markets</span>
@@ -1059,7 +1094,7 @@
               <li>Boom/Crash Focus</li>
               <li>Fast Signals</li>
             </ul>
-            <div class="signal-bot-status" id="boomCrashBotStatus" style="margin-top: 8px;">
+            <div class="signal-bot-status" id="boomCrashBotStatus" style="margin-top: auto; padding-top: 8px;">
               <span class="status-badge" id="boomCrashStatusBadge" data-state="idle">Analyzing...</span>
               <span class="status-text" id="boomCrashStatusText">Auto-analyzing Boom & Crash markets</span>
             </div>
@@ -1070,7 +1105,7 @@
         <div class="bot-card download-card" id="downloadMT5BotsCard">
           <div class="bot-card-content">
             <h3 style="font-size: 16px; margin-bottom: 8px;">Download MT5 Fully Automated Trading AI Bots</h3>
-            <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0;">
+            <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0; flex: 1;">
               Expert Advisors (EAs) for MetaTrader 5 platform. Fully automated trading bots ready for direct use in MT5.
             </p>
           </div>

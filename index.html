@@ -670,11 +670,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
+      padding: 12px 14px;
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.06), rgba(255, 122, 24, 0.04));
       border: 1px solid rgba(0, 210, 255, 0.12);
       border-radius: 8px;
       font-size: 12px;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .mt5-account-item:hover {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(255, 122, 24, 0.06));
+      border-color: rgba(0, 210, 255, 0.2);
+    }
+
+    .mt5-account-item:last-child {
+      margin-bottom: 0;
     }
 
     .mt5-account-name {
@@ -1144,12 +1155,15 @@
         font-size: 15px;
       }
 
-      .mt5-accounts-list .mt5-account-item:not(:first-child) {
-        display: none !important;
-      }
-
-      .mt5-accounts-list .mt5-account-item:first-child {
+      /* Show all MT5 accounts on mobile, but use dropdown for easier navigation if many accounts */
+      .mt5-accounts-list .mt5-account-item {
         display: flex !important;
+      }
+      
+      /* If more than 3 accounts, show dropdown hint */
+      .mt5-accounts-list:has(.mt5-account-item:nth-child(4)) {
+        max-height: 200px;
+        overflow-y: auto;
       }
 
       .mt5-dropdown-container {
@@ -1319,6 +1333,15 @@
 
     html[data-has-connection="true"] #disclaimerSection {
       display: none;
+    }
+
+    /* Hide social buttons when not connected */
+    html:not([data-has-connection="true"]) .social-buttons {
+      display: none;
+    }
+
+    html[data-has-connection="true"] .social-buttons {
+      display: flex;
     }
 
     /* Disclaimer Section */
@@ -2252,6 +2275,13 @@
       
       // Show action buttons
       document.getElementById('actionButtonsContainer').classList.add('visible');
+      
+      // Show social buttons when connected
+      const socialButtons = document.querySelector('.social-buttons');
+      if (socialButtons) {
+        socialButtons.style.display = 'flex';
+      }
+      
       accountConnected = true;
       updateTradingTipsState();
       updateAccountMetaDetails(account);
@@ -2285,23 +2315,10 @@
       const mt5AccountsList = document.getElementById('mt5AccountsList');
       if (!mt5AccountsList) return;
 
-      // Define all available MT5 account types
-      const allMT5Types = [
-        { id: 'standard', name: 'MT5 Standard', server: 'standard' },
-        { id: 'gold', name: 'MT5 Gold', server: 'gold' },
-        { id: 'financial', name: 'MT5 Financial', server: 'financial' },
-        { id: 'swapfree', name: 'MT5 Swap-Free', server: 'swap' },
-        { id: 'zerospread', name: 'MT5 Zero Spread', server: 'zero' }
-      ];
-
-      // Create a map of existing accounts by type
-      const existingAccounts = new Map();
-      if (mt5Accounts && Array.isArray(mt5Accounts)) {
-        mt5Accounts.forEach(account => {
-          const typeName = getMT5AccountTypeName(account.server, account.account_type || account.server_info);
-          existingAccounts.set(typeName, account);
-        });
-      }
+      // Filter for real (non-demo) MT5 accounts
+      const realAccounts = (mt5Accounts || []).filter(acc => {
+        return acc && !acc.is_virtual && acc.account_type !== 'demo';
+      });
 
       // Clear existing content
       mt5AccountsList.innerHTML = '';
@@ -2312,56 +2329,57 @@
         dropdown.innerHTML = '<option value="">Select MT5 Account...</option>';
       }
 
-      // Render all MT5 account types
-      allMT5Types.forEach((type, index) => {
+      if (realAccounts.length === 0) {
+        // Show message if no accounts
+        const noAccountsMsg = document.createElement('div');
+        noAccountsMsg.className = 'mt5-account-item';
+        noAccountsMsg.style.justifyContent = 'center';
+        noAccountsMsg.style.padding = '16px';
+        noAccountsMsg.innerHTML = `
+          <span style="color: var(--muted); font-size: 13px;">No MT5 accounts found. <a href="${CREATE_MT5_URL}" target="_blank" rel="noopener" style="color: #00d2ff; text-decoration: none;">Create one</a></span>
+        `;
+        mt5AccountsList.appendChild(noAccountsMsg);
+        return;
+      }
+
+      // Display all real MT5 accounts with details
+      realAccounts.forEach((account, index) => {
+        const accountType = getMT5AccountTypeName(account.server, account.account_type || account.server_info);
+        const accountNumber = account.login || account.account_id || '-';
+        const balance = Number(account.balance) || 0;
+        const currency = account.currency || 'USD';
+
         const accountItem = document.createElement('div');
         accountItem.className = 'mt5-account-item';
-        accountItem.dataset.accountType = type.id;
+        accountItem.dataset.accountIndex = index;
         
-        const accountName = document.createElement('span');
-        accountName.className = 'mt5-account-name';
-        accountName.textContent = type.name;
+        accountItem.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="mt5-account-name">${accountType}</span>
+              <span class="mt5-account-status created">Created</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: rgba(152, 162, 189, 0.8);">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Account #:</span>
+                <span style="color: var(--text); font-weight: 600;">${accountNumber}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Balance:</span>
+                <span style="color: var(--success); font-weight: 600;">${balance.toFixed(2)} ${currency}</span>
+              </div>
+            </div>
+          </div>
+        `;
 
-        const accountInfo = document.createElement('div');
-        accountInfo.style.display = 'flex';
-        accountInfo.style.alignItems = 'center';
-        accountInfo.style.gap = '8px';
-
-        const existingAccount = existingAccounts.get(type.name);
-        
-        if (existingAccount) {
-          const status = document.createElement('span');
-          status.className = 'mt5-account-status created';
-          status.textContent = 'Created';
-          accountInfo.appendChild(status);
-        } else {
-          const status = document.createElement('span');
-          status.className = 'mt5-account-status not-created';
-          status.textContent = 'Not Created';
-          accountInfo.appendChild(status);
-
-          const createBtn = document.createElement('a');
-          createBtn.className = 'mt5-create-btn';
-          createBtn.href = CREATE_MT5_URL;
-          createBtn.target = '_blank';
-          createBtn.rel = 'noopener';
-          createBtn.textContent = 'Create';
-          createBtn.style.display = 'inline-flex';
-          createBtn.style.alignItems = 'center';
-          accountInfo.appendChild(createBtn);
-        }
-
-        accountItem.appendChild(accountName);
-        accountItem.appendChild(accountInfo);
         mt5AccountsList.appendChild(accountItem);
 
         // Add to dropdown (skip first item for small screens)
         if (dropdown && index > 0) {
           const option = document.createElement('option');
-          option.value = type.id;
-          option.textContent = type.name + (existingAccount ? ' (Created)' : ' (Not Created)');
-          option.dataset.accountType = type.id;
-          option.dataset.hasCreateBtn = !existingAccount ? 'true' : 'false';
+          option.value = index;
+          option.textContent = `${accountType} - ${accountNumber}`;
+          option.dataset.accountIndex = index;
           dropdown.appendChild(option);
         }
       });
@@ -2371,7 +2389,7 @@
         dropdown.setAttribute('data-listener-attached', 'true');
         
         dropdown.addEventListener('change', function() {
-          const selectedType = this.value;
+          const selectedIndex = this.value;
           const allItems = mt5AccountsList.querySelectorAll('.mt5-account-item');
           
           // Hide all items
@@ -2379,7 +2397,7 @@
             item.style.display = 'none';
           });
 
-          if (!selectedType) {
+          if (!selectedIndex) {
             // Reset to first account
             if (allItems[0]) {
               allItems[0].style.display = 'flex';
@@ -2388,15 +2406,9 @@
           }
 
           // Show the selected account
-          const selectedItem = mt5AccountsList.querySelector(`[data-account-type="${selectedType}"]`);
+          const selectedItem = mt5AccountsList.querySelector(`[data-account-index="${selectedIndex}"]`);
           if (selectedItem) {
             selectedItem.style.display = 'flex';
-            
-            // If it has a create button, ensure it's visible
-            const createBtn = selectedItem.querySelector('.mt5-create-btn');
-            if (createBtn) {
-              createBtn.href = CREATE_MT5_URL;
-            }
           }
         });
       }
@@ -2611,6 +2623,11 @@
       // If no connection succeeded, remove the data attribute to show connect card
       if (!connectionSucceeded) {
         document.documentElement.removeAttribute('data-has-connection');
+        // Hide social buttons when not connected
+        const socialButtons = document.querySelector('.social-buttons');
+        if (socialButtons) {
+          socialButtons.style.display = 'none';
+        }
       }
     }
 
