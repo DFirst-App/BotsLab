@@ -432,15 +432,24 @@
         display: block;
       }
 
-      /* Stack cards vertically on tablets and below */
+      /* Force single column on all screens below 1025px */
       .signal-bot-section {
         grid-template-columns: 1fr !important;
         gap: 20px;
+        width: 100%;
       }
 
       .bots-grid {
         grid-template-columns: 1fr !important;
         gap: 20px;
+        width: 100%;
+      }
+
+      .signal-bot-section .bot-card,
+      .bots-grid .bot-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
       }
     }
 
