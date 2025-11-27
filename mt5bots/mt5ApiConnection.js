@@ -142,12 +142,8 @@
 
       // Get MT5 accounts first
       this.getMT5Accounts().then(() => {
-        // Then get active symbols
-        this.getActiveSymbols().then(symbols => {
-          if (symbols && symbols.length > 0) {
-            this.handleActiveSymbols(symbols);
-          }
-        });
+        // Subscribe to common MT5 symbols directly
+        this.subscribeToCommonSymbols();
       });
     }
 
@@ -231,79 +227,33 @@
       return 'MT5 Standard';
     }
 
-    async getActiveSymbols() {
-      return new Promise((resolve) => {
-        const reqId = Date.now();
-        let resolved = false;
-        
-        const resolver = (data) => {
-          if (resolved) return;
-          resolved = true;
-          if (data.active_symbols) {
-            resolve(data.active_symbols);
-          } else {
-            resolve([]);
-          }
-        };
-        
-        this.pendingRequests.set(reqId, resolver);
-
-        // Try without landing_company first (gets all symbols)
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({
-            active_symbols: 1,
-            req_id: reqId
-          }));
-        }
-
-        // Timeout after 5 seconds
-        setTimeout(() => {
-          if (!resolved) {
-            resolved = true;
-            this.pendingRequests.delete(reqId);
-            resolve([]);
-          }
-        }, 5000);
-      });
-    }
-
-    handleActiveSymbols(symbols) {
-      if (!symbols || !Array.isArray(symbols)) {
-        console.warn('[MT5 API] No active symbols received');
-        return;
-      }
-
-      // Common MT5 symbols to track (forex majors, commodities, indices)
+    subscribeToCommonSymbols() {
+      // Common MT5 symbols available on Deriv
       const commonMT5Symbols = [
+        // Forex Majors
         'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
-        'EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY', 'EURCHF', 'AUDCAD',
+        // Forex Crosses
+        'EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY', 'EURCHF', 'AUDCAD', 'EURAUD',
+        // Commodities
         'XAUUSD', 'XAGUSD', 'XPDUSD', 'XPTUSD',
+        // Indices
         'US_OTC', 'US_500', 'US_100', 'US_30',
-        'UK_100', 'GER_30', 'FRA_40', 'JPN_225',
-        'BTCUSD', 'ETHUSD', 'LTCUSD', 'BCHUSD'
+        'UK_100', 'GER_30', 'FRA_40', 'JPN_225', 'AUS_200',
+        // Cryptocurrencies
+        'BTCUSD', 'ETHUSD', 'LTCUSD', 'BCHUSD',
+        // Synthetic Indices
+        'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
+        '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V'
       ];
 
-      // Filter symbols that are available and match MT5 symbols
-      const availableSymbols = symbols
-        .filter(symbol => {
-          const sym = symbol.symbol || '';
-          // Check if it's in our common list or matches MT5 patterns
-          return commonMT5Symbols.includes(sym) || 
-                 sym.includes('_') || // Synthetic indices
-                 sym.length <= 6; // Forex pairs are typically 6 chars
-        })
-        .map(symbol => symbol.symbol)
-        .filter(symbol => symbol);
-
-      // Remove duplicates
-      const uniqueSymbols = [...new Set(availableSymbols)];
-
-      // Subscribe to ticks for all MT5 symbols
-      uniqueSymbols.forEach(symbol => {
-        this.subscribeToSymbol(symbol);
+      // Subscribe to all symbols with a small delay between each to avoid rate limiting
+      commonMT5Symbols.forEach((symbol, index) => {
+        setTimeout(() => {
+          this.subscribeToSymbol(symbol);
+        }, index * 50); // 50ms delay between each subscription
       });
 
-      console.log(`[MT5 API] Subscribed to ${uniqueSymbols.length} MT5 symbols`);
+      console.log(`[MT5 API] Subscribing to ${commonMT5Symbols.length} MT5 symbols`);
     }
 
     subscribeToSymbol(symbol) {
@@ -312,11 +262,22 @@
       }
 
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({
-          ticks: symbol,
-          subscribe: 1
-        }));
-        this.subscribedSymbols.add(symbol);
+        try {
+          this.ws.send(JSON.stringify({
+            ticks: symbol,
+            subscribe: 1
+          }));
+          this.subscribedSymbols.add(symbol);
+        } catch (error) {
+          console.error(`[MT5 API] Error subscribing to ${symbol}:`, error);
+        }
+      } else {
+        // Queue for subscription when connection is ready
+        setTimeout(() => {
+          if (this.ws && this.ws.readyState === WebSocket.OPEN && !this.subscribedSymbols.has(symbol)) {
+            this.subscribeToSymbol(symbol);
+          }
+        }, 1000);
       }
     }
 
