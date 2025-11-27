@@ -1200,25 +1200,15 @@
         font-size: 15px;
       }
 
-      /* Show all MT5 accounts on mobile, but use dropdown for easier navigation if many accounts */
-      .mt5-accounts-list .mt5-account-item {
-        display: flex !important;
-      }
-      
-      /* If more than 3 accounts, show dropdown hint */
-      .mt5-accounts-list:has(.mt5-account-item:nth-child(4)) {
-        max-height: 200px;
-        overflow-y: auto;
-      }
-
-      .mt5-dropdown-container {
-        display: block;
+      /* Hide MT5 accounts section on small screens to save space */
+      .mt5-accounts-section {
+        display: none !important;
       }
 
       .disconnect-btn {
         padding: 10px;
         font-size: 12px;
-        margin-top: 12px !important;
+        margin-top: 16px !important;
       }
 
       .api-link {
@@ -1338,10 +1328,15 @@
         font-size: 14px;
       }
 
+      /* Hide MT5 accounts section on small screens to save space */
+      .mt5-accounts-section {
+        display: none !important;
+      }
+
       .disconnect-btn {
         padding: 8px;
         font-size: 11px;
-        margin-top: 10px !important;
+        margin-top: 12px !important;
       }
 
       .action-buttons-container {
