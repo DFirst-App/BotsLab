@@ -608,6 +608,13 @@
 
       .signal-bot-section .bot-card {
         height: auto;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .bots-grid .bot-card {
+        width: 100%;
+        max-width: 100%;
       }
 
       .coming-soon-message {
@@ -764,9 +771,16 @@
     .signal-bot-section {
       margin-top: 24px;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 1fr;
       gap: 24px;
       align-items: stretch;
+    }
+
+    /* Desktop: 3 columns */
+    @media (min-width: 1025px) {
+      .signal-bot-section {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
 
     .signal-bot-section .bot-card {
@@ -929,8 +943,15 @@
 
     .bots-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr;
       gap: 24px;
+    }
+
+    /* Desktop: 2 columns */
+    @media (min-width: 1025px) {
+      .bots-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     .coming-soon-card {
