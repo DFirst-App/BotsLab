@@ -108,6 +108,17 @@
         case 'mt5_login_list':
           this.handleMT5Accounts(data.mt5_login_list);
           break;
+        default:
+          // Handle pending requests for mt5_login_list
+          if (data.req_id && this.pendingRequests.has(data.req_id)) {
+            const resolver = this.pendingRequests.get(data.req_id);
+            this.pendingRequests.delete(data.req_id);
+            if (data.mt5_login_list) {
+              this.handleMT5Accounts(data.mt5_login_list);
+            }
+            resolver(data);
+          }
+          break;
         case 'pong':
           this.lastHeartbeat = Date.now();
           break;
