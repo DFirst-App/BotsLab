@@ -476,6 +476,234 @@
         gap: 6px;
       }
     }
+
+    /* Signal Bot Styles */
+    .signal-bot-section {
+      margin-top: 32px;
+    }
+
+    .signal-bot-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 8px 24px rgba(4, 6, 12, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .signal-bot-card:hover {
+      border-color: rgba(0, 210, 255, 0.3);
+      box-shadow: 0 12px 32px rgba(0, 210, 255, 0.2);
+    }
+
+    .signal-bot-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .signal-bot-icon {
+      font-size: 64px;
+      margin-bottom: 8px;
+    }
+
+    .signal-bot-card h3 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .signal-bot-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 600px;
+    }
+
+    .signal-bot-btn {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(110, 243, 180, 0.15));
+      border: 2px solid rgba(0, 210, 255, 0.4);
+      border-radius: 12px;
+      color: var(--accent-2);
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 8px;
+    }
+
+    .signal-bot-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.3), rgba(110, 243, 180, 0.25));
+      border-color: rgba(0, 210, 255, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3);
+    }
+
+    .signal-bot-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .signal-bot-status {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .status-badge {
+      padding: 6px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .status-badge[data-state="idle"] {
+      background: rgba(152, 162, 189, 0.2);
+      color: var(--muted);
+      border: 1px solid rgba(152, 162, 189, 0.3);
+    }
+
+    .status-badge[data-state="running"] {
+      background: rgba(36, 217, 112, 0.2);
+      color: var(--success);
+      border: 1px solid rgba(36, 217, 112, 0.4);
+      animation: pulse 2s infinite;
+    }
+
+    .status-badge[data-state="error"] {
+      background: rgba(255, 95, 109, 0.2);
+      color: var(--danger);
+      border: 1px solid rgba(255, 95, 109, 0.4);
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .signal-history-section {
+      margin-top: 32px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(4, 6, 12, 0.4);
+    }
+
+    .signal-history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .signal-history-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .signal-history-list::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+
+    .signal-history-list::-webkit-scrollbar-thumb {
+      background: rgba(0, 210, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .signal-history-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .signal-history-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(0, 210, 255, 0.2);
+    }
+
+    .signal-history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .signal-symbol {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .signal-direction {
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .signal-direction.buy {
+      background: rgba(36, 217, 112, 0.2);
+      color: var(--success);
+      border: 1px solid rgba(36, 217, 112, 0.4);
+    }
+
+    .signal-direction.sell {
+      background: rgba(255, 95, 109, 0.2);
+      color: var(--danger);
+      border: 1px solid rgba(255, 95, 109, 0.4);
+    }
+
+    .signal-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .signal-detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .signal-detail-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .signal-detail-value {
+      color: var(--text);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .signal-confidence {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(0, 210, 255, 0.2);
+      color: var(--accent-2);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -497,6 +725,31 @@
       </div>
 
       <button class="see-market-data-btn" id="seeMarketDataBtn">See Market Data</button>
+
+      <!-- Signal Bot Section -->
+      <div class="signal-bot-section">
+        <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 700; color: var(--text);">Elite Signal Bot</h2>
+        <div class="signal-bot-card" id="eliteSignalBotCard">
+          <div class="signal-bot-content">
+            <div class="signal-bot-icon">🎯</div>
+            <h3>Elite Signal Bot</h3>
+            <p>Advanced multi-market analysis with RSI, MACD, Moving Averages, and Bollinger Bands. Generates high-confidence trading signals with stop loss and three take profit levels.</p>
+            <button class="signal-bot-btn" id="startEliteSignalBot">Start Signal Analysis</button>
+            <div class="signal-bot-status" id="signalBotStatus">
+              <span class="status-badge" id="signalStatusBadge" data-state="idle">Idle</span>
+              <span class="status-text" id="signalStatusText">Ready to analyze markets</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Signal History -->
+        <div class="signal-history-section" id="signalHistorySection" style="display: none;">
+          <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600;">Signal History</h3>
+          <div class="signal-history-list" id="signalHistoryList">
+            <!-- Signals will appear here -->
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="market-data-panel" id="marketDataPanel">
@@ -533,7 +786,9 @@
     </div>
   </div>
 
+  <script src="popup-notifications.js"></script>
   <script src="mt5bots/mt5ApiConnection.js"></script>
+  <script src="mt5bots/eliteSignalBot.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -836,6 +1091,137 @@
       if (mt5Connection) {
         mt5Connection.disconnect();
       }
+      if (signalBotInstance) {
+        signalBotInstance.stop();
+      }
+    });
+
+    // Signal Bot Integration
+    let signalBotInstance = null;
+    const signalHistoryList = document.getElementById('signalHistoryList');
+    const signalHistorySection = document.getElementById('signalHistorySection');
+    const startSignalBotBtn = document.getElementById('startEliteSignalBot');
+    const signalStatusBadge = document.getElementById('signalStatusBadge');
+    const signalStatusText = document.getElementById('signalStatusText');
+
+    // Initialize Signal Bot UI
+    function initSignalBotUI() {
+      return {
+        showStatus(message, type = 'info') {
+          signalStatusText.textContent = message;
+          if (type === 'error') {
+            signalStatusBadge.dataset.state = 'error';
+            signalStatusBadge.textContent = 'Error';
+          } else if (type === 'success' || type === 'running') {
+            signalStatusBadge.dataset.state = 'running';
+            signalStatusBadge.textContent = 'Running';
+          } else if (type === 'warning') {
+            signalStatusBadge.dataset.state = 'idle';
+            signalStatusBadge.textContent = 'Attention';
+          } else {
+            signalStatusBadge.dataset.state = 'idle';
+            signalStatusBadge.textContent = 'Idle';
+          }
+        },
+        setRunningState(isRunning) {
+          startSignalBotBtn.disabled = isRunning;
+          startSignalBotBtn.textContent = isRunning ? 'Analyzing Markets...' : 'Start Signal Analysis';
+        },
+        resetHistory() {
+          signalHistoryList.innerHTML = '';
+          signalHistorySection.style.display = 'none';
+        },
+        addHistoryEntry(entry) {
+          signalHistorySection.style.display = 'block';
+          
+          const item = document.createElement('div');
+          item.className = 'signal-history-item';
+          
+          const directionClass = entry.direction === 'BUY' ? 'buy' : 'sell';
+          const directionIcon = entry.direction === 'BUY' ? '📈' : '📉';
+          
+          // Format prices
+          const formatPrice = (price) => {
+            if (entry.symbol.includes('XAU') || entry.symbol.includes('XAG')) {
+              return price.toFixed(2);
+            } else if (entry.symbol.startsWith('R_') || entry.symbol.includes('BOOM') || entry.symbol.includes('CRASH')) {
+              return price.toFixed(2);
+            }
+            return price.toFixed(5);
+          };
+
+          item.innerHTML = `
+            <div class="signal-history-header">
+              <span class="signal-symbol">${entry.symbol || 'N/A'}</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="signal-confidence">${entry.confidence || 0}% Confidence</span>
+                <span class="signal-direction ${directionClass.toLowerCase()}">${directionIcon} ${entry.direction}</span>
+              </div>
+            </div>
+            <div class="signal-details">
+              <div class="signal-detail-item">
+                <span class="signal-detail-label">Entry</span>
+                <span class="signal-detail-value">${formatPrice(entry.entryPrice)}</span>
+              </div>
+              <div class="signal-detail-item">
+                <span class="signal-detail-label">Stop Loss</span>
+                <span class="signal-detail-value" style="color: var(--danger);">${formatPrice(entry.stopLoss)}</span>
+              </div>
+              <div class="signal-detail-item">
+                <span class="signal-detail-label">TP1</span>
+                <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit1)}</span>
+              </div>
+              <div class="signal-detail-item">
+                <span class="signal-detail-label">TP2</span>
+                <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit2)}</span>
+              </div>
+              <div class="signal-detail-item">
+                <span class="signal-detail-label">TP3</span>
+                <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit3)}</span>
+              </div>
+            </div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">
+              ${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'Just now'}
+            </div>
+          `;
+
+          signalHistoryList.insertBefore(item, signalHistoryList.firstChild);
+          
+          // Keep only last 20 signals
+          while (signalHistoryList.children.length > 20) {
+            signalHistoryList.removeChild(signalHistoryList.lastChild);
+          }
+        },
+        updateStats() {
+          // Signal bot doesn't need stats updates
+        }
+      };
+    }
+
+    const signalBotUI = initSignalBotUI();
+
+    // Start/Stop Signal Bot
+    startSignalBotBtn.addEventListener('click', () => {
+      if (signalBotInstance && signalBotInstance.isRunning) {
+        signalBotInstance.stop('Signal analysis stopped', 'info');
+        signalBotInstance = null;
+        return;
+      }
+
+      if (!mt5Connection || !mt5Connection.isConnected) {
+        signalBotUI.showStatus('Please wait for market data connection...', 'warning');
+        return;
+      }
+
+      // Create bot instance
+      signalBotInstance = new window.EliteSignalBot(signalBotUI, {
+        wsUrl: DERIV_WS_URL,
+        defaults: {},
+        resolveAuthToken: resolveAuthToken,
+        marketDataConnection: mt5Connection
+      });
+
+      signalBotInstance.start({});
     });
   </script>
 </body>
