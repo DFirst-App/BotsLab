@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://magicbotslab.com/sitemap.xml
+
+# Disallow admin or private areas (if any)
+# Disallow: /admin/
+# Disallow: /private/
+
+# Allow all bots
+Allow: /bots/
+Allow: /mt5bots/
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 1
+
