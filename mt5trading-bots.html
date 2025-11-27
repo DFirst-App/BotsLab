@@ -432,8 +432,14 @@
         display: block;
       }
 
+      /* Stack cards vertically on tablets and below */
       .signal-bot-section {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+      }
+
+      .bots-grid {
+        grid-template-columns: 1fr !important;
         gap: 20px;
       }
     }
@@ -525,12 +531,12 @@
 
       /* Stack all bot cards vertically on tablets and small screens */
       .signal-bot-section {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 16px;
       }
 
       .bots-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 16px;
       }
     }
