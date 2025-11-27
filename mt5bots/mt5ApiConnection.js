@@ -371,6 +371,10 @@
       const bid = parseFloat(tick.bid) || 0;
       const ask = parseFloat(tick.ask) || 0;
       const quote = parseFloat(tick.quote) || bid || ask;
+      
+      // Skip if no valid price
+      if (!quote || quote === 0) return;
+
       const spread = ask - bid;
       const spreadPercent = bid > 0 ? (spread / bid) * 100 : 0;
 
@@ -379,8 +383,8 @@
       let change = 0;
       let changePercent = 0;
       
-      if (previous) {
-        const prevPrice = previous.bid || previous.ask || previous.price || 0;
+      if (previous && previous.price) {
+        const prevPrice = previous.price;
         change = quote - prevPrice;
         changePercent = prevPrice > 0 ? (change / prevPrice) * 100 : 0;
       }
@@ -398,6 +402,7 @@
         timestamp: Date.now()
       };
 
+      // Update immediately for real-time updates
       this.marketData.set(symbol, marketData);
       this.onMarketDataUpdate(marketData);
     }
