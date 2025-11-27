@@ -249,9 +249,9 @@
 
       const currentPrice = marketData.price;
       const history = this.priceHistory.get(symbol);
-      if (!history || history.length < 25) return;
+      if (!history || history.length < 15) return; // Further reduced to 15 for faster signals
 
-      // Prevent signal spam (max 1 signal per symbol per 2 minutes)
+      // Prevent signal spam (max 1 signal per symbol per 2 minutes) - Further reduced
       const lastSignal = this.lastSignalTime.get(symbol) || 0;
       if (Date.now() - lastSignal < 120000) return; // 2 minutes
 
