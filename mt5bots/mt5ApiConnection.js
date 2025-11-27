@@ -140,12 +140,23 @@
       this.onConnectionStatus('connected', 'Connected to Deriv API');
       this.startHeartbeat();
 
-      // Get MT5 accounts first
+      // Get MT5 accounts first, then immediately subscribe to symbols
       this.getMT5Accounts().then(() => {
         // Subscribe to known working symbols directly
         // Note: active_symbols API has validation issues, so we use known symbols
         this.subscribeToKnownSymbols();
+      }).catch(() => {
+        // If account fetch fails, still subscribe to symbols
+        this.subscribeToKnownSymbols();
       });
+      
+      // Also start subscribing immediately (don't wait for accounts)
+      // This ensures data starts flowing as fast as possible
+      setTimeout(() => {
+        if (this.isConnected && this.subscribedSymbols.size === 0) {
+          this.subscribeToKnownSymbols();
+        }
+      }, 500);
     }
 
     async getMT5Accounts() {

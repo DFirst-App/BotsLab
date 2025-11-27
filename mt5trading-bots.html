@@ -554,6 +554,14 @@
     function updateMarketData(data) {
       marketDataMap.set(data.symbol, data);
       renderMarketData();
+      
+      // Cache market data for faster loading on next visit
+      try {
+        const dataArray = Array.from(marketDataMap.values());
+        sessionStorage.setItem('mt5_market_data_cache', JSON.stringify(dataArray));
+      } catch (e) {
+        // Ignore storage errors
+      }
     }
 
     function renderMarketData() {
@@ -621,6 +629,7 @@
         return;
       }
 
+      // Initialize connection immediately
       mt5Connection = new MT5ApiConnection({
         wsUrl: DERIV_WS_URL,
         resolveAuthToken: resolveAuthToken,
@@ -629,7 +638,24 @@
         onAccountInfo: updateAccountDisplay
       });
 
+      // Connect immediately when page loads
       mt5Connection.connect();
+      
+      // Also try to restore any cached market data if available
+      try {
+        const cachedData = sessionStorage.getItem('mt5_market_data_cache');
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          parsed.forEach(data => {
+            marketDataMap.set(data.symbol, data);
+          });
+          if (marketDataMap.size > 0) {
+            renderMarketData();
+          }
+        }
+      } catch (e) {
+        // Ignore cache errors
+      }
     }
 
     // Modal controls
@@ -647,8 +673,13 @@
       }
     });
 
-    // Initialize on page load
-    initializeMT5Connection();
+    // Initialize immediately on page load (don't wait for DOMContentLoaded)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeMT5Connection);
+    } else {
+      // DOM already loaded, initialize immediately
+      initializeMT5Connection();
+    }
 
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
