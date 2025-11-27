@@ -1045,6 +1045,20 @@
           </div>
         </div>
 
+        <div class="bot-card" id="smartDifferCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Digit Differ</span>
+            <h3>Smart Differ Pro</h3>
+            <p>Advanced digit differ strategy cycling through Volatility 10–100 markets with intelligent digit selection and smart recovery logic.</p>
+            <ul class="bot-meta">
+              <li>Rating: 4.9/5</li>
+              <li>Strategy: Multi-Market Digit Differ</li>
+              <li>Recovery: Smart Recovery</li>
+            </ul>
+            <button class="open-bot-btn" id="openSmartDiffer">Open Bot</button>
+          </div>
+        </div>
+
         <div class="bot-card" id="magicRandomBotCard">
           <div class="bot-card-content">
             <span class="bot-chip">Magic Random</span>
@@ -1248,6 +1262,7 @@
   <script src="bots/noTouch.js"></script>
   <script src="bots/alienRiseFall.js"></script>
   <script src="bots/riseFall.js"></script>
+  <script src="bots/smartDifferBot.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -1557,6 +1572,14 @@
         buttonId: 'openRiseFall',
         defaultMartingale: 3.1,
         createInstance: () => new window.RiseFallBot(botUI, sharedDependencies())
+      },
+      {
+        key: 'smartDiffer',
+        name: 'Smart Differ Pro',
+        cardId: 'smartDifferCard',
+        buttonId: 'openSmartDiffer',
+        defaultMartingale: 16,
+        createInstance: () => new window.SmartDifferBot(botUI, sharedDependencies())
       }
     ];
 
