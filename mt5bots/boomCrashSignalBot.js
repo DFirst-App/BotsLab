@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  class EliteSignalBot {
+  class BoomCrashSignalBot {
     constructor(ui, options) {
       this.ui = ui;
       this.wsUrl = options.wsUrl;
@@ -18,9 +18,9 @@
       this.isRunning = false;
       this.stopRequested = false;
       this.config = { ...this.defaults };
-      this.priceHistory = new Map(); // symbol -> array of prices
-      this.indicators = new Map(); // symbol -> {rsi, macd, sma, ema, bb}
-      this.lastSignalTime = new Map(); // symbol -> timestamp (prevent spam)
+      this.priceHistory = new Map();
+      this.indicators = new Map();
+      this.lastSignalTime = new Map();
       this.accountCurrency = 'USD';
       this.balance = 0;
       this.startTime = null;
@@ -32,23 +32,22 @@
       this.analysisInterval = null;
       this.patienceMessageInterval = null;
       
-      // Symbols to analyze (priority markets)
+      // Focus on Boom and Crash markets only
       this.analysisSymbols = [
-        'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxXAUUSD',
-        'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
-        'BOOM_1000', 'CRASH_1000'
+        'BOOM_1000', 'CRASH_1000',
+        'BOOM_500', 'CRASH_500',
+        'BOOM_300', 'CRASH_300'
       ];
     }
 
     async start(config) {
       if (this.isRunning) {
-        this.ui.showStatus('Bot is already running. Stop it before starting again.', 'warning');
         return;
       }
 
       const token = this.resolveAuthToken();
       if (!token) {
-        this.ui.showStatus('Connect your Deriv account on the dashboard before running bots.', 'error');
+        this.ui.showStatus('Waiting for market data connection...', 'warning');
         return;
       }
 
@@ -59,59 +58,42 @@
       this.ui.resetHistory();
       this.ui.updateStats(this.getStatsSnapshot());
       this.ui.setRunningState(true);
-      this.ui.showStatus('⏳ Patience is key in trading. Real profits come from disciplined analysis, not rushed decisions. Analyzing markets...', 'info');
+      this.ui.showStatus('Auto-analyzing Boom & Crash markets...', 'info');
 
       this.isRunning = true;
       this.stopRequested = false;
       this.startTime = new Date();
       this.startRunningTimer();
 
-      // Start analyzing markets
+      // Start analyzing markets immediately
       this.startMarketAnalysis();
     }
 
     startMarketAnalysis() {
-      // Patience messages to rotate during analysis
-      const patienceMessages = [
-        '⏳ Patience is key in trading. Real profits come from disciplined analysis, not rushed decisions.',
-        '📊 Quality signals take time. We analyze multiple indicators to ensure accuracy.',
-        '💎 Remember: Successful traders wait for the right opportunity, not every opportunity.',
-        '🎯 Trading requires patience. We\'re analyzing markets thoroughly to find high-confidence signals.',
-        '⚡ Good things come to those who wait. We\'re scanning markets for the best entry points.'
-      ];
-      let messageIndex = 0;
-
-      // Show rotating patience messages
-      this.patienceMessageInterval = setInterval(() => {
-        if (!this.isRunning || this.stopRequested) {
-          clearInterval(this.patienceMessageInterval);
-          return;
-        }
-        this.ui.showStatus(patienceMessages[messageIndex], 'info');
-        messageIndex = (messageIndex + 1) % patienceMessages.length;
-      }, 8000); // Change message every 8 seconds
-
-      // Analyze markets every 2 seconds
+      // Analyze markets every 1 second (faster for Boom/Crash)
       this.analysisInterval = setInterval(() => {
         if (!this.isRunning || this.stopRequested) {
           this.stopAnalysis();
           return;
         }
 
-        // Get market data from connection
         if (this.marketDataConnection) {
           this.analyzeAllMarkets();
         }
-      }, 2000);
+      }, 1000);
 
       // Initial analysis
-      setTimeout(() => this.analyzeAllMarkets(), 1000);
+      setTimeout(() => this.analyzeAllMarkets(), 500);
     }
 
     stopAnalysis() {
       if (this.analysisInterval) {
         clearInterval(this.analysisInterval);
         this.analysisInterval = null;
+      }
+      if (this.patienceMessageInterval) {
+        clearInterval(this.patienceMessageInterval);
+        this.patienceMessageInterval = null;
       }
     }
 
@@ -122,7 +104,7 @@
 
       this.analysisSymbols.forEach(symbol => {
         const marketData = this.marketDataConnection.getMarketData(symbol);
-        if (marketData && marketData.price) {
+        if (marketData && marketData.price && marketData.price > 0) {
           this.updatePriceHistory(symbol, marketData.price);
           this.calculateIndicators(symbol);
           this.checkForSignal(symbol, marketData);
@@ -141,15 +123,15 @@
         timestamp: Date.now()
       });
 
-      // Keep last 100 prices for analysis (reduced for faster signal generation)
-      if (history.length > 100) {
+      // Keep last 80 prices for analysis
+      if (history.length > 80) {
         history.shift();
       }
     }
 
     calculateIndicators(symbol) {
       const history = this.priceHistory.get(symbol);
-      if (!history || history.length < 30) return; // Reduced from 50 to 30
+      if (!history || history.length < 25) return; // Lower threshold for faster signals
 
       const prices = history.map(h => h.price);
       const indicators = {
@@ -209,7 +191,6 @@
       const ema26 = this.calculateEMA(prices, 26);
       const macd = ema12 - ema26;
       
-      // Calculate signal line (EMA of MACD)
       const macdHistory = [];
       for (let i = 26; i < prices.length; i++) {
         const e12 = this.calculateEMA(prices.slice(0, i + 1), 12);
@@ -268,13 +249,12 @@
 
       const currentPrice = marketData.price;
       const history = this.priceHistory.get(symbol);
-      if (!history || history.length < 30) return; // Reduced from 50 to 30
+      if (!history || history.length < 25) return;
 
-      // Prevent signal spam (max 1 signal per symbol per 3 minutes) - Reduced from 5 minutes
+      // Prevent signal spam (max 1 signal per symbol per 2 minutes)
       const lastSignal = this.lastSignalTime.get(symbol) || 0;
-      if (Date.now() - lastSignal < 180000) return; // 3 minutes
+      if (Date.now() - lastSignal < 120000) return; // 2 minutes
 
-      // Multi-indicator signal analysis
       const signal = this.generateSignal(symbol, currentPrice, indicators, history);
       
       if (signal) {
@@ -297,15 +277,14 @@
     generateSignal(symbol, currentPrice, indicators, history) {
       const { rsi, macd, sma20, sma50, ema12, ema26, bb, atr } = indicators;
 
-      // Calculate signal strength (0-100)
       let buyScore = 0;
       let sellScore = 0;
 
-      // RSI Analysis (more lenient scoring)
-      if (rsi < 35) buyScore += 25;
-      else if (rsi < 45) buyScore += 15;
-      else if (rsi > 65) sellScore += 25;
-      else if (rsi > 55) sellScore += 15;
+      // RSI Analysis (more sensitive for Boom/Crash)
+      if (rsi < 40) buyScore += 25;
+      else if (rsi < 50) buyScore += 15;
+      else if (rsi > 60) sellScore += 25;
+      else if (rsi > 50) sellScore += 15;
 
       // MACD Analysis
       if (macd.histogram > 0 && macd.macd > macd.signal) buyScore += 20;
@@ -315,21 +294,23 @@
       if (sma20 > sma50 && ema12 > ema26) buyScore += 20;
       else if (sma20 < sma50 && ema12 < ema26) sellScore += 20;
 
-      // Bollinger Bands (more lenient - within 5% of bands)
+      // Bollinger Bands
       const bbRange = bb.upper - bb.lower;
-      const priceFromLower = (currentPrice - bb.lower) / bbRange;
-      const priceFromUpper = (bb.upper - currentPrice) / bbRange;
-      if (priceFromLower < 0.05) buyScore += 15; // Price near lower band
-      else if (priceFromUpper < 0.05) sellScore += 15; // Price near upper band
+      if (bbRange > 0) {
+        const priceFromLower = (currentPrice - bb.lower) / bbRange;
+        const priceFromUpper = (bb.upper - currentPrice) / bbRange;
+        if (priceFromLower < 0.08) buyScore += 15;
+        else if (priceFromUpper < 0.08) sellScore += 15;
+      }
 
       // Trend confirmation
-      const recentPrices = history.slice(-20).map(h => h.price);
+      const recentPrices = history.slice(-15).map(h => h.price);
       const trend = this.calculateTrend(recentPrices);
-      if (trend > 0) buyScore += 10;
-      else if (trend < 0) sellScore += 10;
+      if (trend > 0.1) buyScore += 10;
+      else if (trend < -0.1) sellScore += 10;
 
-      // Minimum confidence threshold (50% - lowered to generate more signals)
-      const minConfidence = 50;
+      // Lower threshold for Boom/Crash (45%)
+      const minConfidence = 45;
       let direction = null;
       let confidence = 0;
 
@@ -343,7 +324,6 @@
 
       if (!direction) return null;
 
-      // Calculate stop loss and take profits
       const stopLoss = this.calculateStopLoss(currentPrice, direction, atr, bb);
       const takeProfits = this.calculateTakeProfits(currentPrice, direction, stopLoss, atr);
 
@@ -372,12 +352,10 @@
     }
 
     calculateStopLoss(entryPrice, direction, atr, bb) {
-      // Use ATR-based stop loss (2x ATR) or Bollinger Band, whichever is larger
-      const atrStop = atr > 0 ? (direction === 'BUY' ? entryPrice - (atr * 2) : entryPrice + (atr * 2)) : null;
-      const bbStop = direction === 'BUY' ? bb.lower * 0.999 : bb.upper * 1.001;
+      const atrStop = atr > 0 ? (direction === 'BUY' ? entryPrice - (atr * 1.5) : entryPrice + (atr * 1.5)) : null;
+      const bbStop = direction === 'BUY' ? bb.lower * 0.998 : bb.upper * 1.002;
 
       if (atrStop) {
-        // Use the tighter stop loss for better risk management
         return direction === 'BUY' 
           ? Math.max(atrStop, bbStop)
           : Math.min(atrStop, bbStop);
@@ -388,10 +366,6 @@
 
     calculateTakeProfits(entryPrice, direction, stopLoss, atr) {
       const stopDistance = Math.abs(entryPrice - stopLoss);
-      
-      // TP1: 1.5x risk (conservative)
-      // TP2: 2.5x risk (moderate)
-      // TP3: 4x risk (aggressive)
       
       if (direction === 'BUY') {
         return {
@@ -416,19 +390,14 @@
 
     getSymbolDisplayName(symbol) {
       const symbolMap = {
-        'frxEURUSD': 'EURUSD',
-        'frxGBPUSD': 'GBPUSD',
-        'frxUSDJPY': 'USDJPY',
-        'frxXAUUSD': 'XAUUSD',
-        'R_10': 'Volatility 10',
-        'R_25': 'Volatility 25',
-        'R_50': 'Volatility 50',
-        'R_75': 'Volatility 75',
-        'R_100': 'Volatility 100',
         'BOOM_1000': 'Boom 1000',
-        'CRASH_1000': 'Crash 1000'
+        'CRASH_1000': 'Crash 1000',
+        'BOOM_500': 'Boom 500',
+        'CRASH_500': 'Crash 500',
+        'BOOM_300': 'Boom 300',
+        'CRASH_300': 'Crash 300'
       };
-      return symbolMap[symbol] || symbol.replace(/^frx/, '');
+      return symbolMap[symbol] || symbol;
     }
 
     showSignalPopup(signal) {
@@ -440,15 +409,7 @@
       const directionColor = signal.direction === 'BUY' ? '#24d970' : '#ff5f6d';
       const directionIcon = signal.direction === 'BUY' ? '📈' : '📉';
       
-      // Format prices based on symbol type
-      const formatPrice = (price) => {
-        if (signal.symbol.includes('XAU') || signal.symbol.includes('XAG')) {
-          return price.toFixed(2);
-        } else if (signal.symbol.startsWith('R_') || signal.symbol.includes('BOOM') || signal.symbol.includes('CRASH')) {
-          return price.toFixed(2);
-        }
-        return price.toFixed(5);
-      };
+      const formatPrice = (price) => price.toFixed(2);
 
       const details = {
         symbol: signal.displayName,
@@ -464,12 +425,10 @@
         riskReward3: signal.riskReward3
       };
 
-      // Create custom signal popup
       this.createSignalPopup(signal, details, directionColor, directionIcon);
     }
 
     createSignalPopup(signal, details, directionColor, directionIcon) {
-      // Initialize popup container if needed
       let container = document.getElementById('popupNotificationsContainer');
       if (!container) {
         container = document.createElement('div');
@@ -507,7 +466,6 @@
         backdrop-filter: blur(15px);
       `;
 
-      // Add animation styles if not already added
       if (!document.getElementById('signalPopupAnimations')) {
         const style = document.createElement('style');
         style.id = 'signalPopupAnimations';
@@ -550,7 +508,7 @@
       iconCircle.textContent = directionIcon;
 
       const title = document.createElement('h3');
-      title.textContent = `🎯 ${signal.direction} Signal Detected`;
+      title.textContent = `🎯 ${signal.direction} Signal - Boom & Crash`;
       title.style.cssText = `
         margin: 0 0 8px;
         font-size: 26px;
@@ -587,7 +545,6 @@
         letter-spacing: 0.05em;
       `;
 
-      // Entry Price
       const entryRow = document.createElement('div');
       entryRow.style.cssText = `
         display: flex;
@@ -604,7 +561,6 @@
         <span style="color: ${directionColor}; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;">${details.entryPrice}</span>
       `;
 
-      // Stop Loss
       const slRow = document.createElement('div');
       slRow.style.cssText = `
         display: flex;
@@ -621,7 +577,6 @@
         <span style="color: #ff5f6d; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums;">${details.stopLoss}</span>
       `;
 
-      // Take Profits
       const tp1Row = document.createElement('div');
       tp1Row.style.cssText = `
         display: flex;
@@ -702,7 +657,6 @@
         }, 300);
       };
 
-      // Add slide out animation
       if (!document.getElementById('signalPopupSlideOut')) {
         const style = document.createElement('style');
         style.id = 'signalPopupSlideOut';
@@ -760,7 +714,6 @@
           const minutes = Math.floor((elapsed % 3600) / 60);
           const seconds = elapsed % 60;
           const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          // Timer is handled by UI
         }
       }, 1000);
     }
@@ -793,9 +746,8 @@
     }
   }
 
-  // Export for use in other files
   if (typeof window !== 'undefined') {
-    window.EliteSignalBot = EliteSignalBot;
+    window.BoomCrashSignalBot = BoomCrashSignalBot;
   }
 })();
 

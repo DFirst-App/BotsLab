@@ -556,6 +556,15 @@
         gap: 16px;
       }
 
+      .signal-bot-section {
+        grid-template-columns: 1fr;
+      }
+
+      .bots-grid-two {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
       .coming-soon-message {
         padding: 12px;
       }
@@ -686,6 +695,14 @@
     /* Signal Bot Styles */
     .signal-bot-section {
       margin-top: 24px;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    #eliteSignalBotCard {
+      grid-column: 1;
     }
 
     .win-rate-badge {
@@ -705,6 +722,34 @@
       flex-direction: column;
       gap: 6px;
       margin-top: 8px;
+    }
+
+    /* Boom & Crash and Download Section */
+    .boom-crash-download-section {
+      margin-top: 24px;
+    }
+
+    .bots-grid-two {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .download-card {
+      opacity: 0.9;
+    }
+
+    .download-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .download-card p {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
     }
 
     /* Coming Soon Bots Styles */
@@ -1024,6 +1069,42 @@
           <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600;">Signal History</h3>
           <div class="signal-history-list" id="signalHistoryList">
             <!-- Signals will appear here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Boom & Crash and Download Section -->
+      <div class="boom-crash-download-section">
+        <div class="bots-grid-two">
+          <!-- Boom & Crash Signal Bot -->
+          <div class="bot-card" id="boomCrashBotCard">
+            <div class="bot-card-content">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="bot-chip">Boom & Crash</span>
+                <span class="win-rate-badge">75% Win Rate</span>
+              </div>
+              <h3>Boom & Crash Signal Bot</h3>
+              <p>Specialized signal generator for Boom and Crash indices. Automatically analyzes market patterns and generates high-probability signals with stop loss and take profit levels.</p>
+              <ul class="bot-meta">
+                <li>Auto-Analysis</li>
+                <li>Boom/Crash Focus</li>
+                <li>Fast Signals</li>
+              </ul>
+              <div class="signal-bot-status" id="boomCrashBotStatus" style="margin-top: 8px;">
+                <span class="status-badge" id="boomCrashStatusBadge" data-state="idle">Analyzing...</span>
+                <span class="status-text" id="boomCrashStatusText">Auto-analyzing Boom & Crash markets</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Download MT5 Bots Card -->
+          <div class="bot-card download-card" id="downloadMT5BotsCard">
+            <div class="bot-card-content">
+              <h3 style="font-size: 16px; margin-bottom: 8px;">Download MT5 Fully Automated Trading AI Bots</h3>
+              <p style="font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0;">
+                Expert Advisors (EAs) for MetaTrader 5 platform. Fully automated trading bots ready for direct use in MT5.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1562,6 +1643,139 @@
       });
 
       signalBotInstance.start({});
+    });
+
+    // Boom & Crash Signal Bot - Auto-start
+    let boomCrashBotInstance = null;
+    const boomCrashStatusBadge = document.getElementById('boomCrashStatusBadge');
+    const boomCrashStatusText = document.getElementById('boomCrashStatusText');
+
+    function initBoomCrashBotUI() {
+      return {
+        showStatus(message, type = 'info') {
+          if (boomCrashStatusText) boomCrashStatusText.textContent = message;
+          if (boomCrashStatusBadge) {
+            if (type === 'error') {
+              boomCrashStatusBadge.dataset.state = 'error';
+              boomCrashStatusBadge.textContent = 'Error';
+            } else if (type === 'success' || type === 'running') {
+              boomCrashStatusBadge.dataset.state = 'running';
+              boomCrashStatusBadge.textContent = 'Analyzing';
+            } else {
+              boomCrashStatusBadge.dataset.state = 'idle';
+              boomCrashStatusBadge.textContent = 'Analyzing';
+            }
+          }
+        },
+        setRunningState(isRunning) {
+          // No button to disable
+        },
+        resetHistory() {
+          // History handled separately if needed
+        },
+        addHistoryEntry(entry) {
+          // Add to signal history if needed
+          if (signalHistorySection) {
+            signalHistorySection.style.display = 'block';
+            const item = document.createElement('div');
+            item.className = 'signal-history-item';
+            
+            const directionClass = entry.direction === 'BUY' ? 'buy' : 'sell';
+            const directionIcon = entry.direction === 'BUY' ? '📈' : '📉';
+            
+            const formatPrice = (price) => price.toFixed(2);
+
+            item.innerHTML = `
+              <div class="signal-history-header">
+                <span class="signal-symbol">${entry.symbol || 'N/A'}</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="signal-confidence">${entry.confidence || 0}% Confidence</span>
+                  <span class="signal-direction ${directionClass.toLowerCase()}">${directionIcon} ${entry.direction}</span>
+                </div>
+              </div>
+              <div class="signal-details">
+                <div class="signal-detail-item">
+                  <span class="signal-detail-label">Entry</span>
+                  <span class="signal-detail-value">${formatPrice(entry.entryPrice)}</span>
+                </div>
+                <div class="signal-detail-item">
+                  <span class="signal-detail-label">Stop Loss</span>
+                  <span class="signal-detail-value" style="color: var(--danger);">${formatPrice(entry.stopLoss)}</span>
+                </div>
+                <div class="signal-detail-item">
+                  <span class="signal-detail-label">TP1</span>
+                  <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit1)}</span>
+                </div>
+                <div class="signal-detail-item">
+                  <span class="signal-detail-label">TP2</span>
+                  <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit2)}</span>
+                </div>
+                <div class="signal-detail-item">
+                  <span class="signal-detail-label">TP3</span>
+                  <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit3)}</span>
+                </div>
+              </div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">
+                ${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'Just now'}
+              </div>
+            `;
+
+            signalHistoryList.insertBefore(item, signalHistoryList.firstChild);
+            
+            while (signalHistoryList.children.length > 20) {
+              signalHistoryList.removeChild(signalHistoryList.lastChild);
+            }
+          }
+        },
+        updateStats() {
+          // Not needed for signal bot
+        }
+      };
+    }
+
+    const boomCrashBotUI = initBoomCrashBotUI();
+
+    // Auto-start Boom & Crash bot when MT5 connection is ready
+    function autoStartBoomCrashBot() {
+      if (boomCrashBotInstance && boomCrashBotInstance.isRunning) {
+        return;
+      }
+
+      if (!mt5Connection || !mt5Connection.isConnected) {
+        // Wait for connection
+        setTimeout(autoStartBoomCrashBot, 2000);
+        return;
+      }
+
+      // Create and start bot
+      boomCrashBotInstance = new window.BoomCrashSignalBot(boomCrashBotUI, {
+        wsUrl: DERIV_WS_URL,
+        defaults: {},
+        resolveAuthToken: resolveAuthToken,
+        marketDataConnection: mt5Connection
+      });
+
+      boomCrashBotInstance.start({});
+    }
+
+    // Start Boom & Crash bot after MT5 connection is established
+    if (mt5Connection && mt5Connection.isConnected) {
+      setTimeout(autoStartBoomCrashBot, 3000);
+    } else {
+      // Wait for connection
+      const checkConnection = setInterval(() => {
+        if (mt5Connection && mt5Connection.isConnected) {
+          clearInterval(checkConnection);
+          setTimeout(autoStartBoomCrashBot, 3000);
+        }
+      }, 1000);
+    }
+
+    // Cleanup Boom & Crash bot on page unload
+    window.addEventListener('beforeunload', () => {
+      if (boomCrashBotInstance) {
+        boomCrashBotInstance.stop();
+      }
     });
   </script>
 </body>
