@@ -229,22 +229,23 @@
     }
 
     subscribeToKnownSymbols() {
-      // Known working symbols from Deriv - verified to work with ticks subscription
-      // These are symbols that are available on all Deriv accounts
+      // Important symbols in priority order: USD pairs (including gold), Volatility, Boom/Crash, Common pairs
       const knownSymbols = [
-        // Synthetic Indices (Volatility Indices) - Always available
+        // USD Pairs (including Gold)
+        'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxUSDCHF', 'frxAUDUSD', 'frxUSDCAD', 'frxNZDUSD',
+        'frxXAUUSD', // Gold
+        // Volatility Markets (all of them)
         'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
         '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V',
-        // Step Indices
         '1HZ150V', '1HZ250V',
-        // Crash/Boom Indices
-        'CRASH_1000', 'BOOM_1000', 'CRASH_500', 'BOOM_500',
-        // Jump Indices
-        'JD10', 'JD25', 'JD50', 'JD75', 'JD100',
-        // Range Break Indices
-        'RDBULL', 'RDBEAR',
-        // Try some forex pairs (format may vary by account type)
-        'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxAUDUSD', 'frxUSDCAD',
+        // Boom and Crash
+        'BOOM_1000', 'BOOM_500', 'BOOM_300',
+        'CRASH_1000', 'CRASH_500', 'CRASH_300',
+        // Common Forex Pairs
+        'frxEURGBP', 'frxEURJPY', 'frxGBPJPY', 'frxAUDJPY', 'frxEURCHF', 'frxAUDCAD', 'frxEURAUD',
+        'frxGBPCHF', 'frxGBPCAD', 'frxNZDCAD', 'frxNZDJPY', 'frxCADJPY', 'frxCHFJPY',
+        // Other Commodities
+        'frxXAGUSD', // Silver
         // World Indices
         'WLDAUD', 'WLDEUR', 'WLDGBP', 'WLDUSD', 'WLDXAU'
       ];
@@ -256,7 +257,72 @@
         }, index * 50); // 50ms delay between each subscription
       });
 
-      console.log(`[MT5 API] Subscribing to ${knownSymbols.length} known working symbols`);
+      console.log(`[MT5 API] Subscribing to ${knownSymbols.length} important symbols`);
+    }
+
+    // Map symbol codes to display names
+    getSymbolDisplayName(symbol) {
+      const symbolMap = {
+        // USD Pairs
+        'frxEURUSD': 'EURUSD',
+        'frxGBPUSD': 'GBPUSD',
+        'frxUSDJPY': 'USDJPY',
+        'frxUSDCHF': 'USDCHF',
+        'frxAUDUSD': 'AUDUSD',
+        'frxUSDCAD': 'USDCAD',
+        'frxNZDUSD': 'NZDUSD',
+        'frxXAUUSD': 'XAUUSD',
+        // Volatility Markets
+        'R_10': 'Volatility 10',
+        'R_25': 'Volatility 25',
+        'R_50': 'Volatility 50',
+        'R_75': 'Volatility 75',
+        'R_100': 'Volatility 100',
+        '1HZ10V': 'Volatility 10 (1s)',
+        '1HZ25V': 'Volatility 25 (1s)',
+        '1HZ50V': 'Volatility 50 (1s)',
+        '1HZ75V': 'Volatility 75 (1s)',
+        '1HZ100V': 'Volatility 100 (1s)',
+        '1HZ150V': 'Volatility 150 (1s)',
+        '1HZ250V': 'Volatility 250 (1s)',
+        // Boom and Crash
+        'BOOM_1000': 'Boom 1000',
+        'BOOM_500': 'Boom 500',
+        'BOOM_300': 'Boom 300',
+        'CRASH_1000': 'Crash 1000',
+        'CRASH_500': 'Crash 500',
+        'CRASH_300': 'Crash 300',
+        // Common Forex Pairs
+        'frxEURGBP': 'EURGBP',
+        'frxEURJPY': 'EURJPY',
+        'frxGBPJPY': 'GBPJPY',
+        'frxAUDJPY': 'AUDJPY',
+        'frxEURCHF': 'EURCHF',
+        'frxAUDCAD': 'AUDCAD',
+        'frxEURAUD': 'EURAUD',
+        'frxGBPCHF': 'GBPCHF',
+        'frxGBPCAD': 'GBPCAD',
+        'frxNZDCAD': 'NZDCAD',
+        'frxNZDJPY': 'NZDJPY',
+        'frxCADJPY': 'CADJPY',
+        'frxCHFJPY': 'CHFJPY',
+        // Other Commodities
+        'frxXAGUSD': 'XAGUSD',
+        // World Indices
+        'WLDAUD': 'World AUD',
+        'WLDEUR': 'World EUR',
+        'WLDGBP': 'World GBP',
+        'WLDUSD': 'World USD',
+        'WLDXAU': 'World Gold'
+      };
+
+      // Return mapped name or clean up the symbol name
+      if (symbolMap[symbol]) {
+        return symbolMap[symbol];
+      }
+
+      // Fallback: remove 'frx' prefix and format
+      return symbol.replace(/^frx/, '').replace(/_/g, ' ');
     }
 
     subscribeToSymbol(symbol, silent = false) {
@@ -316,6 +382,7 @@
 
       const marketData = {
         symbol: symbol,
+        displayName: this.getSymbolDisplayName(symbol),
         bid: bid,
         ask: ask,
         price: quote,

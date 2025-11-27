@@ -252,15 +252,17 @@
     }
 
     .market-symbol {
-      font-weight: 700;
-      font-size: 14px;
+      font-weight: 600;
+      font-size: 12px;
       color: var(--text);
+      letter-spacing: 0.02em;
     }
 
     .market-price {
-      font-weight: 700;
-      font-size: 14px;
+      font-weight: 600;
+      font-size: 12px;
       text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     .market-price.positive {
@@ -276,9 +278,10 @@
     }
 
     .market-change {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     .market-change.positive {
@@ -563,18 +566,44 @@
         return;
       }
 
-      const sortedData = Array.from(marketDataMap.values())
-        .sort((a, b) => a.symbol.localeCompare(b.symbol));
+      // Sort by priority: USD pairs, Volatility, Boom/Crash, then others
+      const dataArray = Array.from(marketDataMap.values());
+      
+      const getPriority = (symbol) => {
+        if (symbol.startsWith('frxEURUSD') || symbol.startsWith('frxGBPUSD') || symbol.startsWith('frxUSD') || symbol.startsWith('frxXAUUSD')) return 1;
+        if (symbol.startsWith('R_') || symbol.startsWith('1HZ')) return 2;
+        if (symbol.startsWith('BOOM_') || symbol.startsWith('CRASH_')) return 3;
+        if (symbol.startsWith('frx')) return 4;
+        return 5;
+      };
+
+      const sortedData = dataArray.sort((a, b) => {
+        const priorityA = getPriority(a.symbol);
+        const priorityB = getPriority(b.symbol);
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        return (a.displayName || a.symbol).localeCompare(b.displayName || b.symbol);
+      });
 
       const renderItem = (data) => {
         const changeClass = data.changePercent > 0 ? 'positive' : data.changePercent < 0 ? 'negative' : 'neutral';
         const priceClass = data.change > 0 ? 'positive' : data.change < 0 ? 'negative' : 'neutral';
         const changeSign = data.changePercent > 0 ? '+' : '';
+        const displayName = data.displayName || data.symbol;
+        
+        // Format price based on symbol type
+        let priceDisplay = data.price.toFixed(5);
+        if (data.symbol.includes('XAU') || data.symbol.includes('XAG')) {
+          priceDisplay = data.price.toFixed(2);
+        } else if (data.symbol.startsWith('R_') || data.symbol.startsWith('1HZ') || data.symbol.includes('BOOM') || data.symbol.includes('CRASH')) {
+          priceDisplay = data.price.toFixed(2);
+        } else if (data.symbol.includes('USD') && !data.symbol.includes('XAU') && !data.symbol.includes('XAG')) {
+          priceDisplay = data.price.toFixed(5);
+        }
         
         return `
           <div class="market-data-item">
-            <span class="market-symbol">${data.symbol}</span>
-            <span class="market-price ${priceClass}">${data.price.toFixed(5)}</span>
+            <span class="market-symbol">${displayName}</span>
+            <span class="market-price ${priceClass}">${priceDisplay}</span>
             <span class="market-change ${changeClass}">${changeSign}${data.changePercent.toFixed(2)}%</span>
           </div>
         `;
