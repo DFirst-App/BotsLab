@@ -573,10 +573,19 @@
       const modalStatusDot = document.getElementById('modalStatusDot');
       const modalStatusText = document.getElementById('modalStatusText');
 
-      statusDot.className = `status-dot ${status}`;
-      statusText.textContent = message;
-      modalStatusDot.className = `status-dot ${status}`;
-      modalStatusText.textContent = message;
+      // Only show "Connected" or "Not Connected" - reconnection happens silently
+      if (status === 'connected') {
+        statusDot.className = 'status-dot connected';
+        statusText.textContent = 'Connected';
+        modalStatusDot.className = 'status-dot connected';
+        modalStatusText.textContent = 'Connected';
+      } else {
+        // Any other status (disconnected, reconnecting, error) shows as "Not Connected"
+        statusDot.className = 'status-dot';
+        statusText.textContent = 'Not Connected';
+        modalStatusDot.className = 'status-dot';
+        modalStatusText.textContent = 'Not Connected';
+      }
     }
 
     function updateAccountDisplay(info) {
@@ -667,16 +676,32 @@
       }
     }
 
+    let renderTimeout = null;
     function updateMarketData(data) {
+      // Update data immediately
       marketDataMap.set(data.symbol, data);
-      renderMarketData();
       
-      // Cache market data for faster loading on next visit
-      try {
-        const dataArray = Array.from(marketDataMap.values());
-        sessionStorage.setItem('mt5_market_data_cache', JSON.stringify(dataArray));
-      } catch (e) {
-        // Ignore storage errors
+      // Debounce rendering to avoid lag (render every 100ms max)
+      if (renderTimeout) {
+        clearTimeout(renderTimeout);
+      }
+      
+      renderTimeout = setTimeout(() => {
+        renderMarketData();
+        renderTimeout = null;
+      }, 100);
+      
+      // Cache market data for faster loading on next visit (throttled)
+      if (!updateMarketData.cacheTimeout) {
+        updateMarketData.cacheTimeout = setTimeout(() => {
+          try {
+            const dataArray = Array.from(marketDataMap.values());
+            sessionStorage.setItem('mt5_market_data_cache', JSON.stringify(dataArray));
+          } catch (e) {
+            // Ignore storage errors
+          }
+          updateMarketData.cacheTimeout = null;
+        }, 1000); // Cache every 1 second
       }
     }
 

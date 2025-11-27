@@ -49,6 +49,9 @@
           this.reconnectTimeout = null;
         }
         
+        // Show connecting status while authorizing
+        this.onConnectionStatus('disconnected', 'Not Connected');
+        
         // Authorize
         this.ws.send(JSON.stringify({ authorize: token }));
       };
@@ -64,6 +67,8 @@
 
       this.ws.onerror = (error) => {
         console.error('[MT5 API] WebSocket error:', error);
+        this.isConnected = false;
+        this.onConnectionStatus('disconnected', 'Not Connected');
         if (!this.isReconnecting) {
           this.attemptReconnect('WebSocket error occurred');
         }
@@ -73,6 +78,7 @@
         console.log('[MT5 API] WebSocket closed');
         this.isConnected = false;
         this.clearHeartbeat();
+        this.onConnectionStatus('disconnected', 'Not Connected');
         
         if (!this.isReconnecting) {
           this.attemptReconnect('Connection lost');
@@ -86,14 +92,17 @@
         const message = data.error.message || 'Deriv API error';
         
         if (errorCode === 'InvalidToken' || errorCode === 'AuthorizationRequired') {
-          this.onConnectionStatus('error', 'Authorization expired. Please reconnect.');
+          // Silently attempt reconnection without showing error to user
+          this.isConnected = false;
+          this.onConnectionStatus('disconnected', 'Not Connected');
+          this.attemptReconnect('Re-authenticating...');
           return;
         }
         
         // Don't log InvalidSymbol errors as they're expected when trying symbols
         if (errorCode !== 'InvalidSymbol') {
           console.error('[MT5 API] Error:', data.error);
-          this.onConnectionStatus('warning', message);
+          // Don't show error to user, just log it
         }
         return;
       }
@@ -141,7 +150,7 @@
       };
 
       this.isConnected = true;
-      this.onConnectionStatus('connected', 'Connected to Deriv API');
+      this.onConnectionStatus('connected', 'Connected');
       this.startHeartbeat();
 
       // Get MT5 accounts first, then immediately subscribe to symbols
@@ -420,7 +429,8 @@
     attemptReconnect(reason) {
       if (this.isReconnecting || this.reconnectAttempts >= 10) {
         if (this.reconnectAttempts >= 10) {
-          this.onConnectionStatus('error', 'Max reconnection attempts reached');
+          // Only show error if max attempts reached, otherwise keep showing disconnected
+          this.onConnectionStatus('disconnected', 'Not Connected');
         }
         return;
       }
@@ -429,8 +439,12 @@
       this.reconnectAttempts += 1;
       this.clearHeartbeat();
 
+      // Don't show reconnecting status to user - keep showing disconnected
+      // Reconnection happens silently in background
+      this.onConnectionStatus('disconnected', 'Not Connected');
+
       const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000);
-      this.onConnectionStatus('reconnecting', `Reconnecting... (Attempt ${this.reconnectAttempts}/10)`);
+      console.log(`[MT5 API] Reconnecting... (Attempt ${this.reconnectAttempts}/10)`);
 
       if (this.ws) {
         try {
