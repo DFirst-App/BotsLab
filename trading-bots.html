@@ -170,6 +170,14 @@
       font-family: 'Inter', system-ui, sans-serif;
     }
 
+    .back-btn .full-text {
+      display: inline;
+    }
+
+    .back-btn .short-text {
+      display: none;
+    }
+
     .header-active {
       display: none;
       align-items: center;
@@ -1068,6 +1076,16 @@
         gap: 6px;
       }
 
+      .back-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        min-width: auto;
+      }
+
+      .back-btn .short-text {
+        display: inline;
+      }
+
       .section-heading h2 {
         font-size: 15px;
       }
@@ -1142,7 +1160,8 @@
       <div class="header-default" id="headerDefault">
         <h1>Automated Trading Bots</h1>
         <a href="index.html" class="back-btn">
-          ← Back to Dashboard
+          <span class="full-text">← Back to Dashboard</span>
+          <span class="short-text">← Back</span>
         </a>
       </div>
       <div class="header-active" id="headerActive">
@@ -1158,7 +1177,7 @@
     <div class="section-heading" id="sectionHeading">
       <div class="section-heading-text">
         <h2>Deriv Bots</h2>
-        <p>Discover digits-first automation built for volatility markets with smart safety controls.</p>
+        <p>Choose any bot and start automated trading with smart risk management.</p>
       </div>
       <div class="deriv-balance-display" id="derivBalanceDisplay">
         <span class="deriv-balance-label">Balance</span>
