@@ -1184,11 +1184,12 @@
     }
 
     .deposit-popup-title {
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 600;
       color: var(--text);
       margin: 0 0 8px;
-      letter-spacing: -0.01em;
+      letter-spacing: 0.01em;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .deposit-popup-message {
@@ -1247,6 +1248,17 @@
       border-color: rgba(255, 255, 255, 0.25);
     }
 
+    @media (max-width: 768px) {
+      .deposit-popup-title {
+        font-size: 16px;
+        margin-top: 8px;
+      }
+
+      .deposit-popup-message {
+        font-size: 13px;
+      }
+    }
+
     @media (max-width: 480px) {
       .deposit-popup {
         padding: 20px;
@@ -1255,11 +1267,14 @@
       }
 
       .deposit-popup-title {
-        font-size: 18px;
+        font-size: 15px;
+        margin-top: 6px;
+        margin-bottom: 6px;
       }
 
       .deposit-popup-message {
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 1.5;
       }
 
       .deposit-popup-actions {
