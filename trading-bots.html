@@ -270,7 +270,8 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      justify-content: space-between;
     }
 
     .section-heading.hidden {
@@ -289,15 +290,59 @@
 
     .section-heading h2 {
       margin: 0;
-      font-size: 20px;
-      font-weight: 600;
+      font-size: 16px;
+      font-weight: 500;
       color: var(--text);
+      letter-spacing: 0.02em;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     .section-heading p {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
+    }
+
+    .deriv-balance-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.12), rgba(0, 210, 255, 0.06));
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .deriv-balance-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(152, 162, 189, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .deriv-balance-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #00d2ff;
+      letter-spacing: -0.01em;
+    }
+
+    .deriv-balance-currency {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(152, 162, 189, 0.7);
+      margin-left: 2px;
+    }
+
+    .deriv-balance-display.disconnected {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .deriv-balance-display.disconnected .deriv-balance-value {
+      color: var(--muted);
     }
 
     .secondary-btn-link {
@@ -925,6 +970,29 @@
         font-size: 14px;
       }
 
+      .section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .deriv-balance-display {
+        align-self: flex-start;
+        padding: 5px 10px;
+      }
+
+      .deriv-balance-label {
+        font-size: 10px;
+      }
+
+      .deriv-balance-value {
+        font-size: 12px;
+      }
+
+      .deriv-balance-currency {
+        font-size: 10px;
+      }
+
       .header-active {
         gap: 6px;
         flex: 1;
@@ -1000,6 +1068,31 @@
         gap: 6px;
       }
 
+      .section-heading h2 {
+        font-size: 15px;
+      }
+
+      .section-heading p {
+        font-size: 12px;
+      }
+
+      .deriv-balance-display {
+        padding: 4px 8px;
+        gap: 6px;
+      }
+
+      .deriv-balance-label {
+        font-size: 9px;
+      }
+
+      .deriv-balance-value {
+        font-size: 11px;
+      }
+
+      .deriv-balance-currency {
+        font-size: 9px;
+      }
+
       .header-active {
         gap: 4px;
       }
@@ -1066,6 +1159,11 @@
       <div class="section-heading-text">
         <h2>Deriv Bots</h2>
         <p>Discover digits-first automation built for volatility markets with smart safety controls.</p>
+      </div>
+      <div class="deriv-balance-display" id="derivBalanceDisplay">
+        <span class="deriv-balance-label">Balance</span>
+        <span class="deriv-balance-value" id="derivBalanceValue">-</span>
+        <span class="deriv-balance-currency" id="derivBalanceCurrency"></span>
       </div>
     </div>
 
