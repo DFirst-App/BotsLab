@@ -1443,6 +1443,84 @@
       martingaleMultiplier: 16
     };
 
+    // Deriv Balance Display
+    const derivBalanceValue = document.getElementById('derivBalanceValue');
+    const derivBalanceCurrency = document.getElementById('derivBalanceCurrency');
+    const derivBalanceDisplay = document.getElementById('derivBalanceDisplay');
+
+    function updateDerivBalanceDisplay() {
+      const token = resolveAuthToken();
+      if (!token) {
+        derivBalanceValue.textContent = 'Not Connected';
+        derivBalanceCurrency.textContent = '';
+        derivBalanceDisplay.classList.add('disconnected');
+        return;
+      }
+
+      const ws = new WebSocket(DERIV_WS_URL);
+      let authorized = false;
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          authorize: token,
+          req_id: Date.now()
+        }));
+      };
+
+      ws.onmessage = (msg) => {
+        try {
+          const response = JSON.parse(msg.data);
+
+          if (response.error) {
+            console.error('Balance fetch error:', response.error);
+            derivBalanceValue.textContent = 'Error';
+            derivBalanceCurrency.textContent = '';
+            derivBalanceDisplay.classList.add('disconnected');
+            ws.close();
+            return;
+          }
+
+          if (response.msg_type === 'authorize' && response.authorize) {
+            authorized = true;
+            const balance = Number(response.authorize.balance || 0);
+            const currency = response.authorize.currency || 'USD';
+            
+            derivBalanceValue.textContent = balance.toFixed(2);
+            derivBalanceCurrency.textContent = currency;
+            derivBalanceDisplay.classList.remove('disconnected');
+            ws.close();
+          }
+        } catch (error) {
+          console.error('Error processing balance:', error);
+          derivBalanceValue.textContent = 'Error';
+          derivBalanceCurrency.textContent = '';
+          derivBalanceDisplay.classList.add('disconnected');
+          ws.close();
+        }
+      };
+
+      ws.onerror = () => {
+        derivBalanceValue.textContent = 'Error';
+        derivBalanceCurrency.textContent = '';
+        derivBalanceDisplay.classList.add('disconnected');
+      };
+
+      ws.onclose = () => {
+        // Connection closed
+      };
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
+          if (!authorized) {
+            derivBalanceValue.textContent = 'Timeout';
+            derivBalanceCurrency.textContent = '';
+            derivBalanceDisplay.classList.add('disconnected');
+          }
+        }
+      }, 5000);
+    }
 
     const botsList = document.getElementById('botsList');
     const panelPlaceholder = document.getElementById('panelPlaceholder');
