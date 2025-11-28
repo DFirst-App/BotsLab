@@ -12,21 +12,8 @@
     <priority>1.0</priority>
   </url>
   
-  <!-- Trading Bots Page -->
-  <url>
-    <loc>https://magicbotslab.com/trading-bots.html</loc>
-    <lastmod>2025-01-27</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  
-  <!-- MT5 Trading Bots Page -->
-  <url>
-    <loc>https://magicbotslab.com/mt5trading-bots.html</loc>
-    <lastmod>2025-01-27</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
+  <!-- Note: Sub-pages are accessible but canonical URLs point to homepage -->
+  <!-- This ensures all users start from homepage for proper authentication flow -->
   
 </urlset>
 
