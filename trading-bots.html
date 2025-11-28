@@ -2131,6 +2131,73 @@
         currentBotInstance.stop('Bot stopped by user.', 'warning');
       }
     });
+
+    // Deposit Popup Functions
+    const depositPopupOverlay = document.getElementById('depositPopupOverlay');
+    const depositPopupCancel = document.getElementById('depositPopupCancel');
+
+    function isDepositPopupDismissed() {
+      try {
+        const dismissed = localStorage.getItem(DEPOSIT_POPUP_DISMISSED_KEY);
+        if (!dismissed) return false;
+        const dismissedTime = parseInt(dismissed, 10);
+        const now = Date.now();
+        // If dismissed more than 2 hours ago, allow showing again
+        return (now - dismissedTime) < DEPOSIT_POPUP_DISMISSED_TIMEOUT;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function dismissDepositPopup() {
+      try {
+        localStorage.setItem(DEPOSIT_POPUP_DISMISSED_KEY, Date.now().toString());
+      } catch (error) {
+        console.error('Error saving deposit popup dismissal:', error);
+      }
+    }
+
+    function showDepositPopup() {
+      // Don't show if recently dismissed
+      if (isDepositPopupDismissed()) {
+        return;
+      }
+      if (depositPopupOverlay) {
+        depositPopupOverlay.classList.add('show');
+      }
+    }
+
+    function hideDepositPopup() {
+      if (depositPopupOverlay) {
+        depositPopupOverlay.classList.remove('show');
+      }
+    }
+
+    // Close popup on cancel
+    if (depositPopupCancel) {
+      depositPopupCancel.addEventListener('click', () => {
+        dismissDepositPopup();
+        hideDepositPopup();
+      });
+    }
+
+    // Close popup when clicking overlay (outside the popup)
+    if (depositPopupOverlay) {
+      depositPopupOverlay.addEventListener('click', (e) => {
+        if (e.target === depositPopupOverlay) {
+          dismissDepositPopup();
+          hideDepositPopup();
+        }
+      });
+    }
+
+    // Close popup on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && depositPopupOverlay?.classList.contains('show')) {
+        dismissDepositPopup();
+        hideDepositPopup();
+      }
+    });
   </script>
 </body>
 </html>
