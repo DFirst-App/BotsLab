@@ -1080,6 +1080,151 @@
       }
     }
 
+    /* Deposit Popup Modal */
+    .deposit-popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .deposit-popup-overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .deposit-popup {
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 420px;
+      width: 100%;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      animation: slideUp 0.3s ease;
+      z-index: 1001;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .deposit-popup-header {
+      margin-bottom: 16px;
+    }
+
+    .deposit-popup-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .deposit-popup-message {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .deposit-popup-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .deposit-popup-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .deposit-popup-btn-primary {
+      background: linear-gradient(135deg, rgba(36, 217, 112, 0.2) 0%, rgba(36, 217, 112, 0.1) 100%);
+      border: 1px solid rgba(36, 217, 112, 0.4);
+      color: #24d970;
+    }
+
+    .deposit-popup-btn-primary:hover {
+      background: linear-gradient(135deg, rgba(36, 217, 112, 0.3) 0%, rgba(36, 217, 112, 0.15) 100%);
+      border-color: rgba(36, 217, 112, 0.6);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(36, 217, 112, 0.2);
+    }
+
+    .deposit-popup-btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text);
+    }
+
+    .deposit-popup-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    @media (max-width: 480px) {
+      .deposit-popup {
+        padding: 20px;
+        border-radius: 16px;
+        margin: 16px;
+      }
+
+      .deposit-popup-title {
+        font-size: 18px;
+      }
+
+      .deposit-popup-message {
+        font-size: 13px;
+      }
+
+      .deposit-popup-actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .deposit-popup-btn {
+        width: 100%;
+        min-width: auto;
+      }
+    }
+
     @media (max-width: 480px) {
       .page {
         padding-bottom: 85px;
@@ -1444,6 +1589,26 @@
     </div>
   </main>
 
+  <!-- Deposit Popup Modal -->
+  <div class="deposit-popup-overlay" id="depositPopupOverlay">
+    <div class="deposit-popup">
+      <div class="deposit-popup-header">
+        <h3 class="deposit-popup-title">Low Account Balance</h3>
+        <p class="deposit-popup-message">
+          Your account needs more funds to run the trading bot effectively. Adding funds will help you maximize your trading opportunities and achieve better results.
+        </p>
+      </div>
+      <div class="deposit-popup-actions">
+        <a href="https://p2p.deriv.com/advertiser/426826?advert_id=3182910&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="deposit-popup-btn deposit-popup-btn-primary" id="depositPopupBtn">
+          Deposit Funds
+        </a>
+        <button class="deposit-popup-btn deposit-popup-btn-secondary" id="depositPopupCancel">
+          Maybe Later
+        </button>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <div class="footer-content">
       <div class="footer-text">© 2026 Magic Automation Lab</div>
@@ -1478,6 +1643,8 @@
       stopLoss: 1000,
       martingaleMultiplier: 16
     };
+    const DEPOSIT_POPUP_DISMISSED_KEY = '@deposit_popup_dismissed';
+    const DEPOSIT_POPUP_DISMISSED_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
 
     // Deriv Balance Display
     const derivBalanceValue = document.getElementById('derivBalanceValue');
@@ -1711,6 +1878,10 @@
           if (type === 'error') {
             statusBadge.dataset.state = 'error';
             statusBadge.textContent = 'Error';
+            // Check for insufficient balance error
+            if (message && message.toLowerCase().includes('insufficient')) {
+              showDepositPopup();
+            }
           } else if (type === 'success') {
             statusBadge.dataset.state = 'running';
             statusBadge.textContent = 'Running';
@@ -1924,6 +2095,10 @@
       }
       if (lastKnownBalance !== null) {
         botUI.updateBalance(lastKnownBalance, lastKnownCurrency);
+        // Check if balance is 1 USD or lower
+        if (lastKnownBalance <= 1) {
+          showDepositPopup();
+        }
       }
     }
 
