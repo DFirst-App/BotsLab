@@ -1120,6 +1120,20 @@
       z-index: 1001;
     }
 
+    .deposit-popup-balance {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 6px 12px;
+      background: rgba(0, 210, 255, 0.1);
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #00d2ff;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
     @keyframes slideUp {
       from {
         transform: translateY(20px);
@@ -1592,6 +1606,7 @@
   <!-- Deposit Popup Modal -->
   <div class="deposit-popup-overlay" id="depositPopupOverlay">
     <div class="deposit-popup">
+      <div class="deposit-popup-balance" id="depositPopupBalance"></div>
       <div class="deposit-popup-header">
         <h3 class="deposit-popup-title">Low Account Balance</h3>
         <p class="deposit-popup-message">
@@ -1643,8 +1658,6 @@
       stopLoss: 1000,
       martingaleMultiplier: 16
     };
-    const DEPOSIT_POPUP_DISMISSED_KEY = '@deposit_popup_dismissed';
-    const DEPOSIT_POPUP_DISMISSED_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
 
     // Deriv Balance Display
     const derivBalanceValue = document.getElementById('derivBalanceValue');
@@ -2095,10 +2108,6 @@
       }
       if (lastKnownBalance !== null) {
         botUI.updateBalance(lastKnownBalance, lastKnownCurrency);
-        // Check if balance is 1 USD or lower
-        if (lastKnownBalance <= 1) {
-          showDepositPopup();
-        }
       }
     }
 
@@ -2135,34 +2144,16 @@
     // Deposit Popup Functions
     const depositPopupOverlay = document.getElementById('depositPopupOverlay');
     const depositPopupCancel = document.getElementById('depositPopupCancel');
-
-    function isDepositPopupDismissed() {
-      try {
-        const dismissed = localStorage.getItem(DEPOSIT_POPUP_DISMISSED_KEY);
-        if (!dismissed) return false;
-        const dismissedTime = parseInt(dismissed, 10);
-        const now = Date.now();
-        // If dismissed more than 2 hours ago, allow showing again
-        return (now - dismissedTime) < DEPOSIT_POPUP_DISMISSED_TIMEOUT;
-      } catch (error) {
-        return false;
-      }
-    }
-
-    function dismissDepositPopup() {
-      try {
-        localStorage.setItem(DEPOSIT_POPUP_DISMISSED_KEY, Date.now().toString());
-      } catch (error) {
-        console.error('Error saving deposit popup dismissal:', error);
-      }
-    }
+    const depositPopupBalance = document.getElementById('depositPopupBalance');
 
     function showDepositPopup() {
-      // Don't show if recently dismissed
-      if (isDepositPopupDismissed()) {
-        return;
-      }
       if (depositPopupOverlay) {
+        // Update balance display in popup
+        if (depositPopupBalance && lastKnownBalance !== null) {
+          depositPopupBalance.textContent = `${lastKnownCurrency} ${Number(lastKnownBalance).toFixed(2)}`;
+        } else if (depositPopupBalance) {
+          depositPopupBalance.textContent = 'Balance: -';
+        }
         depositPopupOverlay.classList.add('show');
       }
     }
@@ -2176,7 +2167,6 @@
     // Close popup on cancel
     if (depositPopupCancel) {
       depositPopupCancel.addEventListener('click', () => {
-        dismissDepositPopup();
         hideDepositPopup();
       });
     }
@@ -2185,7 +2175,6 @@
     if (depositPopupOverlay) {
       depositPopupOverlay.addEventListener('click', (e) => {
         if (e.target === depositPopupOverlay) {
-          dismissDepositPopup();
           hideDepositPopup();
         }
       });
@@ -2194,7 +2183,6 @@
     // Close popup on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && depositPopupOverlay?.classList.contains('show')) {
-        dismissDepositPopup();
         hideDepositPopup();
       }
     });
