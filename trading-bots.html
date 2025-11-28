@@ -1600,6 +1600,20 @@
       return null;
     }
 
+    // Initialize balance display
+    if (derivBalanceValue && derivBalanceCurrency && derivBalanceDisplay) {
+      // Wait for DOM to be ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          updateDerivBalanceDisplay();
+          setInterval(updateDerivBalanceDisplay, 30000);
+        });
+      } else {
+        updateDerivBalanceDisplay();
+        setInterval(updateDerivBalanceDisplay, 30000);
+      }
+    }
+
     function initBotUI() {
       const startBtn = document.getElementById('startBotBtn');
       const stopBtn = document.getElementById('stopBotBtn');
