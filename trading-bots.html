@@ -1588,6 +1588,20 @@
           </div>
         </div>
 
+        <div class="bot-card" id="quantumEdgeCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Quantum Edge</span>
+            <h3>Quantum Edge Bot</h3>
+            <p>Advanced mean reversion strategy using Bollinger Bands and statistical edge detection. Trades only high-probability setups with adaptive confidence thresholds for optimal win rate.</p>
+            <ul class="bot-meta">
+              <li>Rating: 5.0/5</li>
+              <li>Strategy: Mean Reversion · Bollinger Bands</li>
+              <li>Adaptive: Confidence-Based Entry</li>
+            </ul>
+            <button class="open-bot-btn" id="openQuantumEdge">Open Bot</button>
+          </div>
+        </div>
+
         <div class="bot-card" id="allMarketsUnderCard">
           <div class="bot-card-content">
             <span class="bot-chip">Digits Under</span>
@@ -1842,6 +1856,7 @@
   <script src="bots/riseFall.js"></script>
   <script src="bots/smartDifferBot.js"></script>
   <script src="bots/smartRecoveryDiffer.js"></script>
+  <script src="bots/quantumEdge.js"></script>
   <script>
     const APP_ID = '67709';
     const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
@@ -2202,19 +2217,19 @@
         createInstance: () => new window.SmartRecoveryDifferBot(botUI, sharedDependencies())
       },
       {
+        key: 'quantumEdge',
+        name: 'Quantum Edge',
+        cardId: 'quantumEdgeCard',
+        buttonId: 'openQuantumEdge',
+        defaultMartingale: 16,
+        createInstance: () => new window.QuantumEdgeBot(botUI, sharedDependencies())
+      },
+      {
         key: 'allMarketsUnder',
         name: 'Random Markets Under 9',
         cardId: 'allMarketsUnderCard',
         buttonId: 'openAllMarketsUnder',
         createInstance: () => new window.AllMarketsUnderBot(botUI, sharedDependencies())
-      },
-      {
-        key: 'smartRecoveryDiffer',
-        name: 'Smart Recovery Differ',
-        cardId: 'smartRecoveryDifferCard',
-        buttonId: 'openSmartRecoveryDiffer',
-        defaultMartingale: 3.1,
-        createInstance: () => new window.SmartRecoveryDifferBot(botUI, sharedDependencies())
       },
       {
         key: 'magicRandomBot',
