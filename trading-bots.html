@@ -1733,7 +1733,7 @@
                   <div class="input-group" id="martingaleGroup">
                     <label for="martingaleInput">Martingale Multiplier</label>
                     <input type="number" id="martingaleInput" min="1" step="0.1" value="16">
-                    <small>Default ×16 (same as Differ bots in the app). Applies after each loss.</small>
+                    <small id="martingaleCaption">Default ×16. Applies after each loss.</small>
                   </div>
                 </div>
 
@@ -2309,6 +2309,11 @@
       setMartingaleEnabled(def.supportsMartingale !== false);
       if (martingaleInputEl && def.supportsMartingale !== false) {
         martingaleInputEl.value = currentMartingaleDefault;
+      }
+      // Update martingale caption dynamically
+      const martingaleCaption = document.getElementById('martingaleCaption');
+      if (martingaleCaption) {
+        martingaleCaption.textContent = `Default ×${currentMartingaleDefault}. Applies after each loss.`;
       }
       setActiveCard(key);
       openBotPanelUI();
