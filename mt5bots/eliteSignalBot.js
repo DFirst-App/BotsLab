@@ -121,6 +121,15 @@
       this.analysisInterval = null;
       this.patienceMessageInterval = null;
       
+      // Multi-timeframe candle data
+      this.candles15M = new Map(); // symbol -> array of 15M candles
+      this.candles30M = new Map(); // symbol -> array of 30M candles
+      this.candles1H = new Map(); // symbol -> array of 1H candles
+      this.candles4H = new Map(); // symbol -> array of 4H candles
+      this.swingHighs = new Map(); // symbol -> array of swing highs (15M)
+      this.swingLows = new Map(); // symbol -> array of swing lows (15M)
+      this.trendSignals = new Map(); // symbol -> {4H, 1H, 30M, overall}
+      
       // Symbols to analyze (priority markets)
       this.analysisSymbols = [
         'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxXAUUSD',
@@ -202,6 +211,10 @@
         clearInterval(this.analysisInterval);
         this.analysisInterval = null;
       }
+      if (this.patienceMessageInterval) {
+        clearInterval(this.patienceMessageInterval);
+        this.patienceMessageInterval = null;
+      }
     }
 
     analyzeAllMarkets() {
@@ -230,10 +243,204 @@
         timestamp: Date.now()
       });
 
-      // Keep last 100 prices for analysis (reduced for faster signal generation)
-      if (history.length > 100) {
+      // Keep last 1000 prices for candle building
+      if (history.length > 1000) {
         history.shift();
       }
+
+      // Build candles from tick data
+      this.buildCandles(symbol, price);
+    }
+
+    buildCandles(symbol, currentPrice) {
+      const history = this.priceHistory.get(symbol);
+      if (!history || history.length < 2) return;
+
+      const now = Date.now();
+      const candle15M = 15 * 60 * 1000; // 15 minutes in milliseconds
+      const candle30M = 30 * 60 * 1000;
+      const candle1H = 60 * 60 * 1000;
+      const candle4H = 4 * 60 * 60 * 1000;
+
+      // Initialize candle arrays if needed
+      if (!this.candles15M.has(symbol)) this.candles15M.set(symbol, []);
+      if (!this.candles30M.has(symbol)) this.candles30M.set(symbol, []);
+      if (!this.candles1H.has(symbol)) this.candles1H.set(symbol, []);
+      if (!this.candles4H.has(symbol)) this.candles4H.set(symbol, []);
+
+      const candles15M = this.candles15M.get(symbol);
+      const candles30M = this.candles30M.get(symbol);
+      const candles1H = this.candles1H.get(symbol);
+      const candles4H = this.candles4H.get(symbol);
+
+      // Build 15M candles
+      const lastCandle15M = candles15M.length > 0 ? candles15M[candles15M.length - 1] : null;
+      const currentCandle15MTime = Math.floor(now / candle15M) * candle15M;
+
+      if (!lastCandle15M || lastCandle15M.time !== currentCandle15MTime) {
+        // New 15M candle
+        candles15M.push({
+          time: currentCandle15MTime,
+          open: currentPrice,
+          high: currentPrice,
+          low: currentPrice,
+          close: currentPrice
+        });
+        // Keep last 200 candles (50 hours of data)
+        if (candles15M.length > 200) candles15M.shift();
+      } else {
+        // Update current 15M candle
+        lastCandle15M.high = Math.max(lastCandle15M.high, currentPrice);
+        lastCandle15M.low = Math.min(lastCandle15M.low, currentPrice);
+        lastCandle15M.close = currentPrice;
+      }
+
+      // Build 30M candles from 15M
+      this.aggregateCandles(candles15M, candles30M, candle30M, now, 200);
+      // Build 1H candles from 15M
+      this.aggregateCandles(candles15M, candles1H, candle1H, now, 200);
+      // Build 4H candles from 15M
+      this.aggregateCandles(candles15M, candles4H, candle4H, now, 200);
+
+      // Update swing highs/lows on 15M
+      if (candles15M.length >= 5) {
+        this.updateSwingPoints(symbol, candles15M);
+      }
+
+      // Analyze trend from higher timeframes
+      if (candles4H.length >= 2 && candles1H.length >= 2 && candles30M.length >= 2) {
+        this.analyzeMultiTimeframeTrend(symbol, candles4H, candles1H, candles30M, candles15M);
+      }
+    }
+
+    aggregateCandles(sourceCandles, targetCandles, timeframeMs, now, maxCandles) {
+      if (sourceCandles.length === 0) return;
+
+      const currentCandleTime = Math.floor(now / timeframeMs) * timeframeMs;
+      const lastTargetCandle = targetCandles.length > 0 ? targetCandles[targetCandles.length - 1] : null;
+
+      if (!lastTargetCandle || lastTargetCandle.time !== currentCandleTime) {
+        // Find all source candles in this timeframe
+        const relevantCandles = sourceCandles.filter(c => 
+          c.time >= currentCandleTime && c.time < currentCandleTime + timeframeMs
+        );
+
+        if (relevantCandles.length > 0) {
+          const open = relevantCandles[0].open;
+          const close = relevantCandles[relevantCandles.length - 1].close;
+          const high = Math.max(...relevantCandles.map(c => c.high));
+          const low = Math.min(...relevantCandles.map(c => c.low));
+
+          targetCandles.push({
+            time: currentCandleTime,
+            open: open,
+            high: high,
+            low: low,
+            close: close
+          });
+
+          if (targetCandles.length > maxCandles) targetCandles.shift();
+        }
+      } else {
+        // Update current target candle
+        const relevantCandles = sourceCandles.filter(c => 
+          c.time >= lastTargetCandle.time && c.time < lastTargetCandle.time + timeframeMs
+        );
+
+        if (relevantCandles.length > 0) {
+          lastTargetCandle.high = Math.max(...relevantCandles.map(c => c.high));
+          lastTargetCandle.low = Math.min(...relevantCandles.map(c => c.low));
+          lastTargetCandle.close = relevantCandles[relevantCandles.length - 1].close;
+        }
+      }
+    }
+
+    updateSwingPoints(symbol, candles) {
+      if (candles.length < 5) return;
+
+      if (!this.swingHighs.has(symbol)) {
+        this.swingHighs.set(symbol, []);
+        this.swingLows.set(symbol, []);
+      }
+
+      const swingHighs = this.swingHighs.get(symbol);
+      const swingLows = this.swingLows.get(symbol);
+
+      // Find swing highs (local maxima) - check last 3 candles
+      for (let i = 2; i < candles.length - 2; i++) {
+        const candle = candles[i];
+        const isSwingHigh = candle.high > candles[i - 1].high &&
+                           candle.high > candles[i - 2].high &&
+                           candle.high > candles[i + 1].high &&
+                           candle.high > candles[i + 2].high;
+
+        if (isSwingHigh) {
+          // Check if this swing high is already recorded
+          const exists = swingHighs.some(sh => Math.abs(sh.price - candle.high) < 0.00001);
+          if (!exists) {
+            swingHighs.push({
+              price: candle.high,
+              time: candle.time
+            });
+            // Keep last 20 swing highs
+            if (swingHighs.length > 20) swingHighs.shift();
+          }
+        }
+
+        // Find swing lows (local minima)
+        const isSwingLow = candle.low < candles[i - 1].low &&
+                          candle.low < candles[i - 2].low &&
+                          candle.low < candles[i + 1].low &&
+                          candle.low < candles[i + 2].low;
+
+        if (isSwingLow) {
+          const exists = swingLows.some(sl => Math.abs(sl.price - candle.low) < 0.00001);
+          if (!exists) {
+            swingLows.push({
+              price: candle.low,
+              time: candle.time
+            });
+            // Keep last 20 swing lows
+            if (swingLows.length > 20) swingLows.shift();
+          }
+        }
+      }
+    }
+
+    analyzeMultiTimeframeTrend(symbol, candles4H, candles1H, candles30M, candles15M) {
+      // Analyze trend from each timeframe using EMA
+      const getTrend = (candles, period = 20) => {
+        if (candles.length < period) return 0;
+        
+        const closes = candles.slice(-period).map(c => c.close);
+        const sma = closes.reduce((a, b) => a + b, 0) / closes.length;
+        const currentPrice = candles[candles.length - 1].close;
+        
+        // Trend: 1 = bullish, -1 = bearish, 0 = neutral
+        if (currentPrice > sma * 1.001) return 1; // 0.1% above SMA = bullish
+        if (currentPrice < sma * 0.999) return -1; // 0.1% below SMA = bearish
+        return 0;
+      };
+
+      const trend4H = getTrend(candles4H, Math.min(20, candles4H.length));
+      const trend1H = getTrend(candles1H, Math.min(20, candles1H.length));
+      const trend30M = getTrend(candles30M, Math.min(20, candles30M.length));
+
+      // Overall trend: majority vote (at least 2 out of 3 must agree)
+      let overallTrend = 0;
+      const trends = [trend4H, trend1H, trend30M];
+      const bullishCount = trends.filter(t => t === 1).length;
+      const bearishCount = trends.filter(t => t === -1).length;
+
+      if (bullishCount >= 2) overallTrend = 1;
+      else if (bearishCount >= 2) overallTrend = -1;
+
+      this.trendSignals.set(symbol, {
+        '4H': trend4H,
+        '1H': trend1H,
+        '30M': trend30M,
+        overall: overallTrend
+      });
     }
 
     calculateIndicators(symbol) {
@@ -357,14 +564,21 @@
 
       const currentPrice = marketData.price;
       const history = this.priceHistory.get(symbol);
-      if (!history || history.length < 20) return; // Further reduced to 20 for faster signals
+      if (!history || history.length < 20) return;
 
-      // Prevent signal spam (max 1 signal per symbol per 2 minutes) - Further reduced
+      // Check if we have trend analysis
+      const trendSignal = this.trendSignals.get(symbol);
+      if (!trendSignal || trendSignal.overall === 0) {
+        // No clear trend yet, wait for confirmation
+        return;
+      }
+
+      // Prevent signal spam (max 1 signal per symbol per 2 minutes)
       const lastSignal = this.lastSignalTime.get(symbol) || 0;
       if (Date.now() - lastSignal < 120000) return; // 2 minutes
 
       // Multi-indicator signal analysis
-      const signal = this.generateSignal(symbol, currentPrice, indicators, history);
+      const signal = this.generateSignal(symbol, currentPrice, indicators, history, trendSignal);
       
       if (signal) {
         this.lastSignalTime.set(symbol, Date.now());
@@ -383,14 +597,14 @@
       }
     }
 
-    generateSignal(symbol, currentPrice, indicators, history) {
+    generateSignal(symbol, currentPrice, indicators, history, trendSignal) {
       const { rsi, macd, sma20, sma50, ema12, ema26, bb, atr } = indicators;
 
       // Calculate signal strength (0-100)
       let buyScore = 0;
       let sellScore = 0;
 
-      // RSI Analysis (more lenient scoring - further relaxed)
+      // RSI Analysis
       if (rsi < 40) buyScore += 25;
       else if (rsi < 50) buyScore += 15;
       else if (rsi > 60) sellScore += 25;
@@ -404,22 +618,20 @@
       if (sma20 > sma50 && ema12 > ema26) buyScore += 20;
       else if (sma20 < sma50 && ema12 < ema26) sellScore += 20;
 
-      // Bollinger Bands (more lenient - within 10% of bands)
+      // Bollinger Bands
       const bbRange = bb.upper - bb.lower;
       if (bbRange > 0) {
         const priceFromLower = (currentPrice - bb.lower) / bbRange;
         const priceFromUpper = (bb.upper - currentPrice) / bbRange;
-        if (priceFromLower < 0.10) buyScore += 15; // Price near lower band
-        else if (priceFromUpper < 0.10) sellScore += 15; // Price near upper band
+        if (priceFromLower < 0.10) buyScore += 15;
+        else if (priceFromUpper < 0.10) sellScore += 15;
       }
 
-      // Trend confirmation
-      const recentPrices = history.slice(-20).map(h => h.price);
-      const trend = this.calculateTrend(recentPrices);
-      if (trend > 0) buyScore += 10;
-      else if (trend < 0) sellScore += 10;
+      // Trend confirmation from higher timeframes (strong weight)
+      if (trendSignal.overall === 1) buyScore += 30; // Strong bullish trend
+      else if (trendSignal.overall === -1) sellScore += 30; // Strong bearish trend
 
-      // Minimum confidence threshold (40% - further lowered to generate more signals)
+      // Minimum confidence threshold
       const minConfidence = 40;
       let direction = null;
       let confidence = 0;
@@ -434,9 +646,19 @@
 
       if (!direction) return null;
 
-      // Calculate stop loss and take profits
-      const stopLoss = this.calculateStopLoss(currentPrice, direction, atr, bb);
-      const takeProfits = this.calculateTakeProfits(currentPrice, direction, stopLoss, atr);
+      // CRITICAL: Only generate signals in the direction of the overall trend
+      if ((direction === 'BUY' && trendSignal.overall !== 1) ||
+          (direction === 'SELL' && trendSignal.overall !== -1)) {
+        // Signal doesn't match trend - reject it
+        return null;
+      }
+
+      // Calculate stop loss and take profits from 15M market structure
+      const stopLoss = this.calculateStopLossFromStructure(symbol, currentPrice, direction);
+      if (!stopLoss || stopLoss === 0) return null; // Invalid stop loss
+
+      const takeProfits = this.calculateTakeProfitsFromStructure(symbol, currentPrice, direction, stopLoss);
+      if (!takeProfits || takeProfits.tp1 === 0) return null; // Invalid take profits
 
       return {
         symbol: symbol,
@@ -462,40 +684,213 @@
       return ((last - first) / first) * 100;
     }
 
-    calculateStopLoss(entryPrice, direction, atr, bb) {
-      // Use ATR-based stop loss (2x ATR) or Bollinger Band, whichever is larger
-      const atrStop = atr > 0 ? (direction === 'BUY' ? entryPrice - (atr * 2) : entryPrice + (atr * 2)) : null;
-      const bbStop = direction === 'BUY' ? bb.lower * 0.999 : bb.upper * 1.001;
-
-      if (atrStop) {
-        // Use the tighter stop loss for better risk management
-        return direction === 'BUY' 
-          ? Math.max(atrStop, bbStop)
-          : Math.min(atrStop, bbStop);
+    calculateStopLossFromStructure(symbol, entryPrice, direction) {
+      const candles15M = this.candles15M.get(symbol);
+      const swingHighs = this.swingHighs.get(symbol) || [];
+      const swingLows = this.swingLows.get(symbol) || [];
+      const indicators = this.indicators.get(symbol);
+      
+      if (!candles15M || candles15M.length < 5) {
+        // Fallback to ATR if no candles available yet
+        if (indicators && indicators.atr > 0) {
+          return direction === 'BUY' 
+            ? entryPrice - (indicators.atr * 1.5)
+            : entryPrice + (indicators.atr * 1.5);
+        }
+        return null;
       }
 
-      return bbStop;
+      // Get point value for this symbol (approximate)
+      const point = this.getPointValue(symbol);
+      const minStopDistance = point * 10; // Minimum 10 pips
+      const maxStopDistance = point * 200; // Maximum 200 pips
+
+      let stopLoss = 0;
+
+      if (direction === 'BUY') {
+        // Find nearest support level (swing low) below entry
+        const supports = swingLows
+          .filter(sl => sl.price < entryPrice)
+          .sort((a, b) => b.price - a.price); // Sort descending (closest to entry first)
+
+        if (supports.length > 0) {
+          const nearestSupport = supports[0].price;
+          const atr = indicators?.atr || 0;
+          const buffer = Math.max(atr * 0.5, point * 10); // Half ATR or 10 pips
+          stopLoss = nearestSupport - buffer;
+        } else {
+          // Use recent low from candles
+          const recentLows = candles15M.slice(-20).map(c => c.low);
+          const lowestLow = Math.min(...recentLows);
+          if (lowestLow < entryPrice) {
+            const atr = indicators?.atr || 0;
+            const buffer = Math.max(atr * 0.5, point * 10);
+            stopLoss = lowestLow - buffer;
+          } else {
+            // Fallback to ATR
+            const atr = indicators?.atr || point * 30;
+            stopLoss = entryPrice - (atr * 1.5);
+          }
+        }
+      } else {
+        // SELL: Find nearest resistance level (swing high) above entry
+        const resistances = swingHighs
+          .filter(sh => sh.price > entryPrice)
+          .sort((a, b) => a.price - b.price); // Sort ascending (closest to entry first)
+
+        if (resistances.length > 0) {
+          const nearestResistance = resistances[0].price;
+          const atr = indicators?.atr || 0;
+          const buffer = Math.max(atr * 0.5, point * 10);
+          stopLoss = nearestResistance + buffer;
+        } else {
+          // Use recent high from candles
+          const recentHighs = candles15M.slice(-20).map(c => c.high);
+          const highestHigh = Math.max(...recentHighs);
+          if (highestHigh > entryPrice) {
+            const atr = indicators?.atr || 0;
+            const buffer = Math.max(atr * 0.5, point * 10);
+            stopLoss = highestHigh + buffer;
+          } else {
+            // Fallback to ATR
+            const atr = indicators?.atr || point * 30;
+            stopLoss = entryPrice + (atr * 1.5);
+          }
+        }
+      }
+
+      // Validate stop loss distance
+      const stopDistance = Math.abs(entryPrice - stopLoss);
+      if (stopDistance < minStopDistance) {
+        stopLoss = direction === 'BUY' 
+          ? entryPrice - minStopDistance
+          : entryPrice + minStopDistance;
+      } else if (stopDistance > maxStopDistance) {
+        stopLoss = direction === 'BUY'
+          ? entryPrice - maxStopDistance
+          : entryPrice + maxStopDistance;
+      }
+
+      return this.normalizePrice(symbol, stopLoss);
     }
 
-    calculateTakeProfits(entryPrice, direction, stopLoss, atr) {
+    calculateTakeProfitsFromStructure(symbol, entryPrice, direction, stopLoss) {
+      const candles15M = this.candles15M.get(symbol);
+      const swingHighs = this.swingHighs.get(symbol) || [];
+      const swingLows = this.swingLows.get(symbol) || [];
+      const indicators = this.indicators.get(symbol);
+      
+      if (!candles15M || candles15M.length < 5) {
+        // Fallback to risk:reward if no candles
+        const stopDistance = Math.abs(entryPrice - stopLoss);
+        if (direction === 'BUY') {
+          return {
+            tp1: entryPrice + (stopDistance * 1.5),
+            tp2: entryPrice + (stopDistance * 2.5),
+            tp3: entryPrice + (stopDistance * 4.0)
+          };
+        } else {
+          return {
+            tp1: entryPrice - (stopDistance * 1.5),
+            tp2: entryPrice - (stopDistance * 2.5),
+            tp3: entryPrice - (stopDistance * 4.0)
+          };
+        }
+      }
+
       const stopDistance = Math.abs(entryPrice - stopLoss);
-      
-      // TP1: 1.5x risk (conservative)
-      // TP2: 2.5x risk (moderate)
-      // TP3: 4x risk (aggressive)
-      
+      const minRR = 1.2; // Minimum 1.2:1 risk:reward
+      const point = this.getPointValue(symbol);
+
+      let tps = { tp1: 0, tp2: 0, tp3: 0 };
+
       if (direction === 'BUY') {
-        return {
-          tp1: entryPrice + (stopDistance * 1.5),
-          tp2: entryPrice + (stopDistance * 2.5),
-          tp3: entryPrice + (stopDistance * 4.0)
-        };
+        // Find next resistance levels above entry
+        const resistances = swingHighs
+          .filter(sh => sh.price > entryPrice)
+          .sort((a, b) => a.price - b.price); // Sort ascending
+
+        const minTP = entryPrice + (stopDistance * minRR);
+        let tpCount = 0;
+
+        // Use first 3 resistance levels that meet minimum R:R
+        for (let i = 0; i < resistances.length && tpCount < 3; i++) {
+          if (resistances[i].price >= minTP) {
+            if (tpCount === 0) tps.tp1 = resistances[i].price;
+            else if (tpCount === 1) tps.tp2 = resistances[i].price;
+            else if (tpCount === 2) tps.tp3 = resistances[i].price;
+            tpCount++;
+          }
+        }
+
+        // Fill remaining TPs with Fibonacci extensions if needed
+        const fibExtensions = [1.5, 2.5, 4.0];
+        for (let i = tpCount; i < 3; i++) {
+          const fibTP = entryPrice + (stopDistance * fibExtensions[i]);
+          if (i === 0) tps.tp1 = fibTP;
+          else if (i === 1) tps.tp2 = fibTP;
+          else if (i === 2) tps.tp3 = fibTP;
+        }
       } else {
-        return {
-          tp1: entryPrice - (stopDistance * 1.5),
-          tp2: entryPrice - (stopDistance * 2.5),
-          tp3: entryPrice - (stopDistance * 4.0)
-        };
+        // SELL: Find next support levels below entry
+        const supports = swingLows
+          .filter(sl => sl.price < entryPrice)
+          .sort((a, b) => b.price - a.price); // Sort descending
+
+        const minTP = entryPrice - (stopDistance * minRR);
+        let tpCount = 0;
+
+        // Use first 3 support levels that meet minimum R:R
+        for (let i = 0; i < supports.length && tpCount < 3; i++) {
+          if (supports[i].price <= minTP) {
+            if (tpCount === 0) tps.tp1 = supports[i].price;
+            else if (tpCount === 1) tps.tp2 = supports[i].price;
+            else if (tpCount === 2) tps.tp3 = supports[i].price;
+            tpCount++;
+          }
+        }
+
+        // Fill remaining TPs with Fibonacci extensions if needed
+        const fibExtensions = [1.5, 2.5, 4.0];
+        for (let i = tpCount; i < 3; i++) {
+          const fibTP = entryPrice - (stopDistance * fibExtensions[i]);
+          if (i === 0) tps.tp1 = fibTP;
+          else if (i === 1) tps.tp2 = fibTP;
+          else if (i === 2) tps.tp3 = fibTP;
+        }
+      }
+
+      // Normalize all TPs
+      tps.tp1 = this.normalizePrice(symbol, tps.tp1);
+      tps.tp2 = this.normalizePrice(symbol, tps.tp2);
+      tps.tp3 = this.normalizePrice(symbol, tps.tp3);
+
+      return tps;
+    }
+
+    getPointValue(symbol) {
+      // Approximate point value based on symbol type
+      if (symbol.includes('XAU') || symbol.includes('XAG')) {
+        return 0.01; // Gold/Silver: 0.01
+      } else if (symbol.startsWith('R_') || symbol.includes('BOOM') || symbol.includes('CRASH')) {
+        return 0.01; // Volatility indices: 0.01
+      } else if (symbol.includes('JPY')) {
+        return 0.001; // JPY pairs: 0.001 (1 pip = 0.01)
+      } else {
+        return 0.0001; // Standard pairs: 0.0001 (1 pip = 0.0001)
+      }
+    }
+
+    normalizePrice(symbol, price) {
+      // Normalize price to appropriate decimal places
+      if (symbol.includes('XAU') || symbol.includes('XAG')) {
+        return Math.round(price * 100) / 100;
+      } else if (symbol.startsWith('R_') || symbol.includes('BOOM') || symbol.includes('CRASH')) {
+        return Math.round(price * 100) / 100;
+      } else if (symbol.includes('JPY')) {
+        return Math.round(price * 1000) / 1000;
+      } else {
+        return Math.round(price * 100000) / 100000;
       }
     }
 
