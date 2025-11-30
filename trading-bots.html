@@ -4,6 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
+  <!-- Redirect to homepage if account not connected -->
+  <script>
+    (function() {
+      try {
+        const oauthTokens = localStorage.getItem('@deriv_oauth_tokens');
+        const apiKey = localStorage.getItem('@deriv_api_key');
+        // If no connection tokens found, redirect to homepage
+        if (!oauthTokens && !apiKey) {
+          window.location.replace('https://magicbotslab.com/');
+        }
+      } catch (e) {
+        // If localStorage is not accessible, redirect to homepage
+        window.location.replace('https://magicbotslab.com/');
+      }
+    })();
+  </script>
+  
   <!-- Primary Meta Tags -->
   <title>Download Free Trading Bots - AI Bots, XAUUSD, Forex, Crypto & Binary Options | Magic Automation Lab</title>
   <meta name="title" content="Download Free Trading Bots - AI Bots, XAUUSD, Forex, Crypto & Binary Options">
@@ -52,13 +69,9 @@
     gtag('config', 'G-4WCDE6D602');
   </script>
   
-  <!-- Favicon - Google Search Results -->
-  <link rel="icon" type="image/x-icon" href="https://magicbotslab.com/favicon.ico">
-  <link rel="shortcut icon" type="image/x-icon" href="https://magicbotslab.com/favicon.ico">
-  <link rel="icon" type="image/svg+xml" href="https://magicbotslab.com/favicon.svg">
-  <link rel="apple-touch-icon" sizes="180x180" href="https://magicbotslab.com/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://magicbotslab.com/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://magicbotslab.com/favicon-16x16.png">
+  <!-- Favicon - Google Search Requirements: SVG for modern browsers, ICO as fallback -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   
   <!-- Structured Data (JSON-LD) -->
   <script type="application/ld+json">

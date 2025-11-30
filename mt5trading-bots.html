@@ -4,6 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
+  <!-- Redirect to homepage if account not connected -->
+  <script>
+    (function() {
+      try {
+        const oauthTokens = localStorage.getItem('@deriv_oauth_tokens');
+        const apiKey = localStorage.getItem('@deriv_api_key');
+        // If no connection tokens found, redirect to homepage
+        if (!oauthTokens && !apiKey) {
+          window.location.replace('https://magicbotslab.com/');
+        }
+      } catch (e) {
+        // If localStorage is not accessible, redirect to homepage
+        window.location.replace('https://magicbotslab.com/');
+      }
+    })();
+  </script>
+  
   <!-- Primary Meta Tags -->
   <title>Download Free MT5 EA - MT5 Expert Advisors, XAUUSD Bots, Forex & Crypto | Magic Automation Lab</title>
   <meta name="title" content="Download Free MT5 EA - MT5 Expert Advisors, XAUUSD Bots, Forex & Crypto">
@@ -52,13 +69,9 @@
     gtag('config', 'G-4WCDE6D602');
   </script>
   
-  <!-- Favicon - Google Search Results -->
-  <link rel="icon" type="image/x-icon" href="https://magicbotslab.com/favicon.ico">
-  <link rel="shortcut icon" type="image/x-icon" href="https://magicbotslab.com/favicon.ico">
-  <link rel="icon" type="image/svg+xml" href="https://magicbotslab.com/favicon.svg">
-  <link rel="apple-touch-icon" sizes="180x180" href="https://magicbotslab.com/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://magicbotslab.com/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://magicbotslab.com/favicon-16x16.png">
+  <!-- Favicon - Google Search Requirements: SVG for modern browsers, ICO as fallback -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   
   <!-- Structured Data (JSON-LD) -->
   <script type="application/ld+json">
@@ -364,6 +377,26 @@
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 12px rgba(0, 255, 163, 0.3), 0 0 24px rgba(36, 217, 112, 0.15);
+        border-color: rgba(0, 255, 163, 0.6);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(0, 255, 163, 0.5), 0 0 40px rgba(36, 217, 112, 0.25);
+        border-color: rgba(0, 255, 163, 0.8);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% center;
+      }
+      100% {
+        background-position: 200% center;
+      }
     }
 
     .market-data-list {
@@ -1221,10 +1254,13 @@
     }
 
     .status-badge[data-state="running"] {
-      background: rgba(36, 217, 112, 0.2);
-      color: var(--success);
-      border: 1px solid rgba(36, 217, 112, 0.4);
-      animation: pulse 2s infinite;
+      background: linear-gradient(135deg, rgba(36, 217, 112, 0.25), rgba(0, 255, 163, 0.2), rgba(36, 217, 112, 0.25));
+      background-size: 200% 100%;
+      color: #00ffa3;
+      border: 1.5px solid rgba(0, 255, 163, 0.6);
+      box-shadow: 0 0 12px rgba(0, 255, 163, 0.3), 0 0 24px rgba(36, 217, 112, 0.15);
+      animation: pulseGlow 2s ease-in-out infinite, shimmer 3s ease-in-out infinite;
+      text-shadow: 0 0 8px rgba(0, 255, 163, 0.5);
     }
 
     .status-badge[data-state="error"] {
@@ -1392,7 +1428,7 @@
             </ul>
             <button class="open-bot-btn" id="startEliteSignalBot" style="margin-top: auto;">Start Signal Analysis</button>
             <div class="signal-bot-status" id="signalBotStatus" style="margin-top: 8px;">
-              <span class="status-badge" id="signalStatusBadge" data-state="idle">Strong Signal Incoming</span>
+              <span class="status-badge" id="signalStatusBadge" data-state="running">Strong Signal Incoming</span>
               <span class="status-text" id="signalStatusText">Ready to analyze markets</span>
             </div>
           </div>
@@ -1924,20 +1960,20 @@
     // Initialize Signal Bot UI
     function initSignalBotUI() {
       return {
-        showStatus(message, type = 'info') {
+        showStatus(message, type = 'info', badgeText = null) {
           signalStatusText.textContent = message;
           if (type === 'error') {
             signalStatusBadge.dataset.state = 'error';
             signalStatusBadge.textContent = 'Error';
           } else if (type === 'success' || type === 'running') {
             signalStatusBadge.dataset.state = 'running';
-            signalStatusBadge.textContent = 'Strong Signal Incoming';
+            signalStatusBadge.textContent = badgeText || 'Strong Signal Incoming';
           } else if (type === 'warning') {
             signalStatusBadge.dataset.state = 'idle';
             signalStatusBadge.textContent = 'Attention';
           } else {
-            signalStatusBadge.dataset.state = 'idle';
-            signalStatusBadge.textContent = 'Strong Signal Incoming';
+            signalStatusBadge.dataset.state = 'running';
+            signalStatusBadge.textContent = badgeText || 'Strong Signal Incoming';
           }
         },
         setRunningState(isRunning) {

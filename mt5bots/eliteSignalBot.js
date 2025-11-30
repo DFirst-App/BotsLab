@@ -136,12 +136,21 @@
       this.swingLows = new Map(); // symbol -> array of swing lows (15M)
       this.trendSignals = new Map(); // symbol -> {4H, 1H, 30M, overall}
       
-      // Symbols to analyze (priority markets)
+      // Symbols to analyze (priority markets - matching Live Markets priority order)
       this.analysisSymbols = [
-        'frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxXAUUSD',
+        // Priority: Most important markets first (USD pairs including Gold)
+        'frxEURUSD', 'frxXAUUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxUSDCHF', 
+        'frxAUDUSD', 'frxUSDCAD', 'frxNZDUSD',
+        // Volatility Markets
         'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
-        'BOOM_1000', 'CRASH_1000'
+        // Boom & Crash
+        'BOOM_1000', 'CRASH_1000',
+        // Other markets
+        'frxEURGBP', 'frxEURJPY', 'frxGBPJPY', 'frxAUDJPY', 'frxEURCHF'
       ];
+      
+      // Track which markets have already generated signals (to prevent duplicates)
+      this.signaledMarkets = new Set();
     }
 
     async start(config) {
@@ -163,7 +172,7 @@
       this.ui.resetHistory();
       this.ui.updateStats(this.getStatsSnapshot());
       this.ui.setRunningState(true);
-      this.ui.showStatus('⚡ Strong Signal Incoming - Analyzing markets...', 'info');
+      this.ui.showStatus('Analyzing markets for high-probability signals...', 'running', 'Strong Signal Incoming');
 
       this.isRunning = true;
       this.stopRequested = false;
@@ -185,25 +194,28 @@
     }
 
     startMarketAnalysis() {
-      // Patience messages to rotate during analysis
-      const patienceMessages = [
-        '⏳ Patience is key in trading. Real profits come from disciplined analysis, not rushed decisions.',
-        '📊 Quality signals take time. We analyze multiple indicators to ensure accuracy.',
-        '💎 Remember: Successful traders wait for the right opportunity, not every opportunity.',
-        '🎯 Trading requires patience. We\'re analyzing markets thoroughly to find high-confidence signals.',
-        '⚡ Good things come to those who wait. We\'re scanning markets for the best entry points.'
+      // Dynamic status messages to rotate during analysis
+      const statusMessages = [
+        { text: 'Verifying signal quality', badge: 'Analyzing' },
+        { text: 'Analyzing market structure', badge: 'Scanning' },
+        { text: 'Confirming trend direction', badge: 'Verifying' },
+        { text: 'Identifying swing points', badge: 'Processing' },
+        { text: 'Calculating entry levels', badge: 'Computing' },
+        { text: 'Validating indicators', badge: 'Analyzing' },
+        { text: 'Preparing signal', badge: 'Finalizing' }
       ];
       let messageIndex = 0;
 
-      // Show rotating patience messages
+      // Show rotating status messages
       this.patienceMessageInterval = setInterval(() => {
         if (!this.isRunning || this.stopRequested) {
           clearInterval(this.patienceMessageInterval);
           return;
         }
-        this.ui.showStatus(patienceMessages[messageIndex], 'info');
-        messageIndex = (messageIndex + 1) % patienceMessages.length;
-      }, 8000); // Change message every 8 seconds
+        const currentMessage = statusMessages[messageIndex];
+        this.ui.showStatus(currentMessage.text, 'info', currentMessage.badge);
+        messageIndex = (messageIndex + 1) % statusMessages.length;
+      }, 3000); // Change message every 3 seconds for more dynamic feel
 
       // Analyze markets every 2 seconds
       this.analysisInterval = setInterval(() => {
@@ -242,8 +254,8 @@
       const pageLoadTime = this.pageLoadTime;
       const timeSincePageLoad = now - pageLoadTime;
       
-      // First signal: 3 seconds after page load
-      const firstSignalDelay = Math.max(0, 3000 - timeSincePageLoad);
+      // First signal: 1 second after page load
+      const firstSignalDelay = Math.max(0, 1000 - timeSincePageLoad);
       setTimeout(() => {
         if (this.isRunning && !this.stopRequested) {
           this.forceSignalGeneration('scheduled');
@@ -283,11 +295,24 @@
         return;
       }
 
-      // Find the best symbol with indicators ready
+      // Reset signaled markets if all have been used
+      if (this.signaledMarkets.size >= this.analysisSymbols.length) {
+        this.signaledMarkets.clear();
+      }
+
+      // Priority markets (most important first, matching Live Markets order)
+      const priorityMarkets = ['frxEURUSD', 'frxXAUUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxUSDCHF', 
+                              'frxAUDUSD', 'frxUSDCAD', 'frxNZDUSD'];
+      
+      // Find the best symbol with indicators ready, prioritizing important markets
       let bestSymbol = null;
       let bestScore = 0;
 
-      for (const symbol of this.analysisSymbols) {
+      // First, try priority markets (EURUSD, XAUUSD, etc.)
+      for (const symbol of priorityMarkets) {
+        // Skip if already signaled
+        if (this.signaledMarkets.has(symbol)) continue;
+        
         const marketData = this.marketDataConnection.getMarketData(symbol);
         if (!marketData || !marketData.price) continue;
 
@@ -299,7 +324,7 @@
 
         // Calculate a quick score to find best candidate
         const { rsi, macd } = indicators;
-        let score = 0;
+        let score = 100; // Base priority score for important markets
         
         // Prefer symbols with clear signals
         if (rsi < 40 || rsi > 60) score += 20;
@@ -311,9 +336,42 @@
         }
       }
 
-      // If no best symbol found, use first available
+      // If no priority market found, try other markets
       if (!bestSymbol) {
         for (const symbol of this.analysisSymbols) {
+          // Skip if already signaled
+          if (this.signaledMarkets.has(symbol)) continue;
+          
+          const marketData = this.marketDataConnection.getMarketData(symbol);
+          if (!marketData || !marketData.price) continue;
+
+          const indicators = this.indicators.get(symbol);
+          if (!indicators) continue;
+
+          const history = this.priceHistory.get(symbol);
+          if (!history || history.length < 20) continue;
+
+          // Calculate a quick score to find best candidate
+          const { rsi, macd } = indicators;
+          let score = 0;
+          
+          // Prefer symbols with clear signals
+          if (rsi < 40 || rsi > 60) score += 20;
+          if (macd.histogram > 0 || macd.histogram < 0) score += 20;
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestSymbol = symbol;
+          }
+        }
+      }
+
+      // If still no best symbol found, use first available (not yet signaled)
+      if (!bestSymbol) {
+        for (const symbol of this.analysisSymbols) {
+          // Skip if already signaled
+          if (this.signaledMarkets.has(symbol)) continue;
+          
           const marketData = this.marketDataConnection.getMarketData(symbol);
           const indicators = this.indicators.get(symbol);
           if (marketData && marketData.price && indicators) {
@@ -743,11 +801,20 @@
       const lastSignal = this.lastSignalTime.get(symbol) || 0;
       if (Date.now() - lastSignal < 120000) return; // 2 minutes
 
+      // Skip if this market has already generated a signal (prevent duplicates)
+      // Reset if all markets have been used
+      if (this.signaledMarkets.size >= this.analysisSymbols.length) {
+        this.signaledMarkets.clear();
+      }
+      if (this.signaledMarkets.has(symbol)) return;
+
       // Multi-indicator signal analysis
       const signal = this.generateSignal(symbol, currentPrice, indicators, history, trendSignal);
       
       if (signal) {
         this.lastSignalTime.set(symbol, Date.now());
+        // Mark this market as having generated a signal (prevent duplicates)
+        this.signaledMarkets.add(symbol);
         this.showSignalPopup(signal);
         this.ui.addHistoryEntry({
           symbol: signal.displayName || symbol,
