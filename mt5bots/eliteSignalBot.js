@@ -741,98 +741,89 @@
       const swingLows = this.swingLows.get(symbol) || [];
       const indicators = this.indicators.get(symbol);
       
-      // Get ATR - primary tool for market-adaptive stop loss
-      const atr = indicators?.atr || 0;
+      if (!candles15M || candles15M.length < 3) {
+        // Fallback to ATR if no candles available yet (always available)
+        if (indicators && indicators.atr > 0) {
+          return this.normalizePrice(symbol, direction === 'BUY' 
+            ? entryPrice - (indicators.atr * 1.5)
+            : entryPrice + (indicators.atr * 1.5));
+        }
+        // Even if no ATR, use a reasonable default based on point value
+        const point = this.getPointValue(symbol);
+        return this.normalizePrice(symbol, direction === 'BUY' 
+          ? entryPrice - (point * 30)
+          : entryPrice + (point * 30));
+      }
+
+      // Get point value for this symbol (approximate)
       const point = this.getPointValue(symbol);
-      
-      // Calculate minimum stop distance based on ATR (2-3x ATR for good distance)
-      const minStopDistanceATR = atr > 0 ? (atr * 2.5) : (point * 50); // 2.5x ATR minimum
-      const maxStopDistanceATR = atr > 0 ? (atr * 5.0) : (point * 500); // 5x ATR maximum
-      
+      const minStopDistance = point * 10; // Minimum 10 pips
+      const maxStopDistance = point * 200; // Maximum 200 pips
+
       let stopLoss = 0;
-      let useStructure = false;
 
-      if (candles15M && candles15M.length >= 5) {
-        if (direction === 'BUY') {
-          // Find nearest support level (swing low) below entry
-          const supports = swingLows
-            .filter(sl => sl.price < entryPrice && (entryPrice - sl.price) >= minStopDistanceATR)
-            .sort((a, b) => b.price - a.price); // Sort descending (closest to entry first)
+      if (direction === 'BUY') {
+        // Find nearest support level (swing low) below entry
+        const supports = swingLows
+          .filter(sl => sl.price < entryPrice)
+          .sort((a, b) => b.price - a.price); // Sort descending (closest to entry first)
 
-          if (supports.length > 0) {
-            const nearestSupport = supports[0].price;
-            // Use ATR-based buffer (1x ATR) to place stop below support
-            const buffer = atr > 0 ? atr : (point * 20);
-            stopLoss = nearestSupport - buffer;
-            useStructure = true;
-          } else {
-            // Use recent low from candles with ATR buffer
-            const recentLows = candles15M.slice(-30).map(c => c.low);
-            const lowestLow = Math.min(...recentLows);
-            if (lowestLow < entryPrice && (entryPrice - lowestLow) >= minStopDistanceATR) {
-              const buffer = atr > 0 ? atr : (point * 20);
-              stopLoss = lowestLow - buffer;
-              useStructure = true;
-            }
-          }
+        if (supports.length > 0) {
+          const nearestSupport = supports[0].price;
+          const atr = indicators?.atr || 0;
+          const buffer = Math.max(atr * 0.5, point * 10); // Half ATR or 10 pips
+          stopLoss = nearestSupport - buffer;
         } else {
-          // SELL: Find nearest resistance level (swing high) above entry
-          const resistances = swingHighs
-            .filter(sh => sh.price > entryPrice && (sh.price - entryPrice) >= minStopDistanceATR)
-            .sort((a, b) => a.price - b.price); // Sort ascending (closest to entry first)
-
-          if (resistances.length > 0) {
-            const nearestResistance = resistances[0].price;
-            // Use ATR-based buffer (1x ATR) to place stop above resistance
-            const buffer = atr > 0 ? atr : (point * 20);
-            stopLoss = nearestResistance + buffer;
-            useStructure = true;
+          // Use recent low from candles
+          const recentLows = candles15M.slice(-20).map(c => c.low);
+          const lowestLow = Math.min(...recentLows);
+          if (lowestLow < entryPrice) {
+            const atr = indicators?.atr || 0;
+            const buffer = Math.max(atr * 0.5, point * 10);
+            stopLoss = lowestLow - buffer;
           } else {
-            // Use recent high from candles with ATR buffer
-            const recentHighs = candles15M.slice(-30).map(c => c.high);
-            const highestHigh = Math.max(...recentHighs);
-            if (highestHigh > entryPrice && (highestHigh - entryPrice) >= minStopDistanceATR) {
-              const buffer = atr > 0 ? atr : (point * 20);
-              stopLoss = highestHigh + buffer;
-              useStructure = true;
-            }
+            // Fallback to ATR
+            const atr = indicators?.atr || point * 30;
+            stopLoss = entryPrice - (atr * 1.5);
+          }
+        }
+      } else {
+        // SELL: Find nearest resistance level (swing high) above entry
+        const resistances = swingHighs
+          .filter(sh => sh.price > entryPrice)
+          .sort((a, b) => a.price - b.price); // Sort ascending (closest to entry first)
+
+        if (resistances.length > 0) {
+          const nearestResistance = resistances[0].price;
+          const atr = indicators?.atr || 0;
+          const buffer = Math.max(atr * 0.5, point * 10);
+          stopLoss = nearestResistance + buffer;
+        } else {
+          // Use recent high from candles
+          const recentHighs = candles15M.slice(-20).map(c => c.high);
+          const highestHigh = Math.max(...recentHighs);
+          if (highestHigh > entryPrice) {
+            const atr = indicators?.atr || 0;
+            const buffer = Math.max(atr * 0.5, point * 10);
+            stopLoss = highestHigh + buffer;
+          } else {
+            // Fallback to ATR
+            const atr = indicators?.atr || point * 30;
+            stopLoss = entryPrice + (atr * 1.5);
           }
         }
       }
 
-      // If no structure found or not enough data, use ATR-based stop
-      if (!useStructure) {
-        if (atr > 0) {
-          // Use 2.5x ATR for good distance (not too tight, not too wide)
-          stopLoss = direction === 'BUY' 
-            ? entryPrice - (atr * 2.5)
-            : entryPrice + (atr * 2.5);
-        } else {
-          // Fallback based on market type
-          if (symbol.includes('XAU') || symbol.includes('XAG')) {
-            stopLoss = direction === 'BUY' ? entryPrice - 2.0 : entryPrice + 2.0; // Gold: $2
-          } else if (symbol.startsWith('R_') || symbol.includes('BOOM') || symbol.includes('CRASH')) {
-            stopLoss = direction === 'BUY' ? entryPrice - 0.5 : entryPrice + 0.5; // Volatility: 0.5
-          } else if (symbol.includes('JPY')) {
-            stopLoss = direction === 'BUY' ? entryPrice - 0.5 : entryPrice + 0.5; // JPY: 50 pips
-          } else {
-            stopLoss = direction === 'BUY' ? entryPrice - 0.0050 : entryPrice + 0.0050; // Forex: 50 pips
-          }
-        }
-      }
-
-      // Validate stop loss distance (ensure it's within reasonable range)
+      // Validate stop loss distance
       const stopDistance = Math.abs(entryPrice - stopLoss);
-      if (stopDistance < minStopDistanceATR) {
-        // Too tight - use minimum ATR distance
+      if (stopDistance < minStopDistance) {
         stopLoss = direction === 'BUY' 
-          ? entryPrice - minStopDistanceATR
-          : entryPrice + minStopDistanceATR;
-      } else if (stopDistance > maxStopDistanceATR) {
-        // Too wide - cap at maximum
+          ? entryPrice - minStopDistance
+          : entryPrice + minStopDistance;
+      } else if (stopDistance > maxStopDistance) {
         stopLoss = direction === 'BUY'
-          ? entryPrice - maxStopDistanceATR
-          : entryPrice + maxStopDistanceATR;
+          ? entryPrice - maxStopDistance
+          : entryPrice + maxStopDistance;
       }
 
       return this.normalizePrice(symbol, stopLoss);
@@ -844,142 +835,83 @@
       const swingLows = this.swingLows.get(symbol) || [];
       const indicators = this.indicators.get(symbol);
       
+      if (!candles15M || candles15M.length < 3) {
+        // Fallback to risk:reward if no candles (always works)
+        const stopDistance = Math.abs(entryPrice - stopLoss);
+        if (direction === 'BUY') {
+          return {
+            tp1: this.normalizePrice(symbol, entryPrice + (stopDistance * 1.5)),
+            tp2: this.normalizePrice(symbol, entryPrice + (stopDistance * 2.5)),
+            tp3: this.normalizePrice(symbol, entryPrice + (stopDistance * 4.0))
+          };
+        } else {
+          return {
+            tp1: this.normalizePrice(symbol, entryPrice - (stopDistance * 1.5)),
+            tp2: this.normalizePrice(symbol, entryPrice - (stopDistance * 2.5)),
+            tp3: this.normalizePrice(symbol, entryPrice - (stopDistance * 4.0))
+          };
+        }
+      }
+
       const stopDistance = Math.abs(entryPrice - stopLoss);
-      const atr = indicators?.atr || 0;
+      const minRR = 1.2; // Minimum 1.2:1 risk:reward
       const point = this.getPointValue(symbol);
-      
-      // Minimum TP distance based on ATR (realistic market moves)
-      const minTPDistanceATR = atr > 0 ? (atr * 2.0) : (stopDistance * 1.5); // At least 2x ATR or 1.5x stop distance
-      const minRR = 1.5; // Minimum 1.5:1 risk:reward for realistic TPs
 
       let tps = { tp1: 0, tp2: 0, tp3: 0 };
-      let useStructure = false;
 
-      if (candles15M && candles15M.length >= 5) {
-        if (direction === 'BUY') {
-          // Find next resistance levels above entry (must be realistic distance)
-          const resistances = swingHighs
-            .filter(sh => {
-              const distance = sh.price - entryPrice;
-              return sh.price > entryPrice && distance >= minTPDistanceATR && distance >= (stopDistance * minRR);
-            })
-            .sort((a, b) => a.price - b.price); // Sort ascending
+      if (direction === 'BUY') {
+        // Find next resistance levels above entry
+        const resistances = swingHighs
+          .filter(sh => sh.price > entryPrice)
+          .sort((a, b) => a.price - b.price); // Sort ascending
 
-          let tpCount = 0;
-          // Use first 3 resistance levels that meet minimum requirements
-          for (let i = 0; i < resistances.length && tpCount < 3; i++) {
-            const resistance = resistances[i].price;
-            // Ensure TPs are spaced reasonably (at least 1x ATR apart)
-            const minSpacing = atr > 0 ? atr : (stopDistance * 0.5);
-            const canUse = tpCount === 0 || 
-                          (tpCount === 1 && Math.abs(resistance - tps.tp1) >= minSpacing) ||
-                          (tpCount === 2 && Math.abs(resistance - tps.tp1) >= minSpacing && 
-                                          Math.abs(resistance - tps.tp2) >= minSpacing);
-            
-            if (canUse) {
-              if (tpCount === 0) tps.tp1 = resistance;
-              else if (tpCount === 1) tps.tp2 = resistance;
-              else if (tpCount === 2) tps.tp3 = resistance;
-              tpCount++;
-              useStructure = true;
-            }
-          }
-        } else {
-          // SELL: Find next support levels below entry
-          const supports = swingLows
-            .filter(sl => {
-              const distance = entryPrice - sl.price;
-              return sl.price < entryPrice && distance >= minTPDistanceATR && distance >= (stopDistance * minRR);
-            })
-            .sort((a, b) => b.price - a.price); // Sort descending
+        const minTP = entryPrice + (stopDistance * minRR);
+        let tpCount = 0;
 
-          let tpCount = 0;
-          // Use first 3 support levels that meet minimum requirements
-          for (let i = 0; i < supports.length && tpCount < 3; i++) {
-            const support = supports[i].price;
-            // Ensure TPs are spaced reasonably
-            const minSpacing = atr > 0 ? atr : (stopDistance * 0.5);
-            const canUse = tpCount === 0 || 
-                          (tpCount === 1 && Math.abs(support - tps.tp1) >= minSpacing) ||
-                          (tpCount === 2 && Math.abs(support - tps.tp1) >= minSpacing && 
-                                          Math.abs(support - tps.tp2) >= minSpacing);
-            
-            if (canUse) {
-              if (tpCount === 0) tps.tp1 = support;
-              else if (tpCount === 1) tps.tp2 = support;
-              else if (tpCount === 2) tps.tp3 = support;
-              tpCount++;
-              useStructure = true;
-            }
+        // Use first 3 resistance levels that meet minimum R:R
+        for (let i = 0; i < resistances.length && tpCount < 3; i++) {
+          if (resistances[i].price >= minTP) {
+            if (tpCount === 0) tps.tp1 = resistances[i].price;
+            else if (tpCount === 1) tps.tp2 = resistances[i].price;
+            else if (tpCount === 2) tps.tp3 = resistances[i].price;
+            tpCount++;
           }
         }
-      }
 
-      // Fill remaining TPs with ATR-based Fibonacci extensions (realistic market moves)
-      if (!useStructure || tps.tp1 === 0) {
-        // No structure found, use ATR-based TPs
-        const baseMultipliers = atr > 0 
-          ? [2.0, 3.5, 5.5] // ATR-based: 2x, 3.5x, 5.5x ATR from entry
-          : [1.5, 2.5, 4.0]; // Risk:reward fallback
-        
-        if (direction === 'BUY') {
-          tps.tp1 = entryPrice + (atr > 0 ? (atr * baseMultipliers[0]) : (stopDistance * baseMultipliers[0]));
-          tps.tp2 = entryPrice + (atr > 0 ? (atr * baseMultipliers[1]) : (stopDistance * baseMultipliers[1]));
-          tps.tp3 = entryPrice + (atr > 0 ? (atr * baseMultipliers[2]) : (stopDistance * baseMultipliers[2]));
-        } else {
-          tps.tp1 = entryPrice - (atr > 0 ? (atr * baseMultipliers[0]) : (stopDistance * baseMultipliers[0]));
-          tps.tp2 = entryPrice - (atr > 0 ? (atr * baseMultipliers[1]) : (stopDistance * baseMultipliers[1]));
-          tps.tp3 = entryPrice - (atr > 0 ? (atr * baseMultipliers[2]) : (stopDistance * baseMultipliers[2]));
+        // Fill remaining TPs with Fibonacci extensions if needed
+        const fibExtensions = [1.5, 2.5, 4.0];
+        for (let i = tpCount; i < 3; i++) {
+          const fibTP = entryPrice + (stopDistance * fibExtensions[i]);
+          if (i === 0) tps.tp1 = fibTP;
+          else if (i === 1) tps.tp2 = fibTP;
+          else if (i === 2) tps.tp3 = fibTP;
         }
       } else {
-        // Fill remaining TPs with ATR-based extensions if structure didn't provide all 3
-        if (tps.tp2 === 0) {
-          // Calculate TP2 based on TP1 distance or ATR
-          const tp1Distance = Math.abs(tps.tp1 - entryPrice);
-          if (direction === 'BUY') {
-            tps.tp2 = tps.tp1 + (atr > 0 ? (atr * 1.5) : (tp1Distance * 0.5));
-          } else {
-            tps.tp2 = tps.tp1 - (atr > 0 ? (atr * 1.5) : (tp1Distance * 0.5));
+        // SELL: Find next support levels below entry
+        const supports = swingLows
+          .filter(sl => sl.price < entryPrice)
+          .sort((a, b) => b.price - a.price); // Sort descending
+
+        const minTP = entryPrice - (stopDistance * minRR);
+        let tpCount = 0;
+
+        // Use first 3 support levels that meet minimum R:R
+        for (let i = 0; i < supports.length && tpCount < 3; i++) {
+          if (supports[i].price <= minTP) {
+            if (tpCount === 0) tps.tp1 = supports[i].price;
+            else if (tpCount === 1) tps.tp2 = supports[i].price;
+            else if (tpCount === 2) tps.tp3 = supports[i].price;
+            tpCount++;
           }
         }
-        if (tps.tp3 === 0) {
-          // Calculate TP3 based on TP2 distance or ATR
-          const tp2Distance = Math.abs(tps.tp2 - entryPrice);
-          if (direction === 'BUY') {
-            tps.tp3 = tps.tp2 + (atr > 0 ? (atr * 2.0) : (tp2Distance * 0.6));
-          } else {
-            tps.tp3 = tps.tp2 - (atr > 0 ? (atr * 2.0) : (tp2Distance * 0.6));
-          }
-        }
-      }
 
-      // Ensure minimum R:R ratios
-      const rr1 = stopDistance > 0 ? (Math.abs(tps.tp1 - entryPrice) / stopDistance) : 0;
-      const rr2 = stopDistance > 0 ? (Math.abs(tps.tp2 - entryPrice) / stopDistance) : 0;
-      const rr3 = stopDistance > 0 ? (Math.abs(tps.tp3 - entryPrice) / stopDistance) : 0;
-
-      if (rr1 < minRR && tps.tp1 !== 0) {
-        // Adjust TP1 to meet minimum R:R
-        if (direction === 'BUY') {
-          tps.tp1 = entryPrice + (stopDistance * minRR);
-        } else {
-          tps.tp1 = entryPrice - (stopDistance * minRR);
-        }
-      }
-      if (rr2 < (minRR * 1.5) && tps.tp2 !== 0) {
-        // Adjust TP2
-        if (direction === 'BUY') {
-          tps.tp2 = entryPrice + (stopDistance * minRR * 1.5);
-        } else {
-          tps.tp2 = entryPrice - (stopDistance * minRR * 1.5);
-        }
-      }
-      if (rr3 < (minRR * 2.0) && tps.tp3 !== 0) {
-        // Adjust TP3
-        if (direction === 'BUY') {
-          tps.tp3 = entryPrice + (stopDistance * minRR * 2.0);
-        } else {
-          tps.tp3 = entryPrice - (stopDistance * minRR * 2.0);
+        // Fill remaining TPs with Fibonacci extensions if needed
+        const fibExtensions = [1.5, 2.5, 4.0];
+        for (let i = tpCount; i < 3; i++) {
+          const fibTP = entryPrice - (stopDistance * fibExtensions[i]);
+          if (i === 0) tps.tp1 = fibTP;
+          else if (i === 1) tps.tp2 = fibTP;
+          else if (i === 2) tps.tp3 = fibTP;
         }
       }
 
@@ -1312,7 +1244,7 @@
         padding: 8px 12px;
         background: rgba(0, 210, 255, 0.1);
         border-radius: 10px;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
         border: 1px solid rgba(0, 210, 255, 0.2);
       `;
       const entryLabel = document.createElement('span');
@@ -1326,95 +1258,130 @@
       entryRow.appendChild(entryLabel);
       entryRow.appendChild(entryValue);
 
-      // Stop Loss
-      const slRow = document.createElement('div');
-      slRow.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(255, 95, 109, 0.1);
+      // Trading Tip
+      const tipBox = document.createElement('div');
+      tipBox.style.cssText = `
+        background: rgba(255, 193, 7, 0.15);
+        border: 1px solid rgba(255, 193, 7, 0.4);
         border-radius: 10px;
-        margin-bottom: 8px;
-        border: 1px solid rgba(255, 95, 109, 0.2);
-      `;
-      const slLabel = document.createElement('span');
-      slLabel.textContent = 'Stop Loss';
-      slLabel.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
-      const slValue = document.createElement('span');
-      slValue.textContent = details.stopLoss;
-      slValue.style.cssText = 'color: #ff5f6d; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
-      const slCopyBtn = createCopyButton(details.stopLoss, 'Stop Loss');
-      slValue.appendChild(slCopyBtn);
-      slRow.appendChild(slLabel);
-      slRow.appendChild(slValue);
-
-      // Take Profits
-      const tp1Row = document.createElement('div');
-      tp1Row.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(36, 217, 112, 0.1);
-        border-radius: 10px;
-        margin-bottom: 6px;
-        border: 1px solid rgba(36, 217, 112, 0.2);
-      `;
-      const tp1Label = document.createElement('span');
-      tp1Label.textContent = `TP1 (R:R ${details.riskReward1})`;
-      tp1Label.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
-      const tp1Value = document.createElement('span');
-      tp1Value.textContent = details.takeProfit1;
-      tp1Value.style.cssText = 'color: #24d970; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
-      const tp1CopyBtn = createCopyButton(details.takeProfit1, 'Take Profit 1');
-      tp1Value.appendChild(tp1CopyBtn);
-      tp1Row.appendChild(tp1Label);
-      tp1Row.appendChild(tp1Value);
-
-      const tp2Row = document.createElement('div');
-      tp2Row.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(36, 217, 112, 0.1);
-        border-radius: 10px;
-        margin-bottom: 6px;
-        border: 1px solid rgba(36, 217, 112, 0.2);
-      `;
-      const tp2Label = document.createElement('span');
-      tp2Label.textContent = `TP2 (R:R ${details.riskReward2})`;
-      tp2Label.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
-      const tp2Value = document.createElement('span');
-      tp2Value.textContent = details.takeProfit2;
-      tp2Value.style.cssText = 'color: #24d970; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
-      const tp2CopyBtn = createCopyButton(details.takeProfit2, 'Take Profit 2');
-      tp2Value.appendChild(tp2CopyBtn);
-      tp2Row.appendChild(tp2Label);
-      tp2Row.appendChild(tp2Value);
-
-      const tp3Row = document.createElement('div');
-      tp3Row.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        background: rgba(36, 217, 112, 0.1);
-        border-radius: 10px;
+        padding: 12px;
         margin-bottom: 12px;
-        border: 1px solid rgba(36, 217, 112, 0.2);
       `;
-      const tp3Label = document.createElement('span');
-      tp3Label.textContent = `TP3 (R:R ${details.riskReward3})`;
-      tp3Label.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
-      const tp3Value = document.createElement('span');
-      tp3Value.textContent = details.takeProfit3;
-      tp3Value.style.cssText = 'color: #24d970; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: center;';
-      const tp3CopyBtn = createCopyButton(details.takeProfit3, 'Take Profit 3');
-      tp3Value.appendChild(tp3CopyBtn);
-      tp3Row.appendChild(tp3Label);
-      tp3Row.appendChild(tp3Value);
+      const tipIcon = document.createElement('div');
+      tipIcon.textContent = '💡';
+      tipIcon.style.cssText = 'font-size: 18px; margin-bottom: 6px; text-align: center;';
+      const tipText = document.createElement('div');
+      tipText.innerHTML = `
+        <div style="color: rgba(255, 255, 255, 0.9); font-size: 12px; line-height: 1.5; text-align: center;">
+          <strong style="color: #ffc107;">Trading Tip:</strong><br>
+          Set your stop loss ${signal.direction === 'BUY' ? 'below' : 'above'} the nearest swing ${signal.direction === 'BUY' ? 'low' : 'high'} on the 15-minute chart. 
+          Set 3 take profit levels targeting important resistance/support levels for optimal risk management.
+        </div>
+      `;
+      tipBox.appendChild(tipIcon);
+      tipBox.appendChild(tipText);
+
+      // Account Info Section
+      const accountSection = document.createElement('div');
+      accountSection.style.cssText = `
+        background: rgba(0, 210, 255, 0.08);
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+      `;
+
+      // Get account info from marketDataConnection
+      const accountInfo = this.marketDataConnection?.accountInfo || null;
+      // Check for MT5 accounts - try multiple possible properties
+      const mt5Accounts = this.marketDataConnection?.mt5Accounts || 
+                         this.marketDataConnection?.mt5AccountInfo || 
+                         (this.marketDataConnection?.accountInfo?.mt5Accounts) || 
+                         [];
+      const hasMT5Account = Array.isArray(mt5Accounts) ? mt5Accounts.length > 0 : (mt5Accounts && Object.keys(mt5Accounts).length > 0);
+
+      if (accountInfo && accountInfo.balance !== undefined) {
+        const balanceRow = document.createElement('div');
+        balanceRow.style.cssText = `
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        `;
+        const balanceLabel = document.createElement('span');
+        balanceLabel.textContent = 'Account Balance';
+        balanceLabel.style.cssText = 'color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 600;';
+        const balanceValue = document.createElement('span');
+        balanceValue.textContent = `${accountInfo.balance.toFixed(2)} ${accountInfo.currency || 'USD'}`;
+        balanceValue.style.cssText = 'color: #24d970; font-size: 14px; font-weight: 700;';
+        balanceRow.appendChild(balanceLabel);
+        balanceRow.appendChild(balanceValue);
+        accountSection.appendChild(balanceRow);
+      }
+
+      // Deposit Button
+      const depositBtn = document.createElement('a');
+      depositBtn.href = 'https://p2p.deriv.com/advertiser/426826?advert_id=3182910&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+      depositBtn.target = '_blank';
+      depositBtn.rel = 'noopener';
+      depositBtn.textContent = '💰 Deposit to Account';
+      depositBtn.style.cssText = `
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 2px solid #24d970;
+        background: rgba(36, 217, 112, 0.2);
+        color: #24d970;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        margin-bottom: ${hasMT5Account ? '0' : '10px'};
+        transition: all 0.2s ease;
+      `;
+      depositBtn.onmouseover = () => {
+        depositBtn.style.background = 'rgba(36, 217, 112, 0.3)';
+        depositBtn.style.transform = 'translateY(-2px)';
+      };
+      depositBtn.onmouseout = () => {
+        depositBtn.style.background = 'rgba(36, 217, 112, 0.2)';
+        depositBtn.style.transform = 'translateY(0)';
+      };
+      accountSection.appendChild(depositBtn);
+
+      // Create MT5 Account Button (if no MT5 account)
+      if (!hasMT5Account) {
+        const createMT5Btn = document.createElement('a');
+        createMT5Btn.href = 'https://app.deriv.com/?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+        createMT5Btn.target = '_blank';
+        createMT5Btn.rel = 'noopener';
+        createMT5Btn.textContent = '📊 Create MT5 Account';
+        createMT5Btn.style.cssText = `
+          width: 100%;
+          padding: 10px;
+          border-radius: 8px;
+          border: 2px solid #00d2ff;
+          background: rgba(0, 210, 255, 0.2);
+          color: #00d2ff;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          text-align: center;
+          text-decoration: none;
+          display: block;
+          transition: all 0.2s ease;
+        `;
+        createMT5Btn.onmouseover = () => {
+          createMT5Btn.style.background = 'rgba(0, 210, 255, 0.3)';
+          createMT5Btn.style.transform = 'translateY(-2px)';
+        };
+        createMT5Btn.onmouseout = () => {
+          createMT5Btn.style.background = 'rgba(0, 210, 255, 0.2)';
+          createMT5Btn.style.transform = 'translateY(0)';
+        };
+        accountSection.appendChild(createMT5Btn);
+      }
 
       const closeBtn = document.createElement('button');
       closeBtn.textContent = 'Got It';
@@ -1447,10 +1414,8 @@
       popup.appendChild(symbolName);
       popup.appendChild(confidenceBadge);
       popup.appendChild(entryRow);
-      popup.appendChild(slRow);
-      popup.appendChild(tp1Row);
-      popup.appendChild(tp2Row);
-      popup.appendChild(tp3Row);
+      popup.appendChild(tipBox);
+      popup.appendChild(accountSection);
       popup.appendChild(closeBtn);
 
       container.appendChild(popup);
