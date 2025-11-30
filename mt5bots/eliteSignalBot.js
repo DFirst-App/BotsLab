@@ -120,6 +120,12 @@
       this.storedToken = null;
       this.analysisInterval = null;
       this.patienceMessageInterval = null;
+      this.signalScheduler = null;
+      this.scheduledSignalsCount = 0;
+      // Use performance.timing if available, otherwise use current time
+      this.pageLoadTime = (typeof performance !== 'undefined' && performance.timing && performance.timing.navigationStart) 
+        ? performance.timing.navigationStart 
+        : Date.now();
       
       // Multi-timeframe candle data
       this.candles15M = new Map(); // symbol -> array of 15M candles
@@ -157,15 +163,25 @@
       this.ui.resetHistory();
       this.ui.updateStats(this.getStatsSnapshot());
       this.ui.setRunningState(true);
-      this.ui.showStatus('⏳ Patience is key in trading. Real profits come from disciplined analysis, not rushed decisions. Analyzing markets...', 'info');
+      this.ui.showStatus('⚡ Strong Signal Incoming - Analyzing markets...', 'info');
 
       this.isRunning = true;
       this.stopRequested = false;
       this.startTime = new Date();
+      // Use actual page load time if available, otherwise use current time
+      if (typeof window !== 'undefined' && window.performance && window.performance.timing) {
+        this.pageLoadTime = window.performance.timing.navigationStart || Date.now();
+      } else {
+        this.pageLoadTime = Date.now();
+      }
+      this.scheduledSignalsCount = 0;
       this.startRunningTimer();
 
       // Start analyzing markets
       this.startMarketAnalysis();
+      
+      // Start scheduled signal generation
+      this.startScheduledSignals();
     }
 
     startMarketAnalysis() {
@@ -214,6 +230,112 @@
       if (this.patienceMessageInterval) {
         clearInterval(this.patienceMessageInterval);
         this.patienceMessageInterval = null;
+      }
+      if (this.signalScheduler) {
+        clearTimeout(this.signalScheduler);
+        this.signalScheduler = null;
+      }
+    }
+
+    startScheduledSignals() {
+      const now = Date.now();
+      const pageLoadTime = this.pageLoadTime;
+      const timeSincePageLoad = now - pageLoadTime;
+      
+      // First signal: 3 seconds after page load
+      const firstSignalDelay = Math.max(0, 3000 - timeSincePageLoad);
+      setTimeout(() => {
+        if (this.isRunning && !this.stopRequested) {
+          this.forceSignalGeneration('scheduled');
+        }
+      }, firstSignalDelay);
+
+      // Second signal: 10 seconds after page load
+      const secondSignalDelay = Math.max(0, 10000 - timeSincePageLoad);
+      setTimeout(() => {
+        if (this.isRunning && !this.stopRequested) {
+          this.forceSignalGeneration('scheduled');
+        }
+      }, secondSignalDelay);
+
+      // Third signal: 30 seconds after page load
+      const thirdSignalDelay = Math.max(0, 30000 - timeSincePageLoad);
+      setTimeout(() => {
+        if (this.isRunning && !this.stopRequested) {
+          this.forceSignalGeneration('scheduled');
+        }
+      }, thirdSignalDelay);
+
+      // Next 3 signals: every 5 minutes (300000ms) after page load
+      for (let i = 0; i < 3; i++) {
+        const signalTime = 300000 * (i + 1); // 5min, 10min, 15min after page load
+        const delay = Math.max(0, signalTime - timeSincePageLoad);
+        setTimeout(() => {
+          if (this.isRunning && !this.stopRequested) {
+            this.forceSignalGeneration('scheduled');
+          }
+        }, delay);
+      }
+    }
+
+    forceSignalGeneration(reason = 'forced') {
+      if (!this.marketDataConnection || !this.marketDataConnection.isConnected) {
+        return;
+      }
+
+      // Find the best symbol with indicators ready
+      let bestSymbol = null;
+      let bestScore = 0;
+
+      for (const symbol of this.analysisSymbols) {
+        const marketData = this.marketDataConnection.getMarketData(symbol);
+        if (!marketData || !marketData.price) continue;
+
+        const indicators = this.indicators.get(symbol);
+        if (!indicators) continue;
+
+        const history = this.priceHistory.get(symbol);
+        if (!history || history.length < 20) continue;
+
+        // Calculate a quick score to find best candidate
+        const { rsi, macd } = indicators;
+        let score = 0;
+        
+        // Prefer symbols with clear signals
+        if (rsi < 40 || rsi > 60) score += 20;
+        if (macd.histogram > 0 || macd.histogram < 0) score += 20;
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestSymbol = symbol;
+        }
+      }
+
+      // If no best symbol found, use first available
+      if (!bestSymbol) {
+        for (const symbol of this.analysisSymbols) {
+          const marketData = this.marketDataConnection.getMarketData(symbol);
+          const indicators = this.indicators.get(symbol);
+          if (marketData && marketData.price && indicators) {
+            bestSymbol = symbol;
+            break;
+          }
+        }
+      }
+
+      if (bestSymbol) {
+        const marketData = this.marketDataConnection.getMarketData(bestSymbol);
+        // Temporarily bypass cooldown for scheduled signals
+        const originalLastSignal = this.lastSignalTime.get(bestSymbol);
+        this.lastSignalTime.set(bestSymbol, 0); // Reset cooldown
+        
+        // Force signal check
+        this.checkForSignal(bestSymbol, marketData);
+        
+        // Restore original cooldown if it was recent
+        if (originalLastSignal && (Date.now() - originalLastSignal) < 60000) {
+          this.lastSignalTime.set(bestSymbol, originalLastSignal);
+        }
       }
     }
 

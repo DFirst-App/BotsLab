@@ -784,6 +784,21 @@
         padding: 4px 8px;
         font-size: 9px;
       }
+
+      .signal-history-section {
+        padding: 12px;
+        border-radius: 12px;
+      }
+
+      .signal-history-item {
+        padding: 8px 10px;
+        border-radius: 8px;
+      }
+
+      .signal-history-list {
+        max-height: 250px;
+        gap: 6px;
+      }
     }
 
     /* Bot Card Styles (for signal bot) */
@@ -1225,19 +1240,19 @@
     }
 
     .signal-history-section {
-      margin-top: 32px;
+      margin-top: 24px;
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 24px;
+      border-radius: 16px;
+      padding: 16px;
       box-shadow: 0 8px 24px rgba(4, 6, 12, 0.4);
     }
 
     .signal-history-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      max-height: 400px;
+      gap: 8px;
+      max-height: 300px;
       overflow-y: auto;
     }
 
@@ -1258,11 +1273,11 @@
     .signal-history-item {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 10px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 4px;
       transition: all 0.2s ease;
     }
 
@@ -1377,7 +1392,7 @@
             </ul>
             <button class="open-bot-btn" id="startEliteSignalBot" style="margin-top: auto;">Start Signal Analysis</button>
             <div class="signal-bot-status" id="signalBotStatus" style="margin-top: 8px;">
-              <span class="status-badge" id="signalStatusBadge" data-state="idle">Idle</span>
+              <span class="status-badge" id="signalStatusBadge" data-state="idle">Strong Signal Incoming</span>
               <span class="status-text" id="signalStatusText">Ready to analyze markets</span>
             </div>
           </div>
@@ -1419,7 +1434,7 @@
 
         <!-- Signal History -->
         <div class="signal-history-section" id="signalHistorySection" style="display: none; grid-column: 1 / -1; margin-top: 24px;">
-          <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600;">Signal History</h3>
+          <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 600;">Signal History</h3>
           <div class="signal-history-list" id="signalHistoryList">
             <!-- Signals will appear here -->
           </div>
@@ -1916,13 +1931,13 @@
             signalStatusBadge.textContent = 'Error';
           } else if (type === 'success' || type === 'running') {
             signalStatusBadge.dataset.state = 'running';
-            signalStatusBadge.textContent = 'Running';
+            signalStatusBadge.textContent = 'Strong Signal Incoming';
           } else if (type === 'warning') {
             signalStatusBadge.dataset.state = 'idle';
             signalStatusBadge.textContent = 'Attention';
           } else {
             signalStatusBadge.dataset.state = 'idle';
-            signalStatusBadge.textContent = 'Idle';
+            signalStatusBadge.textContent = 'Strong Signal Incoming';
           }
         },
         setRunningState(isRunning) {
@@ -1942,7 +1957,7 @@
           const directionClass = entry.direction === 'BUY' ? 'buy' : 'sell';
           const directionIcon = entry.direction === 'BUY' ? '📈' : '📉';
           
-          // Format prices
+          // Format entry price
           const formatPrice = (price) => {
             if (entry.symbol.includes('XAU') || entry.symbol.includes('XAG')) {
               return price.toFixed(2);
@@ -1952,38 +1967,31 @@
             return price.toFixed(5);
           };
 
+          // Format timestamp
+          const formatTime = (timestamp) => {
+            if (!timestamp) return 'Just now';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          };
+
           item.innerHTML = `
-            <div class="signal-history-header">
-              <span class="signal-symbol">${entry.symbol || 'N/A'}</span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="signal-confidence">${entry.confidence || 0}% Confidence</span>
-                <span class="signal-direction ${directionClass.toLowerCase()}">${directionIcon} ${entry.direction}</span>
+            <div class="signal-history-header" style="margin-bottom: 4px;">
+              <span class="signal-symbol" style="font-size: 14px;">${entry.symbol || 'N/A'}</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="signal-confidence" style="font-size: 10px; padding: 2px 8px;">${entry.confidence || 0}%</span>
+                <span class="signal-direction ${directionClass.toLowerCase()}" style="font-size: 11px; padding: 3px 10px;">${directionIcon} ${entry.direction}</span>
               </div>
             </div>
-            <div class="signal-details">
-              <div class="signal-detail-item">
-                <span class="signal-detail-label">Entry</span>
-                <span class="signal-detail-value">${formatPrice(entry.entryPrice)}</span>
-              </div>
-              <div class="signal-detail-item">
-                <span class="signal-detail-label">Stop Loss</span>
-                <span class="signal-detail-value" style="color: var(--danger);">${formatPrice(entry.stopLoss)}</span>
-              </div>
-              <div class="signal-detail-item">
-                <span class="signal-detail-label">TP1</span>
-                <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit1)}</span>
-              </div>
-              <div class="signal-detail-item">
-                <span class="signal-detail-label">TP2</span>
-                <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit2)}</span>
-              </div>
-              <div class="signal-detail-item">
-                <span class="signal-detail-label">TP3</span>
-                <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit3)}</span>
-              </div>
-            </div>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">
-              ${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'Just now'}
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+              <span style="color: var(--muted);">Entry: <strong style="color: var(--text);">${formatPrice(entry.entryPrice)}</strong></span>
+              <span style="color: var(--muted);">${formatTime(entry.timestamp)}</span>
             </div>
           `;
 
@@ -2101,40 +2109,32 @@
             const directionIcon = entry.direction === 'BUY' ? '📈' : '📉';
             
             const formatPrice = (price) => price.toFixed(2);
+            
+            const formatTime = (timestamp) => {
+              if (!timestamp) return 'Just now';
+              const date = new Date(timestamp);
+              const now = new Date();
+              const diffMs = now - date;
+              const diffMins = Math.floor(diffMs / 60000);
+              if (diffMins < 1) return 'Just now';
+              if (diffMins < 60) return `${diffMins}m ago`;
+              const diffHours = Math.floor(diffMins / 60);
+              if (diffHours < 24) return `${diffHours}h ago`;
+              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            };
 
             item.innerHTML = `
-              <div class="signal-history-header">
-                <span class="signal-symbol">${entry.symbol || 'N/A'}</span>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span class="signal-confidence">${entry.confidence || 0}% Confidence</span>
-                  <span class="signal-direction ${directionClass.toLowerCase()}">${directionIcon} ${entry.direction}</span>
-                </div>
+            <div class="signal-history-header" style="margin-bottom: 4px;">
+              <span class="signal-symbol" style="font-size: 14px;">${entry.symbol || 'N/A'}</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="signal-confidence" style="font-size: 10px; padding: 2px 8px;">${entry.confidence || 0}%</span>
+                <span class="signal-direction ${directionClass.toLowerCase()}" style="font-size: 11px; padding: 3px 10px;">${directionIcon} ${entry.direction}</span>
               </div>
-              <div class="signal-details">
-                <div class="signal-detail-item">
-                  <span class="signal-detail-label">Entry</span>
-                  <span class="signal-detail-value">${formatPrice(entry.entryPrice)}</span>
-                </div>
-                <div class="signal-detail-item">
-                  <span class="signal-detail-label">Stop Loss</span>
-                  <span class="signal-detail-value" style="color: var(--danger);">${formatPrice(entry.stopLoss)}</span>
-                </div>
-                <div class="signal-detail-item">
-                  <span class="signal-detail-label">TP1</span>
-                  <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit1)}</span>
-                </div>
-                <div class="signal-detail-item">
-                  <span class="signal-detail-label">TP2</span>
-                  <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit2)}</span>
-                </div>
-                <div class="signal-detail-item">
-                  <span class="signal-detail-label">TP3</span>
-                  <span class="signal-detail-value" style="color: var(--success);">${formatPrice(entry.takeProfit3)}</span>
-                </div>
-              </div>
-              <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">
-                ${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'Just now'}
-              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+              <span style="color: var(--muted);">Entry: <strong style="color: var(--text);">${formatPrice(entry.entryPrice)}</strong></span>
+              <span style="color: var(--muted);">${formatTime(entry.timestamp)}</span>
+            </div>
             `;
 
             signalHistoryList.insertBefore(item, signalHistoryList.firstChild);
