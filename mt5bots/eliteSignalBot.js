@@ -741,89 +741,98 @@
       const swingLows = this.swingLows.get(symbol) || [];
       const indicators = this.indicators.get(symbol);
       
-      if (!candles15M || candles15M.length < 3) {
-        // Fallback to ATR if no candles available yet (always available)
-        if (indicators && indicators.atr > 0) {
-          return this.normalizePrice(symbol, direction === 'BUY' 
-            ? entryPrice - (indicators.atr * 1.5)
-            : entryPrice + (indicators.atr * 1.5));
-        }
-        // Even if no ATR, use a reasonable default based on point value
-        const point = this.getPointValue(symbol);
-        return this.normalizePrice(symbol, direction === 'BUY' 
-          ? entryPrice - (point * 30)
-          : entryPrice + (point * 30));
-      }
-
-      // Get point value for this symbol (approximate)
+      // Get ATR - primary tool for market-adaptive stop loss
+      const atr = indicators?.atr || 0;
       const point = this.getPointValue(symbol);
-      const minStopDistance = point * 10; // Minimum 10 pips
-      const maxStopDistance = point * 200; // Maximum 200 pips
-
+      
+      // Calculate minimum stop distance based on ATR (2-3x ATR for good distance)
+      const minStopDistanceATR = atr > 0 ? (atr * 2.5) : (point * 50); // 2.5x ATR minimum
+      const maxStopDistanceATR = atr > 0 ? (atr * 5.0) : (point * 500); // 5x ATR maximum
+      
       let stopLoss = 0;
+      let useStructure = false;
 
-      if (direction === 'BUY') {
-        // Find nearest support level (swing low) below entry
-        const supports = swingLows
-          .filter(sl => sl.price < entryPrice)
-          .sort((a, b) => b.price - a.price); // Sort descending (closest to entry first)
+      if (candles15M && candles15M.length >= 5) {
+        if (direction === 'BUY') {
+          // Find nearest support level (swing low) below entry
+          const supports = swingLows
+            .filter(sl => sl.price < entryPrice && (entryPrice - sl.price) >= minStopDistanceATR)
+            .sort((a, b) => b.price - a.price); // Sort descending (closest to entry first)
 
-        if (supports.length > 0) {
-          const nearestSupport = supports[0].price;
-          const atr = indicators?.atr || 0;
-          const buffer = Math.max(atr * 0.5, point * 10); // Half ATR or 10 pips
-          stopLoss = nearestSupport - buffer;
-        } else {
-          // Use recent low from candles
-          const recentLows = candles15M.slice(-20).map(c => c.low);
-          const lowestLow = Math.min(...recentLows);
-          if (lowestLow < entryPrice) {
-            const atr = indicators?.atr || 0;
-            const buffer = Math.max(atr * 0.5, point * 10);
-            stopLoss = lowestLow - buffer;
+          if (supports.length > 0) {
+            const nearestSupport = supports[0].price;
+            // Use ATR-based buffer (1x ATR) to place stop below support
+            const buffer = atr > 0 ? atr : (point * 20);
+            stopLoss = nearestSupport - buffer;
+            useStructure = true;
           } else {
-            // Fallback to ATR
-            const atr = indicators?.atr || point * 30;
-            stopLoss = entryPrice - (atr * 1.5);
+            // Use recent low from candles with ATR buffer
+            const recentLows = candles15M.slice(-30).map(c => c.low);
+            const lowestLow = Math.min(...recentLows);
+            if (lowestLow < entryPrice && (entryPrice - lowestLow) >= minStopDistanceATR) {
+              const buffer = atr > 0 ? atr : (point * 20);
+              stopLoss = lowestLow - buffer;
+              useStructure = true;
+            }
           }
-        }
-      } else {
-        // SELL: Find nearest resistance level (swing high) above entry
-        const resistances = swingHighs
-          .filter(sh => sh.price > entryPrice)
-          .sort((a, b) => a.price - b.price); // Sort ascending (closest to entry first)
-
-        if (resistances.length > 0) {
-          const nearestResistance = resistances[0].price;
-          const atr = indicators?.atr || 0;
-          const buffer = Math.max(atr * 0.5, point * 10);
-          stopLoss = nearestResistance + buffer;
         } else {
-          // Use recent high from candles
-          const recentHighs = candles15M.slice(-20).map(c => c.high);
-          const highestHigh = Math.max(...recentHighs);
-          if (highestHigh > entryPrice) {
-            const atr = indicators?.atr || 0;
-            const buffer = Math.max(atr * 0.5, point * 10);
-            stopLoss = highestHigh + buffer;
+          // SELL: Find nearest resistance level (swing high) above entry
+          const resistances = swingHighs
+            .filter(sh => sh.price > entryPrice && (sh.price - entryPrice) >= minStopDistanceATR)
+            .sort((a, b) => a.price - b.price); // Sort ascending (closest to entry first)
+
+          if (resistances.length > 0) {
+            const nearestResistance = resistances[0].price;
+            // Use ATR-based buffer (1x ATR) to place stop above resistance
+            const buffer = atr > 0 ? atr : (point * 20);
+            stopLoss = nearestResistance + buffer;
+            useStructure = true;
           } else {
-            // Fallback to ATR
-            const atr = indicators?.atr || point * 30;
-            stopLoss = entryPrice + (atr * 1.5);
+            // Use recent high from candles with ATR buffer
+            const recentHighs = candles15M.slice(-30).map(c => c.high);
+            const highestHigh = Math.max(...recentHighs);
+            if (highestHigh > entryPrice && (highestHigh - entryPrice) >= minStopDistanceATR) {
+              const buffer = atr > 0 ? atr : (point * 20);
+              stopLoss = highestHigh + buffer;
+              useStructure = true;
+            }
           }
         }
       }
 
-      // Validate stop loss distance
+      // If no structure found or not enough data, use ATR-based stop
+      if (!useStructure) {
+        if (atr > 0) {
+          // Use 2.5x ATR for good distance (not too tight, not too wide)
+          stopLoss = direction === 'BUY' 
+            ? entryPrice - (atr * 2.5)
+            : entryPrice + (atr * 2.5);
+        } else {
+          // Fallback based on market type
+          if (symbol.includes('XAU') || symbol.includes('XAG')) {
+            stopLoss = direction === 'BUY' ? entryPrice - 2.0 : entryPrice + 2.0; // Gold: $2
+          } else if (symbol.startsWith('R_') || symbol.includes('BOOM') || symbol.includes('CRASH')) {
+            stopLoss = direction === 'BUY' ? entryPrice - 0.5 : entryPrice + 0.5; // Volatility: 0.5
+          } else if (symbol.includes('JPY')) {
+            stopLoss = direction === 'BUY' ? entryPrice - 0.5 : entryPrice + 0.5; // JPY: 50 pips
+          } else {
+            stopLoss = direction === 'BUY' ? entryPrice - 0.0050 : entryPrice + 0.0050; // Forex: 50 pips
+          }
+        }
+      }
+
+      // Validate stop loss distance (ensure it's within reasonable range)
       const stopDistance = Math.abs(entryPrice - stopLoss);
-      if (stopDistance < minStopDistance) {
+      if (stopDistance < minStopDistanceATR) {
+        // Too tight - use minimum ATR distance
         stopLoss = direction === 'BUY' 
-          ? entryPrice - minStopDistance
-          : entryPrice + minStopDistance;
-      } else if (stopDistance > maxStopDistance) {
+          ? entryPrice - minStopDistanceATR
+          : entryPrice + minStopDistanceATR;
+      } else if (stopDistance > maxStopDistanceATR) {
+        // Too wide - cap at maximum
         stopLoss = direction === 'BUY'
-          ? entryPrice - maxStopDistance
-          : entryPrice + maxStopDistance;
+          ? entryPrice - maxStopDistanceATR
+          : entryPrice + maxStopDistanceATR;
       }
 
       return this.normalizePrice(symbol, stopLoss);
@@ -835,83 +844,142 @@
       const swingLows = this.swingLows.get(symbol) || [];
       const indicators = this.indicators.get(symbol);
       
-      if (!candles15M || candles15M.length < 3) {
-        // Fallback to risk:reward if no candles (always works)
-        const stopDistance = Math.abs(entryPrice - stopLoss);
+      const stopDistance = Math.abs(entryPrice - stopLoss);
+      const atr = indicators?.atr || 0;
+      const point = this.getPointValue(symbol);
+      
+      // Minimum TP distance based on ATR (realistic market moves)
+      const minTPDistanceATR = atr > 0 ? (atr * 2.0) : (stopDistance * 1.5); // At least 2x ATR or 1.5x stop distance
+      const minRR = 1.5; // Minimum 1.5:1 risk:reward for realistic TPs
+
+      let tps = { tp1: 0, tp2: 0, tp3: 0 };
+      let useStructure = false;
+
+      if (candles15M && candles15M.length >= 5) {
         if (direction === 'BUY') {
-          return {
-            tp1: this.normalizePrice(symbol, entryPrice + (stopDistance * 1.5)),
-            tp2: this.normalizePrice(symbol, entryPrice + (stopDistance * 2.5)),
-            tp3: this.normalizePrice(symbol, entryPrice + (stopDistance * 4.0))
-          };
+          // Find next resistance levels above entry (must be realistic distance)
+          const resistances = swingHighs
+            .filter(sh => {
+              const distance = sh.price - entryPrice;
+              return sh.price > entryPrice && distance >= minTPDistanceATR && distance >= (stopDistance * minRR);
+            })
+            .sort((a, b) => a.price - b.price); // Sort ascending
+
+          let tpCount = 0;
+          // Use first 3 resistance levels that meet minimum requirements
+          for (let i = 0; i < resistances.length && tpCount < 3; i++) {
+            const resistance = resistances[i].price;
+            // Ensure TPs are spaced reasonably (at least 1x ATR apart)
+            const minSpacing = atr > 0 ? atr : (stopDistance * 0.5);
+            const canUse = tpCount === 0 || 
+                          (tpCount === 1 && Math.abs(resistance - tps.tp1) >= minSpacing) ||
+                          (tpCount === 2 && Math.abs(resistance - tps.tp1) >= minSpacing && 
+                                          Math.abs(resistance - tps.tp2) >= minSpacing);
+            
+            if (canUse) {
+              if (tpCount === 0) tps.tp1 = resistance;
+              else if (tpCount === 1) tps.tp2 = resistance;
+              else if (tpCount === 2) tps.tp3 = resistance;
+              tpCount++;
+              useStructure = true;
+            }
+          }
         } else {
-          return {
-            tp1: this.normalizePrice(symbol, entryPrice - (stopDistance * 1.5)),
-            tp2: this.normalizePrice(symbol, entryPrice - (stopDistance * 2.5)),
-            tp3: this.normalizePrice(symbol, entryPrice - (stopDistance * 4.0))
-          };
+          // SELL: Find next support levels below entry
+          const supports = swingLows
+            .filter(sl => {
+              const distance = entryPrice - sl.price;
+              return sl.price < entryPrice && distance >= minTPDistanceATR && distance >= (stopDistance * minRR);
+            })
+            .sort((a, b) => b.price - a.price); // Sort descending
+
+          let tpCount = 0;
+          // Use first 3 support levels that meet minimum requirements
+          for (let i = 0; i < supports.length && tpCount < 3; i++) {
+            const support = supports[i].price;
+            // Ensure TPs are spaced reasonably
+            const minSpacing = atr > 0 ? atr : (stopDistance * 0.5);
+            const canUse = tpCount === 0 || 
+                          (tpCount === 1 && Math.abs(support - tps.tp1) >= minSpacing) ||
+                          (tpCount === 2 && Math.abs(support - tps.tp1) >= minSpacing && 
+                                          Math.abs(support - tps.tp2) >= minSpacing);
+            
+            if (canUse) {
+              if (tpCount === 0) tps.tp1 = support;
+              else if (tpCount === 1) tps.tp2 = support;
+              else if (tpCount === 2) tps.tp3 = support;
+              tpCount++;
+              useStructure = true;
+            }
+          }
         }
       }
 
-      const stopDistance = Math.abs(entryPrice - stopLoss);
-      const minRR = 1.2; // Minimum 1.2:1 risk:reward
-      const point = this.getPointValue(symbol);
-
-      let tps = { tp1: 0, tp2: 0, tp3: 0 };
-
-      if (direction === 'BUY') {
-        // Find next resistance levels above entry
-        const resistances = swingHighs
-          .filter(sh => sh.price > entryPrice)
-          .sort((a, b) => a.price - b.price); // Sort ascending
-
-        const minTP = entryPrice + (stopDistance * minRR);
-        let tpCount = 0;
-
-        // Use first 3 resistance levels that meet minimum R:R
-        for (let i = 0; i < resistances.length && tpCount < 3; i++) {
-          if (resistances[i].price >= minTP) {
-            if (tpCount === 0) tps.tp1 = resistances[i].price;
-            else if (tpCount === 1) tps.tp2 = resistances[i].price;
-            else if (tpCount === 2) tps.tp3 = resistances[i].price;
-            tpCount++;
-          }
-        }
-
-        // Fill remaining TPs with Fibonacci extensions if needed
-        const fibExtensions = [1.5, 2.5, 4.0];
-        for (let i = tpCount; i < 3; i++) {
-          const fibTP = entryPrice + (stopDistance * fibExtensions[i]);
-          if (i === 0) tps.tp1 = fibTP;
-          else if (i === 1) tps.tp2 = fibTP;
-          else if (i === 2) tps.tp3 = fibTP;
+      // Fill remaining TPs with ATR-based Fibonacci extensions (realistic market moves)
+      if (!useStructure || tps.tp1 === 0) {
+        // No structure found, use ATR-based TPs
+        const baseMultipliers = atr > 0 
+          ? [2.0, 3.5, 5.5] // ATR-based: 2x, 3.5x, 5.5x ATR from entry
+          : [1.5, 2.5, 4.0]; // Risk:reward fallback
+        
+        if (direction === 'BUY') {
+          tps.tp1 = entryPrice + (atr > 0 ? (atr * baseMultipliers[0]) : (stopDistance * baseMultipliers[0]));
+          tps.tp2 = entryPrice + (atr > 0 ? (atr * baseMultipliers[1]) : (stopDistance * baseMultipliers[1]));
+          tps.tp3 = entryPrice + (atr > 0 ? (atr * baseMultipliers[2]) : (stopDistance * baseMultipliers[2]));
+        } else {
+          tps.tp1 = entryPrice - (atr > 0 ? (atr * baseMultipliers[0]) : (stopDistance * baseMultipliers[0]));
+          tps.tp2 = entryPrice - (atr > 0 ? (atr * baseMultipliers[1]) : (stopDistance * baseMultipliers[1]));
+          tps.tp3 = entryPrice - (atr > 0 ? (atr * baseMultipliers[2]) : (stopDistance * baseMultipliers[2]));
         }
       } else {
-        // SELL: Find next support levels below entry
-        const supports = swingLows
-          .filter(sl => sl.price < entryPrice)
-          .sort((a, b) => b.price - a.price); // Sort descending
-
-        const minTP = entryPrice - (stopDistance * minRR);
-        let tpCount = 0;
-
-        // Use first 3 support levels that meet minimum R:R
-        for (let i = 0; i < supports.length && tpCount < 3; i++) {
-          if (supports[i].price <= minTP) {
-            if (tpCount === 0) tps.tp1 = supports[i].price;
-            else if (tpCount === 1) tps.tp2 = supports[i].price;
-            else if (tpCount === 2) tps.tp3 = supports[i].price;
-            tpCount++;
+        // Fill remaining TPs with ATR-based extensions if structure didn't provide all 3
+        if (tps.tp2 === 0) {
+          // Calculate TP2 based on TP1 distance or ATR
+          const tp1Distance = Math.abs(tps.tp1 - entryPrice);
+          if (direction === 'BUY') {
+            tps.tp2 = tps.tp1 + (atr > 0 ? (atr * 1.5) : (tp1Distance * 0.5));
+          } else {
+            tps.tp2 = tps.tp1 - (atr > 0 ? (atr * 1.5) : (tp1Distance * 0.5));
           }
         }
+        if (tps.tp3 === 0) {
+          // Calculate TP3 based on TP2 distance or ATR
+          const tp2Distance = Math.abs(tps.tp2 - entryPrice);
+          if (direction === 'BUY') {
+            tps.tp3 = tps.tp2 + (atr > 0 ? (atr * 2.0) : (tp2Distance * 0.6));
+          } else {
+            tps.tp3 = tps.tp2 - (atr > 0 ? (atr * 2.0) : (tp2Distance * 0.6));
+          }
+        }
+      }
 
-        // Fill remaining TPs with Fibonacci extensions if needed
-        const fibExtensions = [1.5, 2.5, 4.0];
-        for (let i = tpCount; i < 3; i++) {
-          const fibTP = entryPrice - (stopDistance * fibExtensions[i]);
-          if (i === 0) tps.tp1 = fibTP;
-          else if (i === 1) tps.tp2 = fibTP;
-          else if (i === 2) tps.tp3 = fibTP;
+      // Ensure minimum R:R ratios
+      const rr1 = stopDistance > 0 ? (Math.abs(tps.tp1 - entryPrice) / stopDistance) : 0;
+      const rr2 = stopDistance > 0 ? (Math.abs(tps.tp2 - entryPrice) / stopDistance) : 0;
+      const rr3 = stopDistance > 0 ? (Math.abs(tps.tp3 - entryPrice) / stopDistance) : 0;
+
+      if (rr1 < minRR && tps.tp1 !== 0) {
+        // Adjust TP1 to meet minimum R:R
+        if (direction === 'BUY') {
+          tps.tp1 = entryPrice + (stopDistance * minRR);
+        } else {
+          tps.tp1 = entryPrice - (stopDistance * minRR);
+        }
+      }
+      if (rr2 < (minRR * 1.5) && tps.tp2 !== 0) {
+        // Adjust TP2
+        if (direction === 'BUY') {
+          tps.tp2 = entryPrice + (stopDistance * minRR * 1.5);
+        } else {
+          tps.tp2 = entryPrice - (stopDistance * minRR * 1.5);
+        }
+      }
+      if (rr3 < (minRR * 2.0) && tps.tp3 !== 0) {
+        // Adjust TP3
+        if (direction === 'BUY') {
+          tps.tp3 = entryPrice + (stopDistance * minRR * 2.0);
+        } else {
+          tps.tp3 = entryPrice - (stopDistance * minRR * 2.0);
         }
       }
 
