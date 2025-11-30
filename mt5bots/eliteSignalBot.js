@@ -302,13 +302,14 @@
       // Build 4H candles from 15M
       this.aggregateCandles(candles15M, candles4H, candle4H, now, 200);
 
-      // Update swing highs/lows on 15M
-      if (candles15M.length >= 5) {
+      // Update swing highs/lows on 15M (reduced requirement)
+      if (candles15M.length >= 3) {
         this.updateSwingPoints(symbol, candles15M);
       }
 
-      // Analyze trend from higher timeframes
-      if (candles4H.length >= 2 && candles1H.length >= 2 && candles30M.length >= 2) {
+      // Analyze trend from higher timeframes (reduced requirements)
+      if (candles15M.length >= 3) {
+        // Always analyze trend, even with minimal data
         this.analyzeMultiTimeframeTrend(symbol, candles4H, candles1H, candles30M, candles15M);
       }
     }
@@ -356,7 +357,7 @@
     }
 
     updateSwingPoints(symbol, candles) {
-      if (candles.length < 5) return;
+      if (candles.length < 3) return; // Reduced from 5 to 3 for faster detection
 
       if (!this.swingHighs.has(symbol)) {
         this.swingHighs.set(symbol, []);
@@ -366,13 +367,14 @@
       const swingHighs = this.swingHighs.get(symbol);
       const swingLows = this.swingLows.get(symbol);
 
-      // Find swing highs (local maxima) - check last 3 candles
-      for (let i = 2; i < candles.length - 2; i++) {
+      // Find swing highs (local maxima) - more lenient detection
+      for (let i = 1; i < candles.length - 1; i++) {
         const candle = candles[i];
+        // Check if it's higher than neighbors (more lenient - only need 1 candle on each side)
         const isSwingHigh = candle.high > candles[i - 1].high &&
-                           candle.high > candles[i - 2].high &&
                            candle.high > candles[i + 1].high &&
-                           candle.high > candles[i + 2].high;
+                           (i < 2 || candle.high > candles[i - 2].high) &&
+                           (i >= candles.length - 2 || candle.high > candles[i + 2].high);
 
         if (isSwingHigh) {
           // Check if this swing high is already recorded
@@ -387,11 +389,11 @@
           }
         }
 
-        // Find swing lows (local minima)
+        // Find swing lows (local minima) - more lenient detection
         const isSwingLow = candle.low < candles[i - 1].low &&
-                          candle.low < candles[i - 2].low &&
                           candle.low < candles[i + 1].low &&
-                          candle.low < candles[i + 2].low;
+                          (i < 2 || candle.low < candles[i - 2].low) &&
+                          (i >= candles.length - 2 || candle.low < candles[i + 2].low);
 
         if (isSwingLow) {
           const exists = swingLows.some(sl => Math.abs(sl.price - candle.low) < 0.00001);
@@ -408,32 +410,51 @@
     }
 
     analyzeMultiTimeframeTrend(symbol, candles4H, candles1H, candles30M, candles15M) {
-      // Analyze trend from each timeframe using EMA
-      const getTrend = (candles, period = 20) => {
-        if (candles.length < period) return 0;
+      // Analyze trend from each timeframe using EMA (reduced requirements for faster signals)
+      const getTrend = (candles, minPeriod = 5) => {
+        if (candles.length < minPeriod) {
+          // Use fewer candles if available
+          if (candles.length >= 3) {
+            const closes = candles.map(c => c.close);
+            const sma = closes.reduce((a, b) => a + b, 0) / closes.length;
+            const currentPrice = candles[candles.length - 1].close;
+            return currentPrice > sma ? 1 : (currentPrice < sma ? -1 : 0);
+          }
+          return 0;
+        }
         
+        // Use minimum of available candles or 10 (reduced from 20)
+        const period = Math.min(10, candles.length);
         const closes = candles.slice(-period).map(c => c.close);
         const sma = closes.reduce((a, b) => a + b, 0) / closes.length;
         const currentPrice = candles[candles.length - 1].close;
         
-        // Trend: 1 = bullish, -1 = bearish, 0 = neutral
-        if (currentPrice > sma * 1.001) return 1; // 0.1% above SMA = bullish
-        if (currentPrice < sma * 0.999) return -1; // 0.1% below SMA = bearish
+        // Trend: 1 = bullish, -1 = bearish, 0 = neutral (more lenient threshold)
+        if (currentPrice > sma * 1.0005) return 1; // 0.05% above SMA = bullish (reduced from 0.1%)
+        if (currentPrice < sma * 0.9995) return -1; // 0.05% below SMA = bearish
         return 0;
       };
 
-      const trend4H = getTrend(candles4H, Math.min(20, candles4H.length));
-      const trend1H = getTrend(candles1H, Math.min(20, candles1H.length));
-      const trend30M = getTrend(candles30M, Math.min(20, candles30M.length));
+      const trend4H = getTrend(candles4H, 3);
+      const trend1H = getTrend(candles1H, 3);
+      const trend30M = getTrend(candles30M, 3);
+      
+      // Use 15M as additional confirmation if higher timeframes not ready
+      let trend15M = 0;
+      if (candles15M && candles15M.length >= 3) {
+        trend15M = getTrend(candles15M, 3);
+      }
 
-      // Overall trend: majority vote (at least 2 out of 3 must agree)
+      // Overall trend: more lenient - if any 2 agree, or if 15M confirms, use that
       let overallTrend = 0;
-      const trends = [trend4H, trend1H, trend30M];
+      const trends = [trend4H, trend1H, trend30M, trend15M];
       const bullishCount = trends.filter(t => t === 1).length;
       const bearishCount = trends.filter(t => t === -1).length;
 
-      if (bullishCount >= 2) overallTrend = 1;
-      else if (bearishCount >= 2) overallTrend = -1;
+      // More lenient: if 2 or more agree, or if 15M is clear and at least 1 other agrees
+      if (bullishCount >= 2 || (trend15M === 1 && bullishCount >= 1)) overallTrend = 1;
+      else if (bearishCount >= 2 || (trend15M === -1 && bearishCount >= 1)) overallTrend = -1;
+      else if (trend15M !== 0) overallTrend = trend15M; // Use 15M if higher timeframes unclear
 
       this.trendSignals.set(symbol, {
         '4H': trend4H,
@@ -566,11 +587,34 @@
       const history = this.priceHistory.get(symbol);
       if (!history || history.length < 20) return;
 
-      // Check if we have trend analysis
-      const trendSignal = this.trendSignals.get(symbol);
-      if (!trendSignal || trendSignal.overall === 0) {
-        // No clear trend yet, wait for confirmation
-        return;
+      // Get trend analysis (create default if not available yet)
+      let trendSignal = this.trendSignals.get(symbol);
+      if (!trendSignal) {
+        // Use 15M trend as fallback if higher timeframes not ready
+        const candles15M = this.candles15M.get(symbol);
+        if (candles15M && candles15M.length >= 5) {
+          const closes = candles15M.slice(-10).map(c => c.close);
+          const sma = closes.reduce((a, b) => a + b, 0) / closes.length;
+          const currentClose = candles15M[candles15M.length - 1].close;
+          const trend15M = currentClose > sma ? 1 : (currentClose < sma ? -1 : 0);
+          
+          trendSignal = {
+            '4H': 0,
+            '1H': 0,
+            '30M': 0,
+            overall: trend15M // Use 15M trend as fallback
+          };
+          this.trendSignals.set(symbol, trendSignal);
+        } else {
+          // No trend data yet, allow signals anyway (will use ATR for SL/TP)
+          trendSignal = {
+            '4H': 0,
+            '1H': 0,
+            '30M': 0,
+            overall: 0
+          };
+          this.trendSignals.set(symbol, trendSignal);
+        }
       }
 
       // Prevent signal spam (max 1 signal per symbol per 2 minutes)
@@ -627,11 +671,12 @@
         else if (priceFromUpper < 0.10) sellScore += 15;
       }
 
-      // Trend confirmation from higher timeframes (strong weight)
+      // Trend confirmation from higher timeframes (bonus points, not required)
       if (trendSignal.overall === 1) buyScore += 30; // Strong bullish trend
       else if (trendSignal.overall === -1) sellScore += 30; // Strong bearish trend
+      // If trend is neutral (0), no bonus but signal can still generate
 
-      // Minimum confidence threshold
+      // Minimum confidence threshold (reduced to allow faster signals)
       const minConfidence = 40;
       let direction = null;
       let confidence = 0;
@@ -646,12 +691,18 @@
 
       if (!direction) return null;
 
-      // CRITICAL: Only generate signals in the direction of the overall trend
-      if ((direction === 'BUY' && trendSignal.overall !== 1) ||
-          (direction === 'SELL' && trendSignal.overall !== -1)) {
-        // Signal doesn't match trend - reject it
-        return null;
+      // Prefer signals in trend direction, but allow high-confidence signals even if trend is neutral
+      // Only reject if signal strongly contradicts a clear trend
+      if (trendSignal.overall !== 0) {
+        // If we have a clear trend, prefer signals in that direction
+        // But allow high-confidence signals (60+) even if they don't match
+        if ((direction === 'BUY' && trendSignal.overall === -1 && confidence < 60) ||
+            (direction === 'SELL' && trendSignal.overall === 1 && confidence < 60)) {
+          // Signal contradicts clear trend and confidence is not high enough
+          return null;
+        }
       }
+      // If trend is neutral (0), allow any signal with sufficient confidence
 
       // Calculate stop loss and take profits from 15M market structure
       const stopLoss = this.calculateStopLossFromStructure(symbol, currentPrice, direction);
@@ -690,14 +741,18 @@
       const swingLows = this.swingLows.get(symbol) || [];
       const indicators = this.indicators.get(symbol);
       
-      if (!candles15M || candles15M.length < 5) {
-        // Fallback to ATR if no candles available yet
+      if (!candles15M || candles15M.length < 3) {
+        // Fallback to ATR if no candles available yet (always available)
         if (indicators && indicators.atr > 0) {
-          return direction === 'BUY' 
+          return this.normalizePrice(symbol, direction === 'BUY' 
             ? entryPrice - (indicators.atr * 1.5)
-            : entryPrice + (indicators.atr * 1.5);
+            : entryPrice + (indicators.atr * 1.5));
         }
-        return null;
+        // Even if no ATR, use a reasonable default based on point value
+        const point = this.getPointValue(symbol);
+        return this.normalizePrice(symbol, direction === 'BUY' 
+          ? entryPrice - (point * 30)
+          : entryPrice + (point * 30));
       }
 
       // Get point value for this symbol (approximate)
@@ -780,20 +835,20 @@
       const swingLows = this.swingLows.get(symbol) || [];
       const indicators = this.indicators.get(symbol);
       
-      if (!candles15M || candles15M.length < 5) {
-        // Fallback to risk:reward if no candles
+      if (!candles15M || candles15M.length < 3) {
+        // Fallback to risk:reward if no candles (always works)
         const stopDistance = Math.abs(entryPrice - stopLoss);
         if (direction === 'BUY') {
           return {
-            tp1: entryPrice + (stopDistance * 1.5),
-            tp2: entryPrice + (stopDistance * 2.5),
-            tp3: entryPrice + (stopDistance * 4.0)
+            tp1: this.normalizePrice(symbol, entryPrice + (stopDistance * 1.5)),
+            tp2: this.normalizePrice(symbol, entryPrice + (stopDistance * 2.5)),
+            tp3: this.normalizePrice(symbol, entryPrice + (stopDistance * 4.0))
           };
         } else {
           return {
-            tp1: entryPrice - (stopDistance * 1.5),
-            tp2: entryPrice - (stopDistance * 2.5),
-            tp3: entryPrice - (stopDistance * 4.0)
+            tp1: this.normalizePrice(symbol, entryPrice - (stopDistance * 1.5)),
+            tp2: this.normalizePrice(symbol, entryPrice - (stopDistance * 2.5)),
+            tp3: this.normalizePrice(symbol, entryPrice - (stopDistance * 4.0))
           };
         }
       }
