@@ -1469,6 +1469,186 @@
       }
     }
 
+    /* Low Balance Recommendation Popup */
+    .low-balance-recommend-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 1002;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .low-balance-recommend-overlay.show {
+      display: flex;
+    }
+
+    .low-balance-recommend-popup {
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      border: 1px solid rgba(0, 210, 255, 0.2);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+      position: relative;
+      animation: slideUp 0.3s ease;
+    }
+
+    .low-balance-recommend-timer {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 210, 255, 0.15);
+      border: 1px solid rgba(0, 210, 255, 0.35);
+      color: #00d2ff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .low-balance-recommend-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 12px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .low-balance-recommend-message {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0 0 16px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .low-balance-recommend-message strong {
+      color: #00d2ff;
+    }
+
+    .low-balance-recommend-tips {
+      background: rgba(0, 210, 255, 0.06);
+      border: 1px solid rgba(0, 210, 255, 0.12);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    }
+
+    .low-balance-recommend-tips-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(152, 162, 189, 0.9);
+      display: block;
+      margin-bottom: 8px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .low-balance-recommend-tips-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .low-balance-recommend-tips-list li {
+      margin-bottom: 4px;
+    }
+
+    .low-balance-recommend-tips-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .low-balance-recommend-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .low-balance-recommend-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Inter', system-ui, sans-serif;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 1px solid;
+      box-sizing: border-box;
+    }
+
+    .low-balance-recommend-btn-ok {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text);
+    }
+
+    .low-balance-recommend-btn-ok:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .low-balance-recommend-btn-deposit {
+      background: linear-gradient(135deg, rgba(36, 217, 112, 0.2) 0%, rgba(36, 217, 112, 0.1) 100%);
+      border-color: rgba(36, 217, 112, 0.4);
+      color: #24d970;
+    }
+
+    .low-balance-recommend-btn-deposit:hover {
+      background: linear-gradient(135deg, rgba(36, 217, 112, 0.3) 0%, rgba(36, 217, 112, 0.15) 100%);
+      border-color: rgba(36, 217, 112, 0.6);
+    }
+
+    @media (max-width: 480px) {
+      .low-balance-recommend-popup {
+        padding: 20px;
+        border-radius: 14px;
+      }
+
+      .low-balance-recommend-title {
+        font-size: 16px;
+      }
+
+      .low-balance-recommend-message {
+        font-size: 13px;
+      }
+
+      .low-balance-recommend-tips-list {
+        font-size: 12px;
+      }
+
+      .low-balance-recommend-actions {
+        flex-direction: column;
+      }
+
+      .low-balance-recommend-btn {
+        width: 100%;
+        min-width: auto;
+      }
+    }
+
     @media (max-width: 480px) {
       .page {
         padding-bottom: 85px;
@@ -1914,6 +2094,29 @@
         <button class="deposit-popup-btn deposit-popup-btn-secondary" id="depositPopupCancel">
           Maybe Later
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Low Balance Recommendation Popup (once per bot per day, balance < 1000) -->
+  <div class="low-balance-recommend-overlay" id="lowBalanceRecommendOverlay" aria-hidden="true">
+    <div class="low-balance-recommend-popup" id="lowBalanceRecommendPopup">
+      <div class="low-balance-recommend-timer" id="lowBalanceRecommendTimer">5</div>
+      <h3 class="low-balance-recommend-title">Balance tip</h3>
+      <p class="low-balance-recommend-message">
+        For more stable results and less struggle, we recommend a balance of <strong>1,000 USD</strong> or more. You can grow your account slowly—the bot works with any balance; this is only a recommendation.
+      </p>
+      <div class="low-balance-recommend-tips">
+        <span class="low-balance-recommend-tips-label">If you have under 100 USD:</span>
+        <ul class="low-balance-recommend-tips-list">
+          <li>Use a small stake per trade</li>
+          <li>Rome wasn’t built in one day—grow slowly</li>
+          <li>Check your balance and grow your account step by step</li>
+        </ul>
+      </div>
+      <div class="low-balance-recommend-actions">
+        <button type="button" class="low-balance-recommend-btn low-balance-recommend-btn-ok" id="lowBalanceRecommendOk">OK</button>
+        <a href="https://p2p.deriv.com/advertiser/426826?advert_id=3182910&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="low-balance-recommend-btn low-balance-recommend-btn-deposit" id="lowBalanceRecommendDeposit" style="display: none;">Deposit</a>
       </div>
     </div>
   </div>
@@ -2425,6 +2628,11 @@
       if (lastKnownBalance !== null) {
         botUI.updateBalance(lastKnownBalance, lastKnownCurrency);
       }
+
+      // Low balance recommendation popup: show once per bot per day when balance < 1000
+      if (typeof showLowBalanceRecommendPopupIfNeeded === 'function') {
+        showLowBalanceRecommendPopupIfNeeded(key);
+      }
     }
 
     BOT_DEFINITIONS.forEach((def) => {
@@ -2500,6 +2708,109 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && depositPopupOverlay?.classList.contains('show')) {
         hideDepositPopup();
+      }
+    });
+
+    // Low Balance Recommendation Popup (once per bot per day, balance < 1000 USD)
+    const LOW_BALANCE_RECOMMEND_STORAGE_PREFIX = 'lowBalancePopup_';
+    const LOW_BALANCE_RECOMMEND_THRESHOLD = 1000;
+    const LOW_BALANCE_RECOMMEND_DEPOSIT_URL = 'https://p2p.deriv.com/advertiser/426826?advert_id=3182910&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+    const lowBalanceRecommendOverlay = document.getElementById('lowBalanceRecommendOverlay');
+    const lowBalanceRecommendPopup = document.getElementById('lowBalanceRecommendPopup');
+    const lowBalanceRecommendTimerEl = document.getElementById('lowBalanceRecommendTimer');
+    const lowBalanceRecommendOk = document.getElementById('lowBalanceRecommendOk');
+    const lowBalanceRecommendDeposit = document.getElementById('lowBalanceRecommendDeposit');
+
+    function getLowBalanceRecommendStorageKey(botKey) {
+      const today = new Date().toISOString().slice(0, 10);
+      return LOW_BALANCE_RECOMMEND_STORAGE_PREFIX + botKey + '_' + today;
+    }
+
+    function hideLowBalanceRecommendPopup() {
+      if (lowBalanceRecommendOverlay) {
+        lowBalanceRecommendOverlay.classList.remove('show');
+        lowBalanceRecommendOverlay.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function showLowBalanceRecommendPopupIfNeeded(botKey) {
+      if (lastKnownBalance == null || lastKnownBalance >= LOW_BALANCE_RECOMMEND_THRESHOLD) return;
+      try {
+        const key = getLowBalanceRecommendStorageKey(botKey);
+        if (localStorage.getItem(key)) return;
+      } catch (e) { return; }
+
+      var autoCloseTimeout = null;
+      var countdownInterval = null;
+      var secondsLeft = 5;
+      var hovered = false;
+
+      if (lowBalanceRecommendDeposit) {
+        lowBalanceRecommendDeposit.style.display = (lastKnownBalance === 0 || lastKnownBalance === '0') ? '' : 'none';
+      }
+      if (lowBalanceRecommendTimerEl) {
+        lowBalanceRecommendTimerEl.textContent = '5';
+      }
+
+      function clearTimers() {
+        if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+        if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
+      }
+
+      function closeAndMarkShown() {
+        clearTimers();
+        hideLowBalanceRecommendPopup();
+        try {
+          localStorage.setItem(getLowBalanceRecommendStorageKey(botKey), '1');
+        } catch (e) {}
+      }
+
+      if (lowBalanceRecommendOk) {
+        lowBalanceRecommendOk.onclick = closeAndMarkShown;
+      }
+      if (lowBalanceRecommendDeposit && lowBalanceRecommendDeposit.style.display !== 'none') {
+        lowBalanceRecommendDeposit.onclick = function () { closeAndMarkShown(); };
+      }
+
+      if (lowBalanceRecommendPopup) {
+        lowBalanceRecommendPopup.onmouseenter = function () {
+          hovered = true;
+          clearTimers();
+        };
+        lowBalanceRecommendPopup.onmouseleave = function () { hovered = false; };
+      }
+
+      secondsLeft = 5;
+      countdownInterval = setInterval(function () {
+        if (hovered) return;
+        secondsLeft -= 1;
+        if (lowBalanceRecommendTimerEl) lowBalanceRecommendTimerEl.textContent = String(secondsLeft);
+        if (secondsLeft <= 0) {
+          clearTimers();
+          closeAndMarkShown();
+        }
+      }, 1000);
+
+      autoCloseTimeout = setTimeout(function () {
+        if (hovered) return;
+        clearTimers();
+        closeAndMarkShown();
+      }, 5000);
+
+      if (lowBalanceRecommendOverlay) {
+        lowBalanceRecommendOverlay.classList.add('show');
+        lowBalanceRecommendOverlay.setAttribute('aria-hidden', 'false');
+      }
+    }
+
+    if (lowBalanceRecommendOverlay) {
+      lowBalanceRecommendOverlay.addEventListener('click', function (e) {
+        if (e.target === lowBalanceRecommendOverlay) hideLowBalanceRecommendPopup();
+      });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && lowBalanceRecommendOverlay && lowBalanceRecommendOverlay.classList.contains('show')) {
+        hideLowBalanceRecommendPopup();
       }
     });
   </script>
