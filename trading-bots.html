@@ -549,6 +549,49 @@
       text-transform: uppercase;
     }
 
+    .bot-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .bot-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+
+    .bot-badge--popular {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+
+    .bot-badge--beginner {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #4ade80;
+    }
+
+    .bot-badge--fast {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+    }
+
+    .bot-badge--stable {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+    }
+
     .bot-card h3 {
       margin: 0;
       font-size: 20px;
@@ -1561,7 +1604,10 @@
       <div class="bots-list" id="botsList">
         <div class="bot-card" id="smartRecoveryDifferCard">
           <div class="bot-card-content">
-            <span class="bot-chip">Smart Recovery</span>
+            <div class="bot-badges-row">
+              <span class="bot-chip">Smart Recovery</span>
+              <span class="bot-badge bot-badge--popular">Popular</span>
+            </div>
             <h3>Smart Recovery Differ</h3>
             <p>Starts with digit differ trades on random numbers. On loss, intelligently analyzes all volatility markets to identify the best market for digit over 4 or under 5, executing recovery trades until win.</p>
             <ul class="bot-meta">
@@ -1575,7 +1621,10 @@
 
         <div class="bot-card" id="allMarketsDifferCard">
           <div class="bot-card-content">
-            <span class="bot-chip">Digits Differ</span>
+            <div class="bot-badges-row">
+              <span class="bot-chip">Digits Differ</span>
+              <span class="bot-badge bot-badge--beginner">Beginner</span>
+            </div>
             <h3>All Markets Differ</h3>
             <p>Cycles through Volatility 10–100 markets, rotating digits per trade with recovery logic tuned for high-frequency differ contracts.</p>
             <ul class="bot-meta">
@@ -1589,7 +1638,10 @@
 
         <div class="bot-card" id="allMarketsOverCard">
           <div class="bot-card-content">
-            <span class="bot-chip">Digits Over</span>
+            <div class="bot-badges-row">
+              <span class="bot-chip">Digits Over</span>
+              <span class="bot-badge bot-badge--fast">Fast</span>
+            </div>
             <h3>Random Markets Over 0</h3>
             <p>Fires Digit Over 0 contracts across Volatility 10–100, rotating markets after every trade with the same protective recovery logic.</p>
             <ul class="bot-meta">
@@ -1603,7 +1655,10 @@
 
         <div class="bot-card" id="allMarketsUnderCard">
           <div class="bot-card-content">
-            <span class="bot-chip">Digits Under</span>
+            <div class="bot-badges-row">
+              <span class="bot-chip">Digits Under</span>
+              <span class="bot-badge bot-badge--stable">Stable</span>
+            </div>
             <h3>Random Markets Under 9</h3>
             <p>Targets Digit Under 9 entries on every tick while rotating through Volatility 10–100 markets for better distribution.</p>
             <ul class="bot-meta">
