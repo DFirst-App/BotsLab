@@ -851,6 +851,47 @@
       cursor: not-allowed;
     }
 
+    @keyframes btn-liquid-flow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    @keyframes btn-glow-pulse {
+      0%, 100% { box-shadow: 0 0 16px rgba(0, 210, 255, 0.45), 0 0 32px rgba(0, 210, 255, 0.2); }
+      50% { box-shadow: 0 0 24px rgba(0, 210, 255, 0.7), 0 0 48px rgba(0, 210, 255, 0.35); }
+    }
+    .primary-btn.btn-liquid-glow,
+    .secondary-btn.btn-liquid-glow {
+      position: relative;
+      overflow: hidden;
+      animation: btn-glow-pulse 2.2s ease-in-out infinite;
+    }
+    .primary-btn.btn-liquid-glow {
+      box-shadow: 0 0 16px rgba(0, 210, 255, 0.4);
+    }
+    .secondary-btn.btn-liquid-glow {
+      border-color: rgba(0, 210, 255, 0.5);
+      box-shadow: 0 0 16px rgba(0, 210, 255, 0.35);
+    }
+    .primary-btn.btn-liquid-glow::before,
+    .secondary-btn.btn-liquid-glow::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        110deg,
+        transparent 0%,
+        transparent 35%,
+        rgba(0, 210, 255, 0.35) 50%,
+        transparent 65%,
+        transparent 100%
+      );
+      background-size: 200% 100%;
+      animation: btn-liquid-flow 2.5s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -2043,7 +2084,7 @@
                 </div>
 
                 <div class="config-actions">
-                  <button class="primary-btn" id="startBotBtn">Start Bot</button>
+                  <button class="primary-btn btn-liquid-glow" id="startBotBtn">Start Bot</button>
                   <button class="secondary-btn" id="stopBotBtn" disabled>Stop Bot</button>
                   <div class="status-text" id="accountHint">Connect your Deriv account from the dashboard before running bots.</div>
                 </div>
@@ -2410,6 +2451,13 @@
         setRunningState(isRunning) {
           startBtn.disabled = isRunning;
           stopBtn.disabled = !isRunning;
+          if (isRunning) {
+            startBtn.classList.remove('btn-liquid-glow');
+            stopBtn.classList.add('btn-liquid-glow');
+          } else {
+            startBtn.classList.add('btn-liquid-glow');
+            stopBtn.classList.remove('btn-liquid-glow');
+          }
           statusBadge.dataset.state = isRunning ? 'running' : 'idle';
           statusBadge.textContent = isRunning ? 'Running' : 'Idle';
         },
