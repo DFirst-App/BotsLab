@@ -1744,13 +1744,20 @@
       box-shadow: 0 6px 20px rgba(255, 122, 24, 0.2);
     }
 
-    @keyframes trading-btn-liquid-right {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
+    /* One liquid: glow, then move right (cyan), then move left (amber). One color and direction at a time. */
+    @keyframes trading-btn-liquid-cyan {
+      0% { opacity: 0; background-position: 50% 50%; }
+      12% { opacity: 1; background-position: 50% 50%; }
+      45% { opacity: 1; background-position: 100% 50%; }
+      50% { opacity: 0; background-position: 50% 50%; }
+      100% { opacity: 0; background-position: 50% 50%; }
     }
-    @keyframes trading-btn-liquid-left {
-      0%, 100% { background-position: 100% 50%; }
-      50% { background-position: 0% 50%; }
+    @keyframes trading-btn-liquid-amber {
+      0% { opacity: 0; background-position: 100% 50%; }
+      50% { opacity: 0; background-position: 100% 50%; }
+      55% { opacity: 1; background-position: 100% 50%; }
+      88% { opacity: 1; background-position: 0% 50%; }
+      100% { opacity: 0; background-position: 0% 50%; }
     }
     @keyframes trading-btn-glow-pulse {
       0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 14px rgba(0, 212, 255, 0.25), 0 0 24px rgba(251, 146, 60, 0.12); border-color: rgba(0, 212, 255, 0.45); }
@@ -1772,13 +1779,13 @@
       background: linear-gradient(
         110deg,
         transparent 0%,
-        transparent 30%,
-        rgba(0, 212, 255, 0.32) 50%,
-        transparent 70%,
+        transparent 32%,
+        rgba(0, 212, 255, 0.38) 50%,
+        transparent 68%,
         transparent 100%
       );
       background-size: 200% 100%;
-      animation: trading-btn-liquid-right 2.8s ease-in-out infinite;
+      animation: trading-btn-liquid-cyan 4s ease-in-out infinite;
       pointer-events: none;
       z-index: 0;
     }
@@ -1790,13 +1797,13 @@
       background: linear-gradient(
         290deg,
         transparent 0%,
-        transparent 30%,
-        rgba(251, 146, 60, 0.28) 50%,
-        transparent 70%,
+        transparent 32%,
+        rgba(251, 146, 60, 0.34) 50%,
+        transparent 68%,
         transparent 100%
       );
       background-size: 200% 100%;
-      animation: trading-btn-liquid-left 2.8s ease-in-out infinite;
+      animation: trading-btn-liquid-amber 4s ease-in-out infinite;
       pointer-events: none;
       z-index: 0;
     }
