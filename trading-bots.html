@@ -1522,6 +1522,14 @@
       font-size: 18px;
       font-weight: 600;
       color: var(--text);
+      margin: 0 0 8px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .low-balance-recommend-balance {
+      font-size: 14px;
+      font-weight: 600;
+      color: #00d2ff;
       margin: 0 0 12px;
       font-family: 'Inter', system-ui, sans-serif;
     }
@@ -1559,19 +1567,38 @@
 
     .low-balance-recommend-tips-list {
       margin: 0;
-      padding-left: 18px;
+      padding: 0;
+      list-style: none;
       font-size: 13px;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.55;
       font-family: 'Inter', system-ui, sans-serif;
     }
 
     .low-balance-recommend-tips-list li {
-      margin-bottom: 4px;
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 8px;
     }
 
     .low-balance-recommend-tips-list li:last-child {
       margin-bottom: 0;
+    }
+
+    .low-balance-recommend-tips-list li::before {
+      content: '\2713';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(0, 210, 255, 0.4);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 18px;
     }
 
     .low-balance-recommend-actions {
@@ -2103,15 +2130,16 @@
     <div class="low-balance-recommend-popup" id="lowBalanceRecommendPopup">
       <div class="low-balance-recommend-timer" id="lowBalanceRecommendTimer">5</div>
       <h3 class="low-balance-recommend-title">Balance tip</h3>
+      <p class="low-balance-recommend-balance" id="lowBalanceRecommendBalance">Your balance: —</p>
       <p class="low-balance-recommend-message">
-        For more stable results and less struggle, we recommend a balance of <strong>1,000 USD</strong> or more. You can grow your account slowly—the bot works with any balance; this is only a recommendation.
+        We recommend <strong>1,000 USD</strong> or more for steadier results. The bot works with any balance—this is only a recommendation. You can grow your account slowly.
       </p>
       <div class="low-balance-recommend-tips">
-        <span class="low-balance-recommend-tips-label">If you have under 100 USD:</span>
+        <span class="low-balance-recommend-tips-label">Tips for small accounts:</span>
         <ul class="low-balance-recommend-tips-list">
           <li>Use a small stake per trade</li>
-          <li>Rome wasn’t built in one day—grow slowly</li>
-          <li>Check your balance and grow your account step by step</li>
+          <li>Grow your account slowly—patience pays</li>
+          <li>Build balance step by step</li>
         </ul>
       </div>
       <div class="low-balance-recommend-actions">
@@ -2719,6 +2747,7 @@
     const lowBalanceRecommendOverlay = document.getElementById('lowBalanceRecommendOverlay');
     const lowBalanceRecommendPopup = document.getElementById('lowBalanceRecommendPopup');
     const lowBalanceRecommendTimerEl = document.getElementById('lowBalanceRecommendTimer');
+    const lowBalanceRecommendBalanceEl = document.getElementById('lowBalanceRecommendBalance');
     const lowBalanceRecommendOk = document.getElementById('lowBalanceRecommendOk');
     const lowBalanceRecommendDeposit = document.getElementById('lowBalanceRecommendDeposit');
 
@@ -2782,6 +2811,11 @@
       var secondsLeft = 5;
       var hovered = false;
 
+      if (lowBalanceRecommendBalanceEl) {
+        var bal = lastKnownBalance != null ? Number(lastKnownBalance) : null;
+        var cur = lastKnownCurrency || 'USD';
+        lowBalanceRecommendBalanceEl.textContent = bal != null ? 'Your balance: ' + bal.toFixed(2) + ' ' + cur : 'Your balance: —';
+      }
       if (lowBalanceRecommendDeposit) {
         lowBalanceRecommendDeposit.style.display = (lastKnownBalance === 0 || lastKnownBalance === '0') ? '' : 'none';
       }
