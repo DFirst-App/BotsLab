@@ -630,21 +630,51 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 12px 18px;
+      padding: 12px 20px;
       border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text);
+      border: 1px solid rgba(0, 210, 255, 0.35);
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.18) 0%, rgba(0, 210, 255, 0.08) 100%);
+      color: #00d2ff;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
       font-family: inherit;
+      box-shadow: 0 2px 8px rgba(0, 210, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .open-bot-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: -1;
     }
 
     .open-bot-btn:hover {
-      background: rgba(0, 210, 255, 0.15);
-      border-color: rgba(0, 210, 255, 0.4);
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.28) 0%, rgba(0, 210, 255, 0.14) 100%);
+      border-color: rgba(0, 210, 255, 0.6);
+      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .open-bot-btn:hover::before {
+      opacity: 1;
+    }
+
+    .open-bot-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 10px rgba(0, 210, 255, 0.2);
+    }
+
+    .open-bot-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(0, 210, 255, 0.5);
     }
 
     .bot-detail-panel {
