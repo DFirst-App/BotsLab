@@ -2198,7 +2198,8 @@
             authorized = true;
             const balance = Number(response.authorize.balance || 0);
             const currency = response.authorize.currency || 'USD';
-            
+            lastKnownBalance = balance;
+            lastKnownCurrency = currency;
             derivBalanceValue.textContent = balance.toFixed(2);
             derivBalanceCurrency.textContent = currency;
             derivBalanceDisplay.classList.remove('disconnected');
@@ -2629,9 +2630,9 @@
         botUI.updateBalance(lastKnownBalance, lastKnownCurrency);
       }
 
-      // Low balance recommendation popup: show once per bot per day when balance < 1000
-      if (typeof showLowBalanceRecommendPopupIfNeeded === 'function') {
-        showLowBalanceRecommendPopupIfNeeded(key);
+      // Low balance recommendation popup: ensure balance is fetched then show once per bot per day when balance < 1000
+      if (typeof fetchBalanceAndShowLowBalancePopupIfNeeded === 'function') {
+        fetchBalanceAndShowLowBalancePopupIfNeeded(key);
       }
     }
 
@@ -2720,6 +2721,42 @@
     const lowBalanceRecommendTimerEl = document.getElementById('lowBalanceRecommendTimer');
     const lowBalanceRecommendOk = document.getElementById('lowBalanceRecommendOk');
     const lowBalanceRecommendDeposit = document.getElementById('lowBalanceRecommendDeposit');
+
+    function fetchBalanceAndShowLowBalancePopupIfNeeded(botKey) {
+      if (lastKnownBalance != null) {
+        showLowBalanceRecommendPopupIfNeeded(botKey);
+        return;
+      }
+      const token = resolveAuthToken();
+      if (!token) return;
+      const ws = new WebSocket(DERIV_WS_URL);
+      ws.onopen = function () {
+        ws.send(JSON.stringify({ authorize: token, req_id: Date.now() }));
+      };
+      ws.onmessage = function (msg) {
+        try {
+          const response = JSON.parse(msg.data);
+          if (response.error) { ws.close(); return; }
+          if (response.msg_type === 'authorize' && response.authorize) {
+            var balance = Number(response.authorize.balance || 0);
+            var currency = response.authorize.currency || 'USD';
+            lastKnownBalance = balance;
+            lastKnownCurrency = currency;
+            if (derivBalanceValue) derivBalanceValue.textContent = balance.toFixed(2);
+            if (derivBalanceCurrency) derivBalanceCurrency.textContent = currency;
+            if (derivBalanceDisplay) derivBalanceDisplay.classList.remove('disconnected');
+            ws.close();
+            showLowBalanceRecommendPopupIfNeeded(botKey);
+          }
+        } catch (e) { ws.close(); }
+      };
+      ws.onerror = function () { ws.close(); };
+      setTimeout(function () {
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
+        }
+      }, 5000);
+    }
 
     function getLowBalanceRecommendStorageKey(botKey) {
       const today = new Date().toISOString().slice(0, 10);
