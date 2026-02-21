@@ -1744,16 +1744,71 @@
       box-shadow: 0 6px 20px rgba(255, 122, 24, 0.2);
     }
 
-    .trading-btn {
-      background: linear-gradient(135deg, rgba(0, 210, 255, 0.15) 0%, rgba(0, 210, 255, 0.08) 100%);
-      border-color: rgba(0, 210, 255, 0.3);
-      color: #00d2ff;
+    @keyframes trading-btn-liquid-right {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
-
+    @keyframes trading-btn-liquid-left {
+      0%, 100% { background-position: 100% 50%; }
+      50% { background-position: 0% 50%; }
+    }
+    @keyframes trading-btn-glow-pulse {
+      0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 14px rgba(0, 212, 255, 0.25), 0 0 24px rgba(251, 146, 60, 0.12); border-color: rgba(0, 212, 255, 0.45); }
+      50% { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 0 20px rgba(0, 212, 255, 0.4), 0 0 36px rgba(251, 146, 60, 0.22); border-color: rgba(251, 146, 60, 0.5); }
+    }
+    .trading-btn {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.15) 0%, rgba(0, 210, 255, 0.08) 100%);
+      border-color: rgba(0, 210, 255, 0.35);
+      color: #00d2ff;
+      animation: trading-btn-glow-pulse 2.5s ease-in-out infinite;
+    }
+    .trading-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        110deg,
+        transparent 0%,
+        transparent 30%,
+        rgba(0, 212, 255, 0.32) 50%,
+        transparent 70%,
+        transparent 100%
+      );
+      background-size: 200% 100%;
+      animation: trading-btn-liquid-right 2.8s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .trading-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        290deg,
+        transparent 0%,
+        transparent 30%,
+        rgba(251, 146, 60, 0.28) 50%,
+        transparent 70%,
+        transparent 100%
+      );
+      background-size: 200% 100%;
+      animation: trading-btn-liquid-left 2.8s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .trading-btn .btn-label,
+    .trading-btn .btn-badges {
+      position: relative;
+      z-index: 1;
+    }
     .trading-btn:hover {
       background: linear-gradient(135deg, rgba(0, 210, 255, 0.25) 0%, rgba(0, 210, 255, 0.15) 100%);
-      border-color: rgba(0, 210, 255, 0.5);
-      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.2);
+      border-color: rgba(0, 212, 255, 0.6);
+      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.3), 0 0 24px rgba(0, 212, 255, 0.25), 0 0 32px rgba(251, 146, 60, 0.15);
     }
 
     .btn-badges {
