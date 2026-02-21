@@ -1559,6 +1559,20 @@
 
     <div class="bots-layout">
       <div class="bots-list" id="botsList">
+        <div class="bot-card" id="smartRecoveryDifferCard">
+          <div class="bot-card-content">
+            <span class="bot-chip">Smart Recovery</span>
+            <h3>Smart Recovery Differ</h3>
+            <p>Starts with digit differ trades on random numbers. On loss, intelligently analyzes all volatility markets to identify the best market for digit over 4 or under 5, executing recovery trades until win.</p>
+            <ul class="bot-meta">
+              <li>Rating: 5.0/5</li>
+              <li>Strategy: Smart Recovery · Market Analysis</li>
+              <li>Recovery: Intelligent Market Analysis</li>
+            </ul>
+            <button class="open-bot-btn" id="openSmartRecoveryDiffer">Open Bot</button>
+          </div>
+        </div>
+
         <div class="bot-card" id="allMarketsDifferCard">
           <div class="bot-card-content">
             <span class="bot-chip">Digits Differ</span>
@@ -1584,20 +1598,6 @@
               <li>Recovery: Smart Recovery</li>
             </ul>
             <button class="open-bot-btn" id="openAllMarketsOver">Open Bot</button>
-          </div>
-        </div>
-
-        <div class="bot-card" id="smartRecoveryDifferCard">
-          <div class="bot-card-content">
-            <span class="bot-chip">Smart Recovery</span>
-            <h3>Smart Recovery Differ</h3>
-            <p>Starts with digit differ trades on random numbers. On loss, intelligently analyzes all volatility markets to identify the best market for digit over 4 or under 5, executing recovery trades until win.</p>
-            <ul class="bot-meta">
-              <li>Rating: 5.0/5</li>
-              <li>Strategy: Smart Recovery · Market Analysis</li>
-              <li>Recovery: Intelligent Market Analysis</li>
-            </ul>
-            <button class="open-bot-btn" id="openSmartRecoveryDiffer">Open Bot</button>
           </div>
         </div>
 
@@ -2193,6 +2193,14 @@
 
     const BOT_DEFINITIONS = [
       {
+        key: 'smartRecoveryDiffer',
+        name: 'Smart Recovery Differ',
+        cardId: 'smartRecoveryDifferCard',
+        buttonId: 'openSmartRecoveryDiffer',
+        defaultMartingale: 3.1,
+        createInstance: () => new window.SmartRecoveryDifferBot(botUI, sharedDependencies())
+      },
+      {
         key: 'allMarketsDiffer',
         name: 'All Markets Differ',
         cardId: 'allMarketsDifferCard',
@@ -2205,14 +2213,6 @@
         cardId: 'allMarketsOverCard',
         buttonId: 'openAllMarketsOver',
         createInstance: () => new window.AllMarketsOverBot(botUI, sharedDependencies())
-      },
-      {
-        key: 'smartRecoveryDiffer',
-        name: 'Smart Recovery Differ',
-        cardId: 'smartRecoveryDifferCard',
-        buttonId: 'openSmartRecoveryDiffer',
-        defaultMartingale: 3.1,
-        createInstance: () => new window.SmartRecoveryDifferBot(botUI, sharedDependencies())
       },
       {
         key: 'allMarketsUnder',
