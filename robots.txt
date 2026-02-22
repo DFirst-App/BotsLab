@@ -1,9 +1,10 @@
 User-agent: *
 Allow: /
+# Limit crawl rate for bots that support it (e.g. Bing, Yandex). Google ignores Crawl-delay.
+Crawl-delay: 1
 
 # Sitemap
 Sitemap: https://magicbotslab.com/sitemap.xml
 
 # Disallow simulation (not for public indexing)
 Disallow: /simtrading-bots.html
-
