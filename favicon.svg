@@ -3,27 +3,6 @@
   <circle cx="32" cy="32" r="30" fill="#ffffff"/>
   <circle cx="32" cy="32" r="30" fill="none" stroke="#e5e7eb" stroke-width="1"/>
 
-  <!-- Blue stylised S -->
-  <path
-    d="
-      M 22 38
-      C 22 44, 27 48, 33 48
-      C 38 48, 42 46, 44 43
-      L 40 41
-      C 38.5 43, 36 44, 33.2 44
-      C 29.8 44, 27 41.9, 27 38.8
-      C 27 36.3, 28.6 34.9, 32.2 33.7
-      L 35.8 32.5
-      C 41 30.8, 43.5 28.1, 43.5 23.9
-      C 43.5 18.3, 39.1 15, 32.7 15
-      C 27.8 15, 24.1 16.6, 21.5 19.5
-      L 24.9 22.3
-      C 26.8 20.2, 29.3 19.1, 32.6 19.1
-      C 36.3 19.1, 38.4 20.9, 38.4 23.9
-      C 38.4 26.4, 37 27.9, 33.3 29.1
-      L 29.8 30.2
-      C 24.8 31.9, 22 34.7, 22 38
-      Z"
-    fill="#2563eb"
-  />
+  <!-- Blue capital S (standard orientation) -->
+  <text x="32" y="44" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#2563eb" text-anchor="middle">S</text>
 </svg>
