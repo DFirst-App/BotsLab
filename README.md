@@ -32,12 +32,7 @@ WebBots/
 │   ├── boomCrashSignalBot.js
 │   └── mt5ApiConnection.js
 │
-└── favicon files/              # Site icons
-    ├── favicon.ico
-    ├── favicon.svg
-    ├── favicon-16x16.png
-    ├── favicon-32x32.png
-    └── apple-touch-icon.png
+└── favicon.svg                 # Site icon (blue S on white)
 ```
 
 ## Main HTML Files
