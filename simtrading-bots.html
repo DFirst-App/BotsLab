@@ -4,25 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Redirect to homepage if account not connected -->
-  <script>
-    (function() {
-      try {
-        const oauthTokens = localStorage.getItem('@deriv_oauth_tokens');
-        const apiKey = localStorage.getItem('@deriv_api_key');
-        // If no connection tokens found, redirect to homepage
-        if (!oauthTokens && !apiKey) {
-          window.location.replace('https://magicbotslab.com/');
-        }
-      } catch (e) {
-        // If localStorage is not accessible, redirect to homepage
-        window.location.replace('https://magicbotslab.com/');
-      }
-    })();
-  </script>
-  
   <!-- Primary Meta Tags -->
-  <title>Download Free Trading Bots - AI Bots, XAUUSD, Forex, Crypto & Binary Options | Magic Automation Lab</title>
+  <title>Simulation Mode - Trading Bots | Magic Automation Lab</title>
   <meta name="title" content="Download Free Trading Bots - AI Bots, XAUUSD, Forex, Crypto & Binary Options">
   <meta name="description" content="Magic Automation Lab - Download free automated trading bots for forex, crypto, binary options, XAUUSD, gold, EURUSD, GBPUSD, and Bitcoin. 10+ professional AI-powered bots with smart recovery, risk management, and real-time signals. Free download - start automated trading today.">
   <meta name="keywords" content="magic lab, magic bots, magic automation lab, magicbotslab, automated trading bots, forex trading bots, crypto trading bots, binary options bots, free trading bots, free automated bots, mt5 free bots, mt5 free, free mt5 bots, download trading bots, AI trading bots, XAUUSD bots, gold trading bots, EURUSD bots, GBPUSD bots, BTC bots, Bitcoin trading bots, Ethereum bots, algorithmic trading, trading automation, forex robots, crypto robots, trading signals, automated forex, trading software, volatility trading, digit trading, deriv bots, deriv trading bots, smart volatility bot, magic random bot, rise fall bot, no touch bot, smart differ bot, all markets bot, trading bot download, free EA download, profitable trading bots, best trading bots, automated trading system, trading algorithm, bot trading, trading automation software, free forex robots, free crypto bots, binary options automation, volatility trading bots, digit trading bots, smart money bots, trading signals free, real-time trading signals, professional trading bots, free automated trading bots, free automated trading, free bots, magic trading bots, magic automation, magic bot lab">
@@ -1890,8 +1873,8 @@
 
     <div class="section-heading" id="sectionHeading">
       <div class="section-heading-text">
-        <h2>Deriv Bots</h2>
-        <p>Choose any bot and start automated trading with smart risk management.</p>
+        <h2>Simulation Mode - Trading Bots</h2>
+        <p>Test bots with simulated balance. No real money involved.</p>
       </div>
       <div class="deriv-balance-display" id="derivBalanceDisplay">
         <span class="deriv-balance-label">Balance</span>
@@ -1901,11 +1884,6 @@
     </div>
 
     <div class="bots-layout">
-      <div style="width: 100%; margin-bottom: 16px; display: flex; justify-content: flex-end;">
-        <button id="simButton" style="padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(0, 210, 255, 0.4); background: rgba(0, 210, 255, 0.1); color: #00d2ff; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', system-ui, sans-serif;" onmouseover="this.style.background='rgba(0, 210, 255, 0.2)'; this.style.borderColor='rgba(0, 210, 255, 0.6)'" onmouseout="this.style.background='rgba(0, 210, 255, 0.1)'; this.style.borderColor='rgba(0, 210, 255, 0.4)'">
-          SIM
-        </button>
-      </div>
       <div class="bots-list" id="botsList">
         <div class="bot-card" id="smartRecoveryDifferCard">
           <div class="bot-card-content">
@@ -2113,7 +2091,7 @@
                 <div class="config-actions">
                   <button class="primary-btn btn-liquid-glow" id="startBotBtn">Start Bot</button>
                   <button class="secondary-btn" id="stopBotBtn" disabled>Stop Bot</button>
-                  <div class="status-text" id="accountHint">Connect your Deriv account from the dashboard before running bots.</div>
+                  <div class="status-text" id="accountHint">Simulation mode: No account connection needed.</div>
                 </div>
               </div>
             </div>
@@ -2228,22 +2206,19 @@
   </footer>
 
   <script src="popup-notifications.js"></script>
-  <script src="bots/allMarketsDiffer.js"></script>
-  <script src="bots/allMarketsOver.js"></script>
-  <script src="bots/allMarketsUnder.js"></script>
-  <script src="bots/magicRandomBot.js"></script>
-  <script src="bots/smartVolatility.js"></script>
-  <script src="bots/smartEven.js"></script>
-  <script src="bots/noTouch.js"></script>
-  <script src="bots/alienRiseFall.js"></script>
-  <script src="bots/riseFall.js"></script>
-  <script src="bots/smartDifferBot.js"></script>
-  <script src="bots/smartRecoveryDiffer.js"></script>
+  <script src="sim/bots/simBase.js"></script>
+  <script src="sim/bots/allMarketsDiffer.js"></script>
+  <script src="sim/bots/allMarketsOver.js"></script>
+  <script src="sim/bots/allMarketsUnder.js"></script>
+  <script src="sim/bots/magicRandomBot.js"></script>
+  <script src="sim/bots/smartVolatility.js"></script>
+  <script src="sim/bots/smartEven.js"></script>
+  <script src="sim/bots/noTouch.js"></script>
+  <script src="sim/bots/alienRiseFall.js"></script>
+  <script src="sim/bots/riseFall.js"></script>
+  <script src="sim/bots/smartDifferBot.js"></script>
+  <script src="sim/bots/smartRecoveryDiffer.js"></script>
   <script>
-    const APP_ID = '67709';
-    const DERIV_WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
-    const DERIV_OAUTH_TOKENS_KEY = '@deriv_oauth_tokens';
-    const DERIV_API_KEY_KEY = '@deriv_api_key';
     const VOLATILITY_MARKETS = ['R_10', 'R_25', 'R_50', 'R_75', 'R_100'];
     const BOT_DEFAULTS = {
       initialStake: 1,
@@ -2253,84 +2228,20 @@
       martingaleMultiplier: 16
     };
 
-    // Deriv Balance Display
+    // Sim Balance Display
     const derivBalanceValue = document.getElementById('derivBalanceValue');
     const derivBalanceCurrency = document.getElementById('derivBalanceCurrency');
     const derivBalanceDisplay = document.getElementById('derivBalanceDisplay');
 
-    function updateDerivBalanceDisplay() {
-      const token = resolveAuthToken();
-      if (!token) {
-        derivBalanceValue.textContent = 'Not Connected';
-        derivBalanceCurrency.textContent = '';
-        derivBalanceDisplay.classList.add('disconnected');
-        return;
-      }
-
-      const ws = new WebSocket(DERIV_WS_URL);
-      let authorized = false;
-
-      ws.onopen = () => {
-        ws.send(JSON.stringify({
-          authorize: token,
-          req_id: Date.now()
-        }));
-      };
-
-      ws.onmessage = (msg) => {
-        try {
-          const response = JSON.parse(msg.data);
-
-          if (response.error) {
-            console.error('Balance fetch error:', response.error);
-            derivBalanceValue.textContent = 'Error';
-            derivBalanceCurrency.textContent = '';
-            derivBalanceDisplay.classList.add('disconnected');
-            ws.close();
-            return;
-          }
-
-          if (response.msg_type === 'authorize' && response.authorize) {
-            authorized = true;
-            const balance = Number(response.authorize.balance || 0);
-            const currency = response.authorize.currency || 'USD';
-            lastKnownBalance = balance;
-            lastKnownCurrency = currency;
-            derivBalanceValue.textContent = balance.toFixed(2);
-            derivBalanceCurrency.textContent = currency;
-            derivBalanceDisplay.classList.remove('disconnected');
-            ws.close();
-          }
-        } catch (error) {
-          console.error('Error processing balance:', error);
-          derivBalanceValue.textContent = 'Error';
-          derivBalanceCurrency.textContent = '';
-          derivBalanceDisplay.classList.add('disconnected');
-          ws.close();
-        }
-      };
-
-      ws.onerror = () => {
-        derivBalanceValue.textContent = 'Error';
-        derivBalanceCurrency.textContent = '';
-        derivBalanceDisplay.classList.add('disconnected');
-      };
-
-      ws.onclose = () => {
-        // Connection closed
-      };
-
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-          ws.close();
-          if (!authorized) {
-            derivBalanceValue.textContent = 'Timeout';
-            derivBalanceCurrency.textContent = '';
-            derivBalanceDisplay.classList.add('disconnected');
-          }
-        }
-      }, 5000);
+    function updateSimBalanceDisplay() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const simBalance = parseFloat(urlParams.get('balance')) || parseFloat(localStorage.getItem('simBalance')) || 1000;
+      const currency = 'USD';
+      lastKnownBalance = simBalance;
+      lastKnownCurrency = currency;
+      derivBalanceValue.textContent = simBalance.toFixed(2);
+      derivBalanceCurrency.textContent = currency;
+      derivBalanceDisplay.classList.remove('disconnected');
     }
 
     const botsList = document.getElementById('botsList');
@@ -2384,44 +2295,18 @@
     headerBackBtn.addEventListener('click', () => closeBotPanel());
 
     function resolveAuthToken() {
-      try {
-        const stored = localStorage.getItem(DERIV_OAUTH_TOKENS_KEY);
-        if (stored) {
-          const tokens = JSON.parse(stored);
-          if (tokens?.selectedAccount?.token) {
-            return tokens.selectedAccount.token;
-          }
-          if (Array.isArray(tokens?.accounts) && tokens.accounts.length) {
-            return tokens.accounts[0].token;
-          }
-        }
-      } catch (error) {
-        console.error('Failed to read OAuth tokens', error);
-      }
-
-      try {
-        const apiKey = localStorage.getItem(DERIV_API_KEY_KEY);
-        if (apiKey) {
-          return apiKey;
-        }
-      } catch (error) {
-        console.error('Failed to read API key', error);
-      }
-
+      // Not needed for simulation mode
       return null;
     }
 
-    // Initialize balance display
+    // Initialize sim balance display
     if (derivBalanceValue && derivBalanceCurrency && derivBalanceDisplay) {
-      // Wait for DOM to be ready
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-          updateDerivBalanceDisplay();
-          setInterval(updateDerivBalanceDisplay, 30000);
+          updateSimBalanceDisplay();
         });
       } else {
-        updateDerivBalanceDisplay();
-        setInterval(updateDerivBalanceDisplay, 30000);
+        updateSimBalanceDisplay();
       }
     }
 
@@ -2577,7 +2462,6 @@
     }
     setMartingaleEnabled(true);
     const sharedDependencies = () => ({
-      wsUrl: DERIV_WS_URL,
       defaults: BOT_DEFAULTS,
       markets: VOLATILITY_MARKETS,
       resolveAuthToken
@@ -2590,43 +2474,35 @@
         cardId: 'smartRecoveryDifferCard',
         buttonId: 'openSmartRecoveryDiffer',
         defaultMartingale: 3.1,
-        createInstance: () => new window.SmartRecoveryDifferBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimSmartRecoveryDifferBot(botUI, sharedDependencies())
       },
       {
         key: 'allMarketsDiffer',
         name: 'All Markets Differ',
         cardId: 'allMarketsDifferCard',
         buttonId: 'openAllMarketsDiffer',
-        createInstance: () => new window.AllMarketsDifferBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimAllMarketsDifferBot(botUI, sharedDependencies())
       },
       {
         key: 'allMarketsOver',
         name: 'Random Markets Over 0',
         cardId: 'allMarketsOverCard',
         buttonId: 'openAllMarketsOver',
-        createInstance: () => new window.AllMarketsOverBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimAllMarketsOverBot(botUI, sharedDependencies())
       },
       {
         key: 'allMarketsUnder',
         name: 'Random Markets Under 9',
         cardId: 'allMarketsUnderCard',
         buttonId: 'openAllMarketsUnder',
-        createInstance: () => new window.AllMarketsUnderBot(botUI, sharedDependencies())
-      },
-      {
-        key: 'smartRecoveryDiffer',
-        name: 'Smart Recovery Differ',
-        cardId: 'smartRecoveryDifferCard',
-        buttonId: 'openSmartRecoveryDiffer',
-        defaultMartingale: 3.1,
-        createInstance: () => new window.SmartRecoveryDifferBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimAllMarketsUnderBot(botUI, sharedDependencies())
       },
       {
         key: 'magicRandomBot',
         name: 'Magic Random Strategy',
         cardId: 'magicRandomBotCard',
         buttonId: 'openMagicRandomBot',
-        createInstance: () => new window.MagicRandomBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimMagicRandomBot(botUI, sharedDependencies())
       },
       {
         key: 'smartVolatility',
@@ -2634,7 +2510,7 @@
         cardId: 'smartVolatilityCard',
         buttonId: 'openSmartVolatility',
         supportsMartingale: false,
-        createInstance: () => new window.SmartVolatilityBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimSmartVolatilityBot(botUI, sharedDependencies())
       },
       {
         key: 'smartEven',
@@ -2642,7 +2518,7 @@
         cardId: 'smartEvenCard',
         buttonId: 'openSmartEven',
         defaultMartingale: 3.1,
-        createInstance: () => new window.SmartEvenBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimSmartEvenBot(botUI, sharedDependencies())
       },
       {
         key: 'noTouch',
@@ -2650,7 +2526,7 @@
         cardId: 'noTouchCard',
         buttonId: 'openNoTouch',
         defaultMartingale: 16,
-        createInstance: () => new window.NoTouchBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimNoTouchBot(botUI, sharedDependencies())
       },
       {
         key: 'alienRiseFall',
@@ -2658,7 +2534,7 @@
         cardId: 'alienRiseFallCard',
         buttonId: 'openAlienRiseFall',
         defaultMartingale: 3.1,
-        createInstance: () => new window.AlienRiseFallBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimAlienRiseFallBot(botUI, sharedDependencies())
       },
       {
         key: 'riseFall',
@@ -2666,7 +2542,7 @@
         cardId: 'riseFallCard',
         buttonId: 'openRiseFall',
         defaultMartingale: 3.1,
-        createInstance: () => new window.RiseFallBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimRiseFallBot(botUI, sharedDependencies())
       },
       {
         key: 'smartDiffer',
@@ -2674,7 +2550,7 @@
         cardId: 'smartDifferCard',
         buttonId: 'openSmartDiffer',
         defaultMartingale: 16,
-        createInstance: () => new window.SmartDifferBot(botUI, sharedDependencies())
+        createInstance: () => new window.SimSmartDifferBot(botUI, sharedDependencies())
       }
     ];
 
@@ -2733,10 +2609,7 @@
         botUI.updateBalance(lastKnownBalance, lastKnownCurrency);
       }
 
-      // Low balance recommendation popup: ensure balance is fetched then show once per bot per day when balance < 1000
-      if (typeof fetchBalanceAndShowLowBalancePopupIfNeeded === 'function') {
-        fetchBalanceAndShowLowBalancePopupIfNeeded(key);
-      }
+      // Skip low balance popup in simulation mode
     }
 
     BOT_DEFINITIONS.forEach((def) => {
@@ -2760,6 +2633,7 @@
         botUI.showStatus(validation.message, 'error');
         return;
       }
+      // In simulation mode, bots don't need auth token
       currentBotInstance.start(config);
     });
 
@@ -2767,19 +2641,6 @@
       if (currentBotInstance) {
         currentBotInstance.stop('Bot stopped by user.', 'warning');
       }
-    });
-
-    // SIM Button - Open simulation mode
-    document.getElementById('simButton').addEventListener('click', () => {
-      const balance = prompt('Enter simulation balance (USD):', localStorage.getItem('simBalance') || '1000');
-      if (balance === null) return; // User cancelled
-      const balanceNum = parseFloat(balance);
-      if (isNaN(balanceNum) || balanceNum <= 0) {
-        alert('Please enter a valid balance greater than 0.');
-        return;
-      }
-      localStorage.setItem('simBalance', balanceNum.toString());
-      window.open(`simtrading-bots.html?balance=${balanceNum}`, '_blank');
     });
 
     // Deposit Popup Functions
@@ -2840,39 +2701,15 @@
     const lowBalanceRecommendDeposit = document.getElementById('lowBalanceRecommendDeposit');
 
     function fetchBalanceAndShowLowBalancePopupIfNeeded(botKey) {
-      if (lastKnownBalance != null) {
-        showLowBalanceRecommendPopupIfNeeded(botKey);
-        return;
+      // In simulation mode, use sim balance from URL/localStorage
+      if (lastKnownBalance == null) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const simBalance = parseFloat(urlParams.get('balance')) || parseFloat(localStorage.getItem('simBalance')) || 1000;
+        lastKnownBalance = simBalance;
+        lastKnownCurrency = 'USD';
+        updateSimBalanceDisplay();
       }
-      const token = resolveAuthToken();
-      if (!token) return;
-      const ws = new WebSocket(DERIV_WS_URL);
-      ws.onopen = function () {
-        ws.send(JSON.stringify({ authorize: token, req_id: Date.now() }));
-      };
-      ws.onmessage = function (msg) {
-        try {
-          const response = JSON.parse(msg.data);
-          if (response.error) { ws.close(); return; }
-          if (response.msg_type === 'authorize' && response.authorize) {
-            var balance = Number(response.authorize.balance || 0);
-            var currency = response.authorize.currency || 'USD';
-            lastKnownBalance = balance;
-            lastKnownCurrency = currency;
-            if (derivBalanceValue) derivBalanceValue.textContent = balance.toFixed(2);
-            if (derivBalanceCurrency) derivBalanceCurrency.textContent = currency;
-            if (derivBalanceDisplay) derivBalanceDisplay.classList.remove('disconnected');
-            ws.close();
-            showLowBalanceRecommendPopupIfNeeded(botKey);
-          }
-        } catch (e) { ws.close(); }
-      };
-      ws.onerror = function () { ws.close(); };
-      setTimeout(function () {
-        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-          ws.close();
-        }
-      }, 5000);
+      showLowBalanceRecommendPopupIfNeeded(botKey);
     }
 
     function getLowBalanceRecommendStorageKey(botKey) {
