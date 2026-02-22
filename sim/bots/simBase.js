@@ -42,18 +42,46 @@ class SimBase {
     return parseFloat((stake * payoutRate).toFixed(2));
   }
 
-  // Simulate a trade outcome based on contract type
+  // Simulate a trade outcome based on contract type (random, no constraints)
   simulateTrade(contractType) {
     const winProb = this.WIN_PROBS[contractType] || 0.5;
     return Math.random() < winProb;
   }
 
-  // Simulate contract duration (in milliseconds)
-  // 1 tick ≈ 1-2 seconds, 5 ticks ≈ 5-10 seconds
+  // Simulate trade with constraints: max 2 consecutive losses for digit bots, max 3 losses in 10 recent trades
+  simulateTradeWithConstraints(contractType, isDigitBot, consecutiveLosses, tradeHistory) {
+    const last10 = tradeHistory.slice(-10);
+    const lossesIn10 = last10.filter(w => !w).length;
+
+    // Digit bots: max 2 consecutive losses
+    if (isDigitBot && consecutiveLosses >= 2) {
+      return true; // Force win
+    }
+    // All bots: max 3 losses in last 10 trades
+    if (lossesIn10 >= 3) {
+      return true; // Force win to avoid 4th loss in window
+    }
+    // Otherwise random simulation
+    return this.simulateTrade(contractType);
+  }
+
+  // Realistic contract duration (ms) - matches real trade frequency per bot type
+  // 1 tick digit: ~2.5-4.5 sec, 2 ticks: ~4-7 sec, 5 ticks: ~8-14 sec
   getContractDuration(ticks) {
-    const baseDelay = ticks === 1 ? 1000 : ticks === 2 ? 2000 : ticks * 1000;
-    const variance = baseDelay * 0.3; // ±30% variance
-    return baseDelay + (Math.random() * variance * 2 - variance);
+    if (ticks === 1) {
+      return 2500 + Math.random() * 2000; // 2.5-4.5 sec
+    }
+    if (ticks === 2) {
+      return 4000 + Math.random() * 3000; // 4-7 sec
+    }
+    return 8000 + Math.random() * 6000; // 8-14 sec for 5 ticks
+  }
+
+  // Delay before next trade (ms) - proposal/processing time
+  getNextTradeDelay(ticks) {
+    if (ticks === 1) return 800 + Math.random() * 500;   // 0.8-1.3 sec for digit
+    if (ticks === 2) return 1000 + Math.random() * 700;  // 1-1.7 sec
+    return 1500 + Math.random() * 1000;                 // 1.5-2.5 sec for 5-tick
   }
 
   // Generate random digit (0-9)

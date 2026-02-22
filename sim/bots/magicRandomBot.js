@@ -28,6 +28,7 @@
       this.runningTimer = null;
       this.tradeTimeout = null;
       this.pendingStopReason = null;
+      this.tradeHistory = [];
     }
 
     async start(config) {
@@ -43,6 +44,7 @@
       this.wins = 0;
       this.consecutiveLosses = 0;
       this.pendingStopReason = null;
+      this.tradeHistory = [];
       this.ui.resetHistory();
       this.ui.updateBalance(this.balance, this.accountCurrency);
       this.ui.updateStats(this.getStatsSnapshot());
@@ -112,7 +114,7 @@
     executeTrade(market, contractType, displayDigit) {
       if (!this.isRunning || this.stopRequested) return;
 
-      const win = this.simBase.simulateTrade(contractType);
+      const win = this.simBase.simulateTradeWithConstraints(contractType, true, this.consecutiveLosses, this.tradeHistory);
       const profit = this.simBase.calculateProfit(this.currentStake, contractType, win);
       this.balance = parseFloat((this.balance + profit).toFixed(2));
 
@@ -144,17 +146,27 @@
       this.ui.updateBalance(this.balance, this.accountCurrency);
       this.ui.updateStats(this.getStatsSnapshot());
 
+      this.tradeHistory.push(win);
+      if (this.tradeHistory.length > 10) this.tradeHistory.shift();
       this.tradeInProgress = false;
 
       // Check stop conditions (but only stop after a win)
       if (this.config.takeProfit > 0 && this.totalProfit >= this.config.takeProfit) {
+        const stats = this.getStatsSnapshot();
+        if (window.PopupNotifications) {
+          window.PopupNotifications.showTakeProfit({ profit: stats.totalProfit, trades: stats.totalTrades, time: stats.runningTime });
+        }
         this.pendingStopReason = { message: 'Take profit reached. Stopping after next win...', type: 'success' };
       } else if (this.config.stopLoss > 0 && this.totalProfit <= -Math.abs(this.config.stopLoss)) {
+        const stats = this.getStatsSnapshot();
+        if (window.PopupNotifications) {
+          window.PopupNotifications.showStopLoss({ profit: stats.totalProfit, trades: stats.totalTrades, time: stats.runningTime });
+        }
         this.pendingStopReason = { message: 'Stop loss hit. Stopping after next win...', type: 'error' };
       }
 
       if (this.shouldStop()) return;
-      setTimeout(() => this.queueNextTrade(), 900);
+      setTimeout(() => this.queueNextTrade(), this.simBase.getNextTradeDelay(1));
     }
 
     shouldStop() {

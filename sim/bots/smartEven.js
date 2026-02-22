@@ -24,6 +24,7 @@
       this.runningTimer = null;
       this.tradeTimeout = null;
       this.currentChoice = null; // 'EVEN' or 'ODD'
+      this.tradeHistory = [];
     }
 
     async start(config) {
@@ -38,6 +39,7 @@
       this.totalTrades = 0;
       this.wins = 0;
       this.consecutiveLosses = 0;
+      this.tradeHistory = [];
       this.ui.resetHistory();
       this.ui.updateBalance(this.balance, this.accountCurrency);
       this.ui.updateStats(this.getStatsSnapshot());
@@ -83,7 +85,7 @@
       if (!this.isRunning || this.stopRequested) return;
 
       const contractType = choice === 'EVEN' ? 'DIGITEVEN' : 'DIGITODD';
-      const win = this.simBase.simulateTrade(contractType);
+      const win = this.simBase.simulateTradeWithConstraints(contractType, true, this.consecutiveLosses, this.tradeHistory);
       const profit = this.simBase.calculateProfit(this.currentStake, contractType, win);
       this.balance = parseFloat((this.balance + profit).toFixed(2));
 
@@ -110,17 +112,27 @@
       this.ui.updateBalance(this.balance, this.accountCurrency);
       this.ui.updateStats(this.getStatsSnapshot());
 
+      this.tradeHistory.push(win);
+      if (this.tradeHistory.length > 10) this.tradeHistory.shift();
       this.tradeInProgress = false;
       if (this.shouldStop()) return;
-      setTimeout(() => this.queueNextTrade(), 900);
+      setTimeout(() => this.queueNextTrade(), this.simBase.getNextTradeDelay(1));
     }
 
     shouldStop() {
       if (this.config.takeProfit > 0 && this.totalProfit >= this.config.takeProfit) {
+        const stats = this.getStatsSnapshot();
+        if (window.PopupNotifications) {
+          window.PopupNotifications.showTakeProfit({ profit: stats.totalProfit, trades: stats.totalTrades, time: stats.runningTime });
+        }
         this.stop('Take profit reached. Bot stopped.', 'success');
         return true;
       }
       if (this.config.stopLoss > 0 && this.totalProfit <= -Math.abs(this.config.stopLoss)) {
+        const stats = this.getStatsSnapshot();
+        if (window.PopupNotifications) {
+          window.PopupNotifications.showStopLoss({ profit: stats.totalProfit, trades: stats.totalTrades, time: stats.runningTime });
+        }
         this.stop('Stop loss hit. Bot stopped.', 'error');
         return true;
       }
