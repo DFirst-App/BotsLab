@@ -2878,6 +2878,10 @@
           clearTimers();
         };
         lowBalanceRecommendPopup.onmouseleave = function () { hovered = false; };
+        lowBalanceRecommendPopup.ontouchstart = function () {
+          hovered = true;
+          clearTimers();
+        };
       }
 
       secondsLeft = 5;
