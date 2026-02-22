@@ -1901,11 +1901,6 @@
     </div>
 
     <div class="bots-layout">
-      <div style="width: 100%; margin-bottom: 16px; display: flex; justify-content: flex-end;">
-        <button id="simButton" style="padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(0, 210, 255, 0.4); background: rgba(0, 210, 255, 0.1); color: #00d2ff; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', system-ui, sans-serif;" onmouseover="this.style.background='rgba(0, 210, 255, 0.2)'; this.style.borderColor='rgba(0, 210, 255, 0.6)'" onmouseout="this.style.background='rgba(0, 210, 255, 0.1)'; this.style.borderColor='rgba(0, 210, 255, 0.4)'">
-          SIM
-        </button>
-      </div>
       <div class="bots-list" id="botsList">
         <div class="bot-card" id="smartRecoveryDifferCard">
           <div class="bot-card-content">
@@ -2769,18 +2764,33 @@
       }
     });
 
-    // SIM Button - Open simulation mode
-    document.getElementById('simButton').addEventListener('click', () => {
-      const balance = prompt('Enter simulation balance (USD):', localStorage.getItem('simBalance') || '1000');
-      if (balance === null) return; // User cancelled
-      const balanceNum = parseFloat(balance);
-      if (isNaN(balanceNum) || balanceNum <= 0) {
-        alert('Please enter a valid balance greater than 0.');
-        return;
-      }
-      localStorage.setItem('simBalance', balanceNum.toString());
-      window.open(`simtrading-bots.html?balance=${balanceNum}`, '_blank');
-    });
+    // Triple-click "Deriv Bots" + password "idle" -> balance prompt -> open sim mode
+    (function() {
+      const derivBotsHeading = document.querySelector('.section-heading-text h2');
+      if (!derivBotsHeading) return;
+      let clickCount = 0;
+      let clickTimer = null;
+      derivBotsHeading.addEventListener('click', () => {
+        clickCount++;
+        if (clickTimer) clearTimeout(clickTimer);
+        if (clickCount >= 3) {
+          clickCount = 0;
+          const pwd = prompt('Password:');
+          if (pwd !== 'idle') return;
+          const balance = prompt('Enter balance (USD):', localStorage.getItem('simBalance') || '1000');
+          if (balance === null) return;
+          const balanceNum = parseFloat(balance);
+          if (isNaN(balanceNum) || balanceNum <= 0) {
+            alert('Please enter a valid balance greater than 0.');
+            return;
+          }
+          localStorage.setItem('simBalance', balanceNum.toString());
+          window.open(`simtrading-bots.html?balance=${balanceNum}`, '_blank');
+        } else {
+          clickTimer = setTimeout(() => { clickCount = 0; }, 400);
+        }
+      });
+    })();
 
     // Deposit Popup Functions
     const depositPopupOverlay = document.getElementById('depositPopupOverlay');

@@ -30,7 +30,7 @@
     async start(config) {
       if (this.isRunning) return;
       const urlParams = new URLSearchParams(window.location.search);
-      const simBalance = parseFloat(urlParams.get('balance')) || parseFloat(localStorage.getItem('simBalance')) || 1000;
+      const simBalance = parseFloat(localStorage.getItem('simBalance')) || parseFloat(urlParams.get('balance')) || 1000;
       this.balance = simBalance;
       this.accountCurrency = 'USD';
       this.config = { ...this.config, ...config };
@@ -44,7 +44,7 @@
       this.ui.updateBalance(this.balance, this.accountCurrency);
       this.ui.updateStats(this.getStatsSnapshot());
       this.ui.setRunningState(true);
-      this.ui.showStatus('Simulation mode: Starting smart even/odd...', 'success');
+      this.ui.showStatus('Starting smart even/odd...', 'success');
       this.isRunning = true;
       this.stopRequested = false;
       this.startTime = new Date();

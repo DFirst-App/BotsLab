@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- Primary Meta Tags -->
-  <title>Simulation Mode - Trading Bots | Magic Automation Lab</title>
+  <title>Download Free Trading Bots - AI Bots, XAUUSD, Forex, Crypto & Binary Options | Magic Automation Lab</title>
   <meta name="title" content="Download Free Trading Bots - AI Bots, XAUUSD, Forex, Crypto & Binary Options">
   <meta name="description" content="Magic Automation Lab - Download free automated trading bots for forex, crypto, binary options, XAUUSD, gold, EURUSD, GBPUSD, and Bitcoin. 10+ professional AI-powered bots with smart recovery, risk management, and real-time signals. Free download - start automated trading today.">
   <meta name="keywords" content="magic lab, magic bots, magic automation lab, magicbotslab, automated trading bots, forex trading bots, crypto trading bots, binary options bots, free trading bots, free automated bots, mt5 free bots, mt5 free, free mt5 bots, download trading bots, AI trading bots, XAUUSD bots, gold trading bots, EURUSD bots, GBPUSD bots, BTC bots, Bitcoin trading bots, Ethereum bots, algorithmic trading, trading automation, forex robots, crypto robots, trading signals, automated forex, trading software, volatility trading, digit trading, deriv bots, deriv trading bots, smart volatility bot, magic random bot, rise fall bot, no touch bot, smart differ bot, all markets bot, trading bot download, free EA download, profitable trading bots, best trading bots, automated trading system, trading algorithm, bot trading, trading automation software, free forex robots, free crypto bots, binary options automation, volatility trading bots, digit trading bots, smart money bots, trading signals free, real-time trading signals, professional trading bots, free automated trading bots, free automated trading, free bots, magic trading bots, magic automation, magic bot lab">
@@ -1873,8 +1873,8 @@
 
     <div class="section-heading" id="sectionHeading">
       <div class="section-heading-text">
-        <h2>Simulation Mode - Trading Bots</h2>
-        <p>Test bots with simulated balance. No real money involved.</p>
+        <h2>Deriv Bots</h2>
+        <p>Choose any bot and start automated trading with smart risk management.</p>
       </div>
       <div class="deriv-balance-display" id="derivBalanceDisplay">
         <span class="deriv-balance-label">Balance</span>
@@ -2091,7 +2091,7 @@
                 <div class="config-actions">
                   <button class="primary-btn btn-liquid-glow" id="startBotBtn">Start Bot</button>
                   <button class="secondary-btn" id="stopBotBtn" disabled>Stop Bot</button>
-                  <div class="status-text" id="accountHint">Simulation mode: No account connection needed.</div>
+                  <div class="status-text" id="accountHint">Connect your Deriv account from the dashboard before running bots.</div>
                 </div>
               </div>
             </div>
@@ -2233,9 +2233,16 @@
     const derivBalanceCurrency = document.getElementById('derivBalanceCurrency');
     const derivBalanceDisplay = document.getElementById('derivBalanceDisplay');
 
-    function updateSimBalanceDisplay() {
+    const SIM_STATE_KEY = 'simState';
+    const SIM_BALANCE_KEY = 'simBalance';
+
+    function getSimBalance() {
       const urlParams = new URLSearchParams(window.location.search);
-      const simBalance = parseFloat(urlParams.get('balance')) || parseFloat(localStorage.getItem('simBalance')) || 1000;
+      return parseFloat(localStorage.getItem(SIM_BALANCE_KEY)) || parseFloat(urlParams.get('balance')) || 1000;
+    }
+
+    function updateSimBalanceDisplay() {
+      const simBalance = getSimBalance();
       const currency = 'USD';
       lastKnownBalance = simBalance;
       lastKnownCurrency = currency;
@@ -2297,17 +2304,6 @@
     function resolveAuthToken() {
       // Not needed for simulation mode
       return null;
-    }
-
-    // Initialize sim balance display
-    if (derivBalanceValue && derivBalanceCurrency && derivBalanceDisplay) {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          updateSimBalanceDisplay();
-        });
-      } else {
-        updateSimBalanceDisplay();
-      }
     }
 
     function initBotUI() {
@@ -2372,6 +2368,15 @@
           }
           statusBadge.dataset.state = isRunning ? 'running' : 'idle';
           statusBadge.textContent = isRunning ? 'Running' : 'Idle';
+          if (!isRunning) {
+            try {
+              const state = JSON.parse(localStorage.getItem(SIM_STATE_KEY) || '{}');
+              if (state.running) {
+                state.running = false;
+                localStorage.setItem(SIM_STATE_KEY, JSON.stringify(state));
+              }
+            } catch (e) {}
+          }
         },
         showStatus(message, type = 'info') {
           statusText.textContent = message;
@@ -2397,6 +2402,11 @@
           lastKnownBalance = value;
           lastKnownCurrency = currency;
           balanceValue.textContent = `${currency} ${Number(value).toFixed(2)}`;
+          try {
+            localStorage.setItem(SIM_BALANCE_KEY, String(value));
+            if (derivBalanceValue) derivBalanceValue.textContent = Number(value).toFixed(2);
+            if (derivBalanceCurrency) derivBalanceCurrency.textContent = currency;
+          } catch (e) {}
         },
         updateStats(stats) {
           totalProfitValue.textContent = `${stats.totalProfit >= 0 ? '+' : ''}$${stats.totalProfit.toFixed(2)}`;
@@ -2633,7 +2643,13 @@
         botUI.showStatus(validation.message, 'error');
         return;
       }
-      // In simulation mode, bots don't need auth token
+      try {
+        localStorage.setItem(SIM_STATE_KEY, JSON.stringify({
+          running: true,
+          botKey: currentBotKey,
+          config: config
+        }));
+      } catch (e) {}
       currentBotInstance.start(config);
     });
 
@@ -2701,11 +2717,8 @@
     const lowBalanceRecommendDeposit = document.getElementById('lowBalanceRecommendDeposit');
 
     function fetchBalanceAndShowLowBalancePopupIfNeeded(botKey) {
-      // In simulation mode, use sim balance from URL/localStorage
       if (lastKnownBalance == null) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const simBalance = parseFloat(urlParams.get('balance')) || parseFloat(localStorage.getItem('simBalance')) || 1000;
-        lastKnownBalance = simBalance;
+        lastKnownBalance = getSimBalance();
         lastKnownCurrency = 'USD';
         updateSimBalanceDisplay();
       }
@@ -2809,6 +2822,54 @@
         hideLowBalanceRecommendPopup();
       }
     });
+
+    function tryResumeSimulation() {
+      try {
+        const raw = localStorage.getItem(SIM_STATE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (!state.running || !state.botKey || !state.config) return;
+        const def = BOT_DEFINITION_MAP[state.botKey];
+        if (!def) return;
+        const cfg = state.config;
+        const si = document.getElementById('stakeInput');
+        const tpi = document.getElementById('takeProfitInput');
+        const sli = document.getElementById('stopLossInput');
+        if (si) si.value = cfg.initialStake ?? BOT_DEFAULTS.initialStake;
+        if (tpi) tpi.value = cfg.takeProfit ?? BOT_DEFAULTS.takeProfit;
+        if (sli) sli.value = cfg.stopLoss ?? BOT_DEFAULTS.stopLoss;
+        if (martingaleInputEl && def.supportsMartingale !== false) {
+          martingaleInputEl.value = cfg.martingaleMultiplier ?? def.defaultMartingale ?? BOT_DEFAULTS.martingaleMultiplier;
+        }
+        currentBotKey = state.botKey;
+        currentBotInstance = getBotInstance(state.botKey);
+        activeBotName.textContent = def.name;
+        currentMartingaleDefault = def.defaultMartingale ?? BOT_DEFAULTS.martingaleMultiplier;
+        setMartingaleEnabled(def.supportsMartingale !== false);
+        const martingaleCaption = document.getElementById('martingaleCaption');
+        if (martingaleCaption) {
+          martingaleCaption.textContent = `Default ×${currentMartingaleDefault}. Applies after each loss.`;
+        }
+        setActiveCard(state.botKey);
+        openBotPanelUI();
+        const bal = getSimBalance();
+        lastKnownBalance = bal;
+        botUI.updateBalance(bal, lastKnownCurrency);
+        currentBotInstance.start(cfg);
+      } catch (e) {}
+    }
+
+    if (derivBalanceValue && derivBalanceCurrency && derivBalanceDisplay) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          updateSimBalanceDisplay();
+          tryResumeSimulation();
+        });
+      } else {
+        updateSimBalanceDisplay();
+        tryResumeSimulation();
+      }
+    }
   </script>
 </body>
 </html>

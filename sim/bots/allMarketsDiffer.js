@@ -39,7 +39,7 @@
 
       // Get sim balance from URL or localStorage
       const urlParams = new URLSearchParams(window.location.search);
-      const simBalance = parseFloat(urlParams.get('balance')) || parseFloat(localStorage.getItem('simBalance')) || 1000;
+      const simBalance = parseFloat(localStorage.getItem('simBalance')) || parseFloat(urlParams.get('balance')) || 1000;
       this.balance = simBalance;
       this.accountCurrency = 'USD';
 
@@ -58,7 +58,7 @@
       this.ui.updateBalance(this.balance, this.accountCurrency);
       this.ui.updateStats(this.getStatsSnapshot());
       this.ui.setRunningState(true);
-      this.ui.showStatus('Simulation mode: Starting digit differ sequence...', 'success');
+      this.ui.showStatus('Starting digit differ sequence...', 'success');
 
       this.isRunning = true;
       this.stopRequested = false;
