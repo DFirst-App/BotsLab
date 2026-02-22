@@ -466,16 +466,18 @@
     }
 
     .feature-badges {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 20px;
-      justify-content: center;
+      justify-items: stretch;
+      align-items: stretch;
     }
 
     .feature-badge {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       padding: 8px 14px;
       border-radius: 10px;
@@ -503,6 +505,7 @@
       background: linear-gradient(135deg, rgba(255, 122, 24, 0.15), rgba(255, 122, 24, 0.08));
       border-color: rgba(255, 122, 24, 0.3);
       color: #ff7a18;
+      grid-column: 1 / -1;
     }
 
     .feature-badge-icon {
@@ -1970,15 +1973,12 @@
         <!-- Feature Badges -->
         <div class="feature-badges">
           <span class="feature-badge deriv-bots">
-            <span class="feature-badge-icon">🤖</span>
             <span>Deriv Bots</span>
           </span>
           <span class="feature-badge mt5-bots">
-            <span class="feature-badge-icon">📊</span>
             <span>MT5 Bots</span>
           </span>
           <span class="feature-badge download-mt5">
-            <span class="feature-badge-icon">⬇️</span>
             <span>Download MT5 Bots For Free</span>
           </span>
         </div>
