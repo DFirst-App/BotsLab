@@ -322,8 +322,9 @@
 
       const profit = parseFloat(contract.profit) || 0;
       const win = profit > 0;
+      const stake = parseFloat(contract.buy_price) || this.currentStake;
       this.updateStats({
-        stake: this.currentStake,
+        stake,
         profit,
         win,
         market: this.symbol,

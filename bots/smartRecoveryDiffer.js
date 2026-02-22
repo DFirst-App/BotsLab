@@ -521,7 +521,7 @@
       if (contract.is_sold) {
         const isWin = contract.profit > 0;
         const profit = parseFloat(contract.profit) || 0;
-        const stake = parseFloat(contract.sell_price || contract.buy_price || this.currentStake) || this.currentStake;
+        const stake = parseFloat(contract.buy_price) || this.currentStake;
 
         this.totalProfit = parseFloat((this.totalProfit + profit).toFixed(2));
         this.totalTrades += 1;

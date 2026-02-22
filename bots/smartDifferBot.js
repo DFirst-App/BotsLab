@@ -371,13 +371,14 @@
       if (contract.is_sold) {
         const profit = parseFloat(contract.profit) || 0;
         const win = profit > 0;
+        const stake = parseFloat(contract.buy_price) || this.currentStake;
 
         this.updateStats({
           profit,
           win,
           market: this.currentMarket,
           digit: this.currentDigit,
-          stake: this.currentStake
+          stake
         });
 
         this.tradeInProgress = false;
