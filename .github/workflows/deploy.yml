@@ -43,6 +43,10 @@ jobs:
             echo "✅ Copied bots/ directory"
           fi
           
+          # Copy root assets (sitemap, robots, favicon, Bing verification)
+          for f in sitemap.xml robots.txt favicon.svg BingSiteAuth.xml; do
+            if [ -f "$f" ]; then cp "$f" web-build/ && echo "✅ Copied $f"; fi
+          done
           # Create .nojekyll file to ensure GitHub Pages serves all files
           touch web-build/.nojekyll
           echo "✅ Created .nojekyll file"
