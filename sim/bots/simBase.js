@@ -3,11 +3,11 @@
 
 class SimBase {
   constructor() {
-    // Payout percentages (gross return with no markup)
+    // Payout percentages
     this.PAYOUTS = {
-      DIGITDIFF: 0.0619,         // ~6.19% gross return
-      DIGITOVER_0: 0.95,         // 95% gross return (~90% win prob)
-      DIGITUNDER_9: 0.95,        // 95% gross return (~90% win prob)
+      DIGITDIFF: 0.06,           // 6% net return with 3% markup
+      DIGITOVER_0: 0.06,         // 6% net return with 3% markup
+      DIGITUNDER_9: 0.06,        // 6% net return with 3% markup
       DIGITOVER_4: 0.95,         // 95% gross return (~60% win prob)
       DIGITUNDER_5: 0.95,        // 95% gross return (~60% win prob)
       DIGITEVEN: 0.96,           // 96% gross return (~50% win prob)
