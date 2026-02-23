@@ -3,18 +3,18 @@
 
 class SimBase {
   constructor() {
-    // Payout percentages (net return after 3% markup)
+    // Payout percentages (gross return with no markup)
     this.PAYOUTS = {
-      DIGITDIFF: 0.06,           // 6% net return
-      DIGITOVER_0: 0.9215,       // 92.15% net return (~90% win prob)
-      DIGITUNDER_9: 0.9215,      // 92.15% net return (~90% win prob)
-      DIGITOVER_4: 0.9215,       // 92.15% net return (~60% win prob)
-      DIGITUNDER_5: 0.9215,      // 92.15% net return (~60% win prob)
-      DIGITEVEN: 0.9312,         // 93.12% net return (~50% win prob)
-      DIGITODD: 0.9312,          // 93.12% net return (~50% win prob)
-      CALL: 0.7275,              // 72.75% net return (~50% win prob)
-      PUT: 0.7275,               // 72.75% net return (~50% win prob)
-      NOTOUCH: 1.455             // 145.5% net return (~20-40% win prob)
+      DIGITDIFF: 0.0619,         // ~6.19% gross return
+      DIGITOVER_0: 0.95,         // 95% gross return (~90% win prob)
+      DIGITUNDER_9: 0.95,        // 95% gross return (~90% win prob)
+      DIGITOVER_4: 0.95,         // 95% gross return (~60% win prob)
+      DIGITUNDER_5: 0.95,        // 95% gross return (~60% win prob)
+      DIGITEVEN: 0.96,           // 96% gross return (~50% win prob)
+      DIGITODD: 0.96,            // 96% gross return (~50% win prob)
+      CALL: 0.75,                // 75% gross return (~50% win prob)
+      PUT: 0.75,                 // 75% gross return (~50% win prob)
+      NOTOUCH: 1.5               // 150% gross return (~20-40% win prob)
     };
 
     // Win probabilities
