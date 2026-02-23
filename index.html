@@ -2090,10 +2090,10 @@
     <!-- Action Buttons Container (shown when connected) -->
     <div class="action-buttons-container" id="actionButtonsContainer">
       <div class="action-buttons">
-        <a href="https://p2p.deriv.com/advertiser/426826?advert_id=3182910&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn deposit-btn">
+        <a href="https://app.deriv.com/cashier/deposit?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn deposit-btn">
           <span class="btn-label">Deposit</span>
         </a>
-        <a href="https://p2p.deriv.com/advertiser/426826?advert_id=3202284&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn withdraw-btn">
+        <a href="https://app.deriv.com/cashier/withdrawal?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk" target="_blank" rel="noopener" class="action-btn withdraw-btn">
           <span class="btn-label">Withdraw</span>
         </a>
         <a href="trading-bots.html" class="action-btn trading-btn">
@@ -2145,8 +2145,11 @@
 
     const CREATE_MT5_URL = 'https://app.deriv.com/?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
     const CREATE_API_KEY_URL = 'https://app.deriv.com/account/api-token?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
-    const DEPOSIT_URL = 'https://p2p.deriv.com/advertiser/426826?advert_id=3182910&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
-    const WITHDRAW_URL = 'https://p2p.deriv.com/advertiser/426826?advert_id=3202284&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+    // Temporarily pause P2P cashier links (kept for future use):
+    // const P2P_DEPOSIT_URL = 'https://p2p.deriv.com/advertiser/426826?advert_id=3182910&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+    // const P2P_WITHDRAW_URL = 'https://p2p.deriv.com/advertiser/426826?advert_id=3202284&t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+    const DEPOSIT_URL = 'https://app.deriv.com/cashier/deposit?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
+    const WITHDRAW_URL = 'https://app.deriv.com/cashier/withdrawal?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
     const TRADING_BOTS_URL = 'https://app.deriv.com/bot?t=_30qaRjl291dMjdsyM5hasGNd7ZgqdRLk';
 
     const apiKeySectionEl = document.getElementById('apiKeySection');
